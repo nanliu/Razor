@@ -1,0 +1,1 @@
+# This script is used for configuring the Razor environmental variables
