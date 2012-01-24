@@ -1,13 +1,13 @@
 require "rspec"
 require "../lib/common/rz_configuration"
-require "../lib/common/rz_persist"
+require "../lib/common/rz_persist_controller"
 
-describe "RZPersist" do
+describe "RzPersistController" do
 
   it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
     config = RZConfiguration.new
     config.persist_mode = :mongo
-    persist = RZPersist.new(config)
+    persist = RzPersistController.new(config)
     persist.persist_obj.class.should == RzPersistMongo
   end
 

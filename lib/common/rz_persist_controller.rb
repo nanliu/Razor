@@ -4,7 +4,7 @@
 require_relative "rz_configuration"
 require_relative "rz_persist_mongo"
 
-class RZPersist
+class RzPersistController
        attr_accessor :persist_obj
        # @param config [RZConfiguration]
        def initialize(config)
