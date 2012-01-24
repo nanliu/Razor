@@ -1,15 +1,18 @@
 #### Razor
-version: <>
 
 ####  Project description
-Razor a powerful deployment application for bare-metal and virtual servers. It enables you to manage the life-cycle
-servers including integration
+Razor a powerful deployment application for bare-metal and virtual servers.
 
 ####  Prereqs
-<>
+GEMS:
+mongo(if using mongo)
+bson
+bson_ext
+rspec(if using unit tests)
+yaml
 
 ####  Installation instructions
-<>
+
 
 #### Misc
 Contributors:
