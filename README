@@ -2,7 +2,8 @@
 version: <>
 
 ####  Project description
-<>
+Razor a powerful deployment application for bare-metal and virtual servers. It enables you to manage the life-cycle
+servers including integration
 
 ####  Prereqs
 <>
@@ -11,4 +12,6 @@ version: <>
 <>
 
 #### Misc
-This file was modified by JetBrains RubyMine 3.2.4 for binding GitHub repository
+Contributors:
+Tom McSweeney
+Nicholas Weaver
