@@ -7,19 +7,17 @@ require "rz_configuration"
 require "rz_persist_controller"
 
 describe RZPersistController do
+  before(:each) do
+        @config = RZConfiguration.new
+        @config.persist_mode = :mongo
+        @persist = RZPersistController.new(@config)
+  end
 
+  after(:each) do
+        @persist.teardown
+  end
 
   describe ".Initialize" do
-    before(:each) do
-      @config = RZConfiguration.new
-      @config.persist_mode = :mongo
-      @persist = RZPersistController.new(@config)
-    end
-
-    after(:each) do
-      @persist.teardown
-    end
-
     it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
       @persist.persist_obj.class.should == RZPersistMongo
     end
@@ -28,33 +26,39 @@ describe RZPersistController do
       @persist.config.should == @config
     end
 
-    describe ".Connection" do
-      it "should connect to DatabaseEngine successfully using details in config" do
-        @persist.is_connected?.should == true
-      end
+    it "should have established a connection on initialization" do
+      @persist.is_connected?.should == true
+    end
 
-      it "should disconnect from DatabaseEngine successfully when teardown called" do
-        if @persist.check_connection  # make sure we have it open
-          @persist.teardown  # do teardown
-          @persist.is_connected?.should == false  # should be false now
-        else
-          false # without an open connection we can't test
-        end
-      end
+  end
 
-      it "should reconnect should the connection drop/timeout" do
-        if @persist.check_connection  # make sure we have it open
-          @persist.teardown  # do teardown to break connection
-          if !@persist.is_connected?  # make sure it is not connected
-            @persist.check_connection.should == true  # should reconnect
-          else
-            false # we couldn't kill the connection for some reason
-          end
-        else
-          false # without an open connection we can't test
-        end
+  describe ".Connection" do
+    it "should connect to DatabaseEngine successfully using details in config" do
+      @persist.is_connected?.should == true
+    end
+
+    it "should disconnect from DatabaseEngine successfully when teardown called" do
+      if @persist.check_connection  # make sure we have it open
+        @persist.teardown  # do teardown
+        @persist.is_connected?.should == false  # should be false now
+      else
+        false # without an open connection we can't test
       end
     end
+
+    it "should reconnect should the connection drop/timeout" do
+      if @persist.check_connection  # make sure we have it open
+        @persist.teardown  # do teardown to break connection
+        if !@persist.is_connected?  # make sure it is not connected
+          @persist.check_connection.should == true  # should reconnect
+        else
+          false # we couldn't kill the connection for some reason
+        end
+      else
+        false # without an open connection we can't test
+      end
+    end
+  end
 
     describe ".DatabaseBinding" do
       before(:each) do
@@ -69,7 +73,8 @@ describe RZPersistController do
         @persist.persist_obj.is_db_selected?.should == true
       end
     end
-  end
+
+
 
   describe ".Model" do
     it "should add a Model to the Model collection"
@@ -109,5 +114,4 @@ describe RZPersistController do
       it "should get an array of all nodes NextState"
     end
   end
-
 end
