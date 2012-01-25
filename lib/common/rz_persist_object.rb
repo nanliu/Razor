@@ -5,7 +5,7 @@
 # All keys are assumed to be simple string and all values are assumed to be YAML string
 
 # This adds Razor Common lib path to the load path for this child proc
-$LOAD_PATH << "#{ENV['RAZOR_PATH']}lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 
 class RzPersistObject

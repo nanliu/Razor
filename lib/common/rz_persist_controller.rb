@@ -3,7 +3,7 @@
 # You cannot change database type after init
 
 # This adds Razor Common lib path to the load path for this child proc
-$LOAD_PATH << "#{ENV['RAZOR_PATH']}lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "rz_configuration"
 require "rz_persist_mongo"
