@@ -8,12 +8,9 @@ class RzPersistController
        attr_accessor :persist_obj
        # @param config [RZConfiguration]
        def initialize(config)
-
-
           # init correct database object
           if (config.persist_mode = :mongo)
             @persist_obj = RzPersistMongo.new
           end
-
        end
 end
