@@ -10,6 +10,8 @@ bson
 bson_ext
 rspec(if using unit tests)
 yaml
+syntax
+
 
 #### Environment variables needed
 RAZOR_HOME = root directory for Razor
