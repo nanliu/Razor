@@ -17,7 +17,7 @@ describe RZPersistController do
     end
 
     after(:each) do
-      # nothing to do
+      @persist.teardown
     end
 
     it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
@@ -30,22 +30,31 @@ describe RZPersistController do
 
     describe ".Connection" do
       it "should connect to DatabaseEngine successfully using details in config" do
-        @persist.connect_database.should == true
-        @persist.disconnect_database
+        @persist.is_connected?.should == true
       end
-      it "should disconnect from DatabaseEngine successfully" do
-        @persist.connect_database
-        @persist.disconnect_database.should == false
+
+      it "should disconnect from DatabaseEngine successfully when teardown called" do
+        if @persist.check_connection  # make sure we have it open
+          @persist.teardown  # do teardown
+          @persist.is_connected?.should == false  # should be false now
+        else
+          false # without an open connection we can't test
+        end
+
+      end
+
+      it "should reconnect should the connection drop/timeout" do
+
       end
     end
 
     describe ".DatabaseBinding" do
       before(:each) do
-        @persist.connect_database
+        @persist.check_connection
       end
 
       after(:each) do
-        @persist.disconnect_database
+        @persist.teardown
       end
 
       it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
