@@ -44,12 +44,12 @@ class RZPersistMongo < RZPersistObject
     model_hash_array
   end
 
-  def update(guid, model)
-
+  def model_update(id, model_hash)
+    model_collection.update({"_id" => id}, model_hash)
   end
 
-  def insert(guid, model)
-
+  def model_insert(model_hash)
+    model_collection.insert(model_hash)
   end
 
 

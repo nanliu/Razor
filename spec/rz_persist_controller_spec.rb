@@ -78,7 +78,9 @@ describe RZPersistController do
 
     end
 
-    it "should insert a Model to the Model collection"
+    it "should insert a Model to the Model collection" do
+
+    end
     it "should read a Model from the Model collection"
     it "should return a array of Models from the Model collection" do
       model_array = @persist.model_get_all
