@@ -9,5 +9,10 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 
 class RzPersistObject
-  # To change this template use File | Settings | File Templates.
+  def initialize
+
+  end
+
+
+
 end

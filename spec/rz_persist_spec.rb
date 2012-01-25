@@ -8,13 +8,24 @@ require "rz_persist_controller"
 
 describe RzPersistController do
 
-  describe ".init" do
-    it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
-      config = RZConfiguration.new
-      config.persist_mode = :mongo
-      persist = RzPersistController.new(config)
-      persist.persist_obj.class.should == RzPersistMongo
+
+  describe ".Initialize" do
+    before(:each) do
+      @config = RZConfiguration.new
+      @config.persist_mode = :mongo
+      @persist = RzPersistController.new(@config)
     end
+
+    it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
+      @persist.persist_obj.class.should == RzPersistMongo
+    end
+
+    it "should have stored config object and it should match" do
+      @persist.config.should == @config
+    end
+
+    it "should connect to database successfully using credentials in config"
+    it "should disconnect from database successfully"
   end
 
   describe ".Model" do

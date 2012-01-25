@@ -8,7 +8,18 @@
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "rz_persist_object"
+require "mongo"
 
 class RzPersistMongo < RzPersistObject
-  # To change this template use File | Settings | File Templates.
+  def initialize
+
+  end
+
+  def connect(username, password, hostname, port)
+
+  end
+
+  def disconnect
+
+  end
 end

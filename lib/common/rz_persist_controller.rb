@@ -9,12 +9,26 @@ require "rz_configuration"
 require "rz_persist_mongo"
 
 class RzPersistController
-       attr_accessor :persist_obj
-       # @param config [RZConfiguration]
-       def initialize(config)
-          # init correct database object
-          if (config.persist_mode = :mongo)
-            @persist_obj = RzPersistMongo.new
-          end
-       end
+   attr_accessor :persist_obj
+   attr_accessor :config
+   # @param config [RZConfiguration]
+
+
+   def initialize(config)
+      # init correct database object
+      if (config.persist_mode = :mongo)
+        @persist_obj = RzPersistMongo.new
+      end
+     @config = config
+   end
+
+  # Connect to database using RZPersistObject loaded
+  def connect_database
+
+  end
+
+  # Disconnect from database using RZPersistObject loaded
+  def disconnect_database
+
+  end
 end
