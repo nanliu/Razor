@@ -11,6 +11,9 @@ bson_ext
 rspec(if using unit tests)
 yaml
 
+#### Environment variables needed
+RAZOR_HOME = root directory for Razor
+RAZOR_RSPEC_WEBPATH = local webserver path for writing Rspec HTML output (for unit testing). This is used by './rspec/run_all_unit_tests_html.sh'
 
 #### Directory structure
 ./bin - control scripts

@@ -28,13 +28,29 @@ describe RzPersistController do
       @persist.config.should == @config
     end
 
-    it "should connect to database successfully using details in config" do
-      @persist.connect_database.should == true
-      @persist.disconnect_database
+    describe ".Connection" do
+      it "should connect to DatabaseEngine successfully using details in config" do
+        @persist.connect_database.should == true
+        @persist.disconnect_database
+      end
+      it "should disconnect from DatabaseEngine successfully" do
+        @persist.connect_database
+        @persist.disconnect_database.should == false
+      end
     end
-    it "should disconnect from database successfully" do
-      @persist.connect_database
-      @persist.disconnect_database.should == false
+
+    describe ".DatabaseBinding" do
+      before(:each) do
+        @persist.connect_database
+      end
+
+      after(:each) do
+        @persist.disconnect_database
+      end
+
+      it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
+        @persist.persist_obj.is_db_selected?.should == true
+      end
     end
   end
 

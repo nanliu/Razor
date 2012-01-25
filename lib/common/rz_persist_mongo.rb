@@ -25,4 +25,10 @@ class RzPersistMongo < RzPersistObject
     @connection.close
     @connection.active?
   end
+
+  def is_db_selected?
+    if (@razor_database != nil and @connection.active?)
+      true
+    end
+  end
 end
