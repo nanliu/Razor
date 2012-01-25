@@ -79,7 +79,8 @@ describe RZPersistController do
     end
 
     it "should insert a Model to the Model collection" do
-
+      #model = RZModel.new({:name => "rspec_", :guid => })
+      false
     end
     it "should read a Model from the Model collection"
     it "should return a array of Models from the Model collection" do

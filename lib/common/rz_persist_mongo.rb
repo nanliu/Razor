@@ -40,16 +40,17 @@ class RZPersistMongo < RZPersistObject
 
   def model_get_all
     model_hash_array = []
-    model_collection.find().each {|x| model_hash_array << x}
+    model_collection.find().each do
+      |x|
+      x.delete("_id")
+      model_hash_array << x
+    end
     model_hash_array
   end
 
-  def model_update(id, model_hash)
-    model_collection.update({"_id" => id}, model_hash)
-  end
-
-  def model_insert(model_hash)
-    model_collection.insert(model_hash)
+  def model_update(model_doc)
+    model_doc << {:timestamp => Time.now.to_i}
+    model_collection.update(model_doc)
   end
 
 
