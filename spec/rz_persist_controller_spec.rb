@@ -83,7 +83,7 @@ describe RZPersistController do
     it "should return a array of Models from the Model collection" do
       model_array = @persist.model_get_all
       model_array.inspect
-      model_array.class.should == ActiveSupport::OrderedHash
+      model_array.class.should == Array # it is an array - not testing for Model yet
     end
     it "should remove a Model from the Model collection"
     it "should update an existing Model in the Model collection"

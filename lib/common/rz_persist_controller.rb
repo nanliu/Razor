@@ -61,7 +61,13 @@ class RZPersistController
 
   # get all models in an array
   def model_get_all
-    @persist_obj.model_get_all
+    model_array = []
+    @persist_obj.model_get_all.each do
+      |model_hash|
+      model = RZModel.new(model_hash)
+      model_array << model
+    end
+    model_array
   end
 
   # get all models matching attributes in a hash returns array

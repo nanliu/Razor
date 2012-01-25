@@ -39,7 +39,9 @@ class RZPersistMongo < RZPersistObject
 
 
   def model_get_all
-    @razor_database.collection("model").find()
+    model_hash_array = []
+    model_collection.find().each {|x| model_hash_array << x}
+    model_hash_array
   end
 
   def update(guid, model)
@@ -48,6 +50,13 @@ class RZPersistMongo < RZPersistObject
 
   def insert(guid, model)
 
+  end
+
+
+  private
+
+  def model_collection
+    @razor_database.collection("model")
   end
 
 
