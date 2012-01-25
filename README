@@ -11,7 +11,20 @@ bson_ext
 rspec(if using unit tests)
 yaml
 
+
+#### Directory structure
+./bin - control scripts
+./conf - configuration YAML files
+./images - default images directory
+./install - installation bits
+./lib - root library folder
+./test_scripts - testing scripts
+./unit_tests - unit tests (RSpec)
+
+
 ####  Installation instructions
+
+
 
 
 #### Misc
