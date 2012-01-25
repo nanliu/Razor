@@ -53,33 +53,31 @@ class RZPersistController
 
 
   # model operations
-  def model
 
+  # get specific model with 'gui'
+  def with_guid(guid)
 
-    # get specific model with 'gui'
-    def with_guid(guid)
-
-    end
-
-    # get all models in an array
-    def all
-      @persist_obj.model.get
-    end
-
-    # get all models matching attributes in a hash returns array
-    def matching(hash)
-
-    end
-
-    # save/update model
-    def save(model)
-
-    end
-
-    # remove model from table/collection
-    def delete(guid)
-
-    end
   end
+
+  # get all models in an array
+  def model_get_all
+    @persist_obj.model_get_all
+  end
+
+  # get all models matching attributes in a hash returns array
+  def matching(hash)
+
+  end
+
+  # save/update model
+  def save(model)
+
+  end
+
+  # remove model from table/collection
+  def delete(guid)
+
+  end
+
 
 end

@@ -24,7 +24,7 @@ RAZOR_RSPEC_WEBPATH = local webserver path for writing Rspec HTML output (for un
 ./install - installation bits
 ./lib - root library folder
 ./test_scripts - testing scripts
-./unit_tests - unit tests (RSpec)
+./rspec - unit tests (RSpec)
 
 
 ####  Installation instructions

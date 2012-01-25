@@ -5,6 +5,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "rz_configuration"
 require "rz_persist_controller"
+require "rz_model"
 
 describe RZPersistController do
   before(:each) do
@@ -60,26 +61,30 @@ describe RZPersistController do
     end
   end
 
-    describe ".DatabaseBinding" do
-      before(:each) do
-        @persist.check_connection
-      end
-
-      after(:each) do
-        @persist.teardown
-      end
-
-      it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
-        @persist.persist_obj.is_db_selected?.should == true
-      end
+  describe ".DatabaseBinding" do
+    before(:each) do
+      @persist.check_connection
     end
+
+    it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
+      @persist.persist_obj.is_db_selected?.should == true
+    end
+  end
 
 
 
   describe ".Model" do
-    it "should add a Model to the Model collection"
+    before(:each) do
+
+    end
+
+    it "should insert a Model to the Model collection"
     it "should read a Model from the Model collection"
-    it "should return a array of Models from the Model collection"
+    it "should return a array of Models from the Model collection" do
+      model_array = @persist.model_get_all
+      model_array.inspect
+      model_array.class.should == ActiveSupport::OrderedHash
+    end
     it "should remove a Model from the Model collection"
     it "should update an existing Model in the Model collection"
   end

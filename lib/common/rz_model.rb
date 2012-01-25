@@ -17,4 +17,8 @@ class RZModel
     @values_hash = values_hash
   end
 
+  def to_hash
+    { :name => @name, :guid => @guid, :model_type => @model_type, :values_hash => @values_hash }
+  end
+
 end

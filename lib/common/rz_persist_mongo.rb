@@ -11,6 +11,7 @@ require "rz_persist_object"
 require "mongo"
 
 class RZPersistMongo < RZPersistObject
+
   def teardown
     # teardown is a signal from the controller to kill any instance connection if it exists
     @connection.active? && disconnect
@@ -36,17 +37,17 @@ class RZPersistMongo < RZPersistObject
   end
 
 
-  def model
-    def get_all
-      self.connect
 
-      if is_db_selected?
+  def model_get_all
+    @razor_database.collection("model").find()
+  end
 
-      else
-        disconnect
-        nil
-      end
-    end
+  def update(guid, model)
+
+  end
+
+  def insert(guid, model)
+
   end
 
 
