@@ -15,11 +15,14 @@ class RzPersistMongo < RzPersistObject
 
   end
 
-  def connect(username, password, hostname, port)
-
+  def connect(hostname, port)
+    @connection = Mongo::Connection.new(hostname, port)
+    @razor_database = @connection.db("razor")
+    @connection.active?
   end
 
   def disconnect
-
+    @connection.close
+    @connection.active?
   end
 end

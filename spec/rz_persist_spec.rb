@@ -16,6 +16,10 @@ describe RzPersistController do
       @persist = RzPersistController.new(@config)
     end
 
+    after(:each) do
+      # nothing to do
+    end
+
     it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
       @persist.persist_obj.class.should == RzPersistMongo
     end
@@ -24,8 +28,14 @@ describe RzPersistController do
       @persist.config.should == @config
     end
 
-    it "should connect to database successfully using credentials in config"
-    it "should disconnect from database successfully"
+    it "should connect to database successfully using details in config" do
+      @persist.connect_database.should == true
+      @persist.disconnect_database
+    end
+    it "should disconnect from database successfully" do
+      @persist.connect_database
+      @persist.disconnect_database.should == false
+    end
   end
 
   describe ".Model" do

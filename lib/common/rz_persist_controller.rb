@@ -11,7 +11,7 @@ require "rz_persist_mongo"
 class RzPersistController
    attr_accessor :persist_obj
    attr_accessor :config
-   # @param config [RZConfiguration]
+   # @param @config [RZConfiguration]
 
 
    def initialize(config)
@@ -24,11 +24,11 @@ class RzPersistController
 
   # Connect to database using RZPersistObject loaded
   def connect_database
-
+    @persist_obj.connect(@config.persist_host, @config.persist_port)
   end
 
   # Disconnect from database using RZPersistObject loaded
   def disconnect_database
-
+    @persist_obj.disconnect
   end
 end
