@@ -8,7 +8,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_configuration"
 require "rz_persist_mongo"
 
-class RzPersistController
+class RZPersistController
    attr_accessor :persist_obj
    attr_accessor :config
    # @param @config [RZConfiguration]
@@ -17,7 +17,7 @@ class RzPersistController
    def initialize(config)
       # init correct database object
       if (config.persist_mode = :mongo)
-        @persist_obj = RzPersistMongo.new
+        @persist_obj = RZPersistMongo.new
       end
      @config = config
    end

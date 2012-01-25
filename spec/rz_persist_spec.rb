@@ -6,14 +6,14 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_configuration"
 require "rz_persist_controller"
 
-describe RzPersistController do
+describe RZPersistController do
 
 
   describe ".Initialize" do
     before(:each) do
       @config = RZConfiguration.new
       @config.persist_mode = :mongo
-      @persist = RzPersistController.new(@config)
+      @persist = RZPersistController.new(@config)
     end
 
     after(:each) do
@@ -21,7 +21,7 @@ describe RzPersistController do
     end
 
     it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
-      @persist.persist_obj.class.should == RzPersistMongo
+      @persist.persist_obj.class.should == RZPersistMongo
     end
 
     it "should have stored config object and it should match" do

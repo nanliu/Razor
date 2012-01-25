@@ -10,7 +10,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_persist_object"
 require "mongo"
 
-class RzPersistMongo < RzPersistObject
+class RZPersistMongo < RZPersistObject
   def initialize
 
   end
