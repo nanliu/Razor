@@ -77,26 +77,12 @@ class RZPersistController
 
   # insert/update model
   def model_update(model)
-    # Get our existing models
-    model_array = model_get_all
-
-    # Loop through existing and see if we find a match
-    model_array.each do
-      |existing_model|
-
-      # If the GUID matches then we update this record and return
-      if model.guid == existing_model.guid
-          return @persist_obj.model_update(existing_model["_id"], model.to_hash)
-      end
-    end
-
-    # We didn't find a matching model so we insert this instead
-    @persist_obj.model_insert(model.to_hash)
+    @persist_obj.model_update(model.to_hash)
   end
 
   # remove model from table/collection
-  def delete(guid)
-
+  def model_remove(model)
+    @persist_obj.model_remove(model.to_hash)
   end
 
 

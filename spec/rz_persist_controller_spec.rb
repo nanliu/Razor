@@ -6,6 +6,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_configuration"
 require "rz_persist_controller"
 require "rz_model"
+require "uuid"
 
 describe RZPersistController do
   before(:each) do
@@ -74,22 +75,74 @@ describe RZPersistController do
 
 
   describe ".Model" do
-    before(:each) do
-
+    before(:all) do
+      @new_uuid = UUID.new
+      @model1 = RZModel.new({:@name => "rspec_modelname01", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model2 = RZModel.new({:@name => "rspec_modelname02", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model3 = RZModel.new({:@name => "rspec_modelname03", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
     end
 
-    it "should insert a Model to the Model collection" do
-      #model = RZModel.new({:name => "rspec_", :guid => })
-      false
+    it "should be able to add/update a Model to the Model collection" do
+      flag = false
+
+      @persist.model_update(@model1)
+      sleep(1)
+
+      @persist.model_update(@model2)
+      sleep(1)
+
+      @persist.model_update(@model3)
+
+      model_array = @persist.model_get_all
+      model_array.each do
+        |m|
+        if m.guid == @new_uuid.to_s
+          flag = true
+        end
+      end
+      flag.should == true
     end
-    it "should read a Model from the Model collection"
-    it "should return a array of Models from the Model collection" do
+    it "should see the last update to a Model in the collection" do
+      flag = false
+      model_array = @persist.model_get_all
+      model_array.each do
+        |m|
+        if m.guid == @new_uuid.to_s
+          if m.name == "rspec_modelname03"
+            flag = true
+          end
+        end
+      end
+      flag.should == true
+    end
+    it "should return a array of Models from the Model collection without duplicates" do
       model_array = @persist.model_get_all
       model_array.inspect
-      model_array.class.should == Array # it is an array - not testing for Model yet
+
+      x = 0
+      model_array.each do
+        |m|
+        if m.guid == @new_uuid.to_s
+          x += 1
+        end
+      end
+      x.should == 1
+
     end
-    it "should remove a Model from the Model collection"
-    it "should update an existing Model in the Model collection"
+    it "should remove a Model from the Model collection" do
+
+      @persist.model_remove(@model3)
+
+      x = 0
+      model_array = @persist.model_get_all
+      model_array.each do
+        |m|
+        if m.guid == @new_uuid.to_s
+          x += 1
+        end
+      end
+      x.should == 0
+    end
   end
 
   describe ".Policy" do

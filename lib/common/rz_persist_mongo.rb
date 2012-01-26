@@ -39,26 +39,75 @@ class RZPersistMongo < RZPersistObject
 
 
   def model_get_all
+
     model_hash_array = []
-    model_collection.find().each do
+
+    # iterate over each hash returned, sort descending by _timestamp
+    model_collection.find().sort("@name",1).sort("_timestamp",-1).each do
       |x|
-      x.delete("_id")
-      model_hash_array << x
+
+      flag = false
+      model_hash_array.each do
+      |y|
+        if y[:@guid] == x[:@guid]
+          flag =  true
+        end
+      end
+
+      if !flag
+        # remove the Mongo "_id" key as it won't match an instance variable
+        x.delete("_id")
+        # remove timestamp also
+        x.delete("_timestamp")
+
+        # add hash to hash array
+        model_hash_array << x
+      end
     end
+
+    # return hash array
     model_hash_array
   end
 
   def model_update(model_doc)
-    model_doc << {:timestamp => Time.now.to_i}
-    model_collection.update(model_doc)
+
+    # Add a timestamp key
+    # We use this to always pull newest
+    model_doc["_timestamp"] = Time.now.to_i
+    model_collection.insert(model_doc)
+    cleanup_old_timestamps
+  end
+
+  def model_remove(model_doc)
+    model_collection.remove({"@guid" => model_doc["@guid"]})
   end
 
 
   private
 
+  def cleanup_old_timestamps
+    model_hash_array = []
+    model_collection.find().sort("@name",1).sort("_timestamp",-1).each do
+      |model_record|
+
+      flag = false
+      model_hash_array.each do
+      |y|
+        if y[:@guid] == model_record[:@guid]
+          flag =  true
+        end
+      end
+
+      if flag
+          model_collection.remove({"_id" => model_record["_id"]})
+        else
+          model_hash_array << model_record
+        end
+      end
+  end
+
   def model_collection
     @razor_database.collection("model")
   end
-
 
 end

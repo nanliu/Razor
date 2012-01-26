@@ -3,7 +3,7 @@ module RZObjectUtility
   # returns a hash array of instance variable symbol and instance variable value for self
   def to_hash
     hash = {}
-    self.instance_variables.each {|inst| hash[inst.to_s] = model.instance_variable_get(inst)}
+    self.instance_variables.each {|inst| hash[inst.to_s] = self.instance_variable_get(inst)}
     hash
   end
 
