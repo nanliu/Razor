@@ -12,6 +12,7 @@ class RZModel
   attr_accessor :name
   attr_accessor :uuid
   attr_accessor :model_type
+  attr_accessor :locked
   attr_accessor :values_hash
 
 

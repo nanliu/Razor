@@ -6,7 +6,12 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_configuration"
 require "rz_persist_controller"
 require "rz_model"
+require "rz_rspec_matchers"
 require "uuid"
+
+RSpec.configure do |config|
+  config.include(RZRSpecMatchers)
+end
 
 describe RZPersistController do
   before(:each) do
@@ -68,69 +73,36 @@ describe RZPersistController do
   describe ".Model" do
     before(:all) do
       @new_uuid = UUID.new
-      @model1 = RZModel.new({:@name => "rspec_modelname01", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1 = RZModel.new({:@name => "rspec_modelname01", :@uuid => @new_uuid.to_s, :@locked => false, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @new_uuid.to_s, :@locked => false, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @new_uuid.to_s, :@locked => false, :@model_type => "base", :@values_hash => {"a" => "1"}})
     end
 
     it "should be able to add/update a Model to the Model collection" do
-      flag = false
 
       @persist.object_hash_update(@model1.to_hash, :model)
       sleep(1)
-
       @persist.object_hash_update(@model2.to_hash, :model)
       sleep(1)
-
       @persist.object_hash_update(@model3.to_hash, :model)
 
       model_hash_array = @persist.object_hash_get_all(:model)
-      model_hash_array.each do
-        |model_hash|
-        if model_hash["@uuid"] == @new_uuid.to_s
-          flag = true
-        end
-      end
-      flag.should == true
+      # Check if model_hash_array contains a model with the 'uuid' that matches our '@new_uuid'
+      model_hash_array.should keys_with_values_count_equals({"@uuid" => @new_uuid.to_s},1)
     end
     it "should see the last update to a Model in the collection" do
       flag = false
       model_hash_array = @persist.object_hash_get_all(:model)
-      model_hash_array.each do
-        |model_hash|
-        if model_hash["@uuid"] == @new_uuid.to_s
-          if model_hash["@name"] == "rspec_modelname03"
-            flag = true
-          end
-        end
-      end
-      flag.should == true
+      model_hash_array.should keys_with_values_count_equals({"@uuid" => @new_uuid.to_s, "@name" => "rspec_modelname03"},1)
     end
     it "should return a array of Models from the Model collection without duplicates" do
       model_hash_array = @persist.object_hash_get_all(:model)
-      x = 0
-      model_hash_array.each do
-        |model_hash|
-        if model_hash["@uuid"] == @new_uuid.to_s
-          x += 1
-        end
-      end
-      x.should == 1
-
+      model_hash_array.should keys_with_values_count_equals({"@uuid" => @new_uuid.to_s},1)
     end
     it "should remove a Model from the Model collection" do
-
       @persist.object_hash_remove(@model3.to_hash, :model).should == true # should get positive return
-
-      x = 0
       model_hash_array = @persist.object_hash_get_all(:model)
-      model_hash_array.each do
-        |model_hash|
-        if model_hash["@uuid"] == @new_uuid.to_s
-          x += 1
-        end
-      end
-      x.should == 0 # should be 0 models left of that uuid
+      model_hash_array.should keys_with_values_count_equals({"@uuid" => @new_uuid.to_s},0)
     end
   end
 
