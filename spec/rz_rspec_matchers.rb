@@ -2,11 +2,14 @@
 # Custom Matches for RSpec testing
 module RZRSpecMatchers
   class KeysWithValuesCountEquals
+    # @param key_value_hash [Hash]
+    # @param count [Numeric]
     def initialize(key_value_hash, count)
       @key_value_hash = key_value_hash
       @count = count
     end
 
+    # @param hash_array [Array]
     def matches?(hash_array)
       @hash_array = hash_array
       @actual_count = 0
@@ -14,15 +17,8 @@ module RZRSpecMatchers
       @hash_array.each do
       |hash|
         match_count = 0
-        @key_value_hash.each_pair do
-        |key, value|
-          if (hash[key] == value)
-            match_count += 1
-          end
-        end
-        if (match_count == @key_value_hash.count)
-          @actual_count += 1
-        end
+        @key_value_hash.each_pair { |key, value| (hash[key] == value) && match_count += 1 }
+        (match_count == @key_value_hash.count) && @actual_count += 1
       end
 
       (@actual_count == @count)
@@ -36,7 +32,8 @@ module RZRSpecMatchers
     end
 
   end
-
+  # @param key_value_hash [Hash]
+  # @param count [Numeric]
   def keys_with_values_count_equals(key_value_hash, count)
     KeysWithValuesCountEquals.new(key_value_hash, count)
   end
