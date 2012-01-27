@@ -8,7 +8,7 @@
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 
-class RZPersistObject
+class RZPersistDatabaseObject
   def initialize
 
   end

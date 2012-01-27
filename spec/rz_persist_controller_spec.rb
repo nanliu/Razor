@@ -21,7 +21,7 @@ describe RZPersistController do
 
   describe ".Initialize" do
     it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
-      @persist.database.class.should == RZPersistMongo
+      @persist.database.class.should == RZPersistDatabaseMongo
     end
 
     it "should have stored config object and it should match" do
@@ -120,7 +120,7 @@ describe RZPersistController do
     end
     it "should remove a Model from the Model collection" do
 
-      @persist.object_hash_remove(@model3.to_hash, :model)
+      @persist.object_hash_remove(@model3.to_hash, :model).should == true # should get positive return
 
       x = 0
       model_hash_array = @persist.object_hash_get_all(:model)
@@ -130,7 +130,7 @@ describe RZPersistController do
           x += 1
         end
       end
-      x.should == 0
+      x.should == 0 # should be 0 models left of that uuid
     end
   end
 
