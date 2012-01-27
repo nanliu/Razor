@@ -10,7 +10,7 @@ class RZModel
   include(RZObjectUtility)
 
   attr_accessor :name
-  attr_accessor :guid
+  attr_accessor :uuid
   attr_accessor :model_type
   attr_accessor :values_hash
 

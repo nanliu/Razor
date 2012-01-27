@@ -38,76 +38,76 @@ class RZPersistMongo < RZPersistObject
 
 
 
-  def model_get_all
+  def object_doc_get_all(collection_name)
 
-    model_hash_array = []
+    object_doc_array = []
 
     # iterate over each hash returned, sort descending by _timestamp
-    model_collection.find().sort("@name",1).sort("_timestamp",-1).each do
-      |x|
+    collection_by_name(collection_name).find().sort("_timestamp",-1).each do
+      |object_doc|
 
       flag = false
-      model_hash_array.each do
-      |y|
-        if y[:@guid] == x[:@guid]
+      object_doc_array.each do
+      |existing_object_doc|
+        if existing_object_doc[:@uuid] == object_doc[:@uuid]
           flag =  true
         end
       end
 
       if !flag
-        # remove the Mongo "_id" key as it won't match an instance variable
-        x.delete("_id")
+        # remove the doc "_id" key as it won't match an instance variable
+        object_doc.delete("_id")
         # remove timestamp also
-        x.delete("_timestamp")
+        object_doc.delete("_timestamp")
 
         # add hash to hash array
-        model_hash_array << x
+        object_doc_array << object_doc
       end
     end
 
     # return hash array
-    model_hash_array
+    object_doc_array
   end
 
-  def model_update(model_doc)
+  def object_doc_update(object_doc, collection_name)
 
     # Add a timestamp key
     # We use this to always pull newest
-    model_doc["_timestamp"] = Time.now.to_i
-    model_collection.insert(model_doc)
-    cleanup_old_timestamps
+    object_doc["_timestamp"] = Time.now.to_i
+    collection_by_name(collection_name).insert(object_doc)
+    cleanup_old_timestamps(collection_name)
   end
 
-  def model_remove(model_doc)
-    model_collection.remove({"@guid" => model_doc["@guid"]})
+  def object_doc_remove(object_doc, collection_name)
+    collection_by_name(collection_name).remove({"@guid" => object_doc["@guid"]})
   end
 
 
   private
 
-  def cleanup_old_timestamps
-    model_hash_array = []
-    model_collection.find().sort("@name",1).sort("_timestamp",-1).each do
-      |model_record|
+  def cleanup_old_timestamps(collection_name)
+    newest_object_doc_array = []
+    collection_by_name(collection_name).find().sort("_timestamp",-1).each do
+      |object_doc|
 
       flag = false
-      model_hash_array.each do
-      |y|
-        if y[:@guid] == model_record[:@guid]
+      newest_object_doc_array.each do
+      |newest_object_doc|
+        if newest_object_doc[:@guid] == object_doc[:@guid]
           flag =  true
         end
       end
 
       if flag
-          model_collection.remove({"_id" => model_record["_id"]})
+          collection_by_name(collection_name).remove({"_id" => object_doc["_id"]})
         else
-          model_hash_array << model_record
+          newest_object_doc_array << object_doc
         end
       end
   end
 
-  def model_collection
-    @razor_database.collection("model")
+  def collection_by_name(collection_name)
+    @razor_database.collection(collection_name.to_s)
   end
 
 end

@@ -20,8 +20,8 @@ describe RZPersistController do
   end
 
   describe ".Initialize" do
-    it "should create a PersistMongo object for .persist_obj if config persist_mode is :mongo" do
-      @persist.persist_obj.class.should == RZPersistMongo
+    it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
+      @persist.database.class.should == RZPersistMongo
     end
 
     it "should have stored config object and it should match" do
@@ -59,7 +59,7 @@ describe RZPersistController do
     end
 
     it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
-      @persist.persist_obj.is_db_selected?.should == true
+      @persist.database.is_db_selected?.should == true
     end
   end
 
@@ -68,39 +68,38 @@ describe RZPersistController do
   describe ".Model" do
     before(:all) do
       @new_uuid = UUID.new
-      @model1 = RZModel.new({:@name => "rspec_modelname01", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model2 = RZModel.new({:@name => "rspec_modelname02", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model3 = RZModel.new({:@name => "rspec_modelname03", :@guid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1 = RZModel.new({:@name => "rspec_modelname01", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @new_uuid.to_s, :@model_type => "base", :@values_hash => {"a" => "1"}})
     end
 
     it "should be able to add/update a Model to the Model collection" do
       flag = false
 
-      @persist.model_update(@model1)
+      @persist.object_hash_update(@model1.to_hash, :model)
       sleep(1)
 
-      @persist.model_update(@model2)
+      @persist.object_hash_update(@model2.to_hash, :model)
       sleep(1)
 
-      @persist.model_update(@model3)
+      @persist.object_hash_update(@model3.to_hash, :model)
 
-      model_array = @persist.model_get_all
-      model_array.each do
-        |m|
-        if m.guid == @new_uuid.to_s
+      model_hash_array = @persist.object_hash_get_all(:model)
+      model_hash_array.each do
+        |model_hash|
+        if model_hash["@uuid"] == @new_uuid.to_s
           flag = true
         end
       end
       flag.should == true
     end
     it "should see the last update to a Model in the collection" do
-      failure_message = "BLAH"
       flag = false
-      model_array = @persist.model_get_all
-      model_array.each do
-        |m|
-        if m.guid == @new_uuid.to_s
-          if m.name == "rspec_modelname03"
+      model_hash_array = @persist.object_hash_get_all(:model)
+      model_hash_array.each do
+        |model_hash|
+        if model_hash["@uuid"] == @new_uuid.to_s
+          if model_hash["@name"] == "rspec_modelname03"
             flag = true
           end
         end
@@ -108,13 +107,11 @@ describe RZPersistController do
       flag.should == true
     end
     it "should return a array of Models from the Model collection without duplicates" do
-      model_array = @persist.model_get_all
-      model_array.inspect
-
+      model_hash_array = @persist.object_hash_get_all(:model)
       x = 0
-      model_array.each do
-        |m|
-        if m.guid == @new_uuid.to_s
+      model_hash_array.each do
+        |model_hash|
+        if model_hash["@uuid"] == @new_uuid.to_s
           x += 1
         end
       end
@@ -123,13 +120,13 @@ describe RZPersistController do
     end
     it "should remove a Model from the Model collection" do
 
-      @persist.model_remove(@model3)
+      @persist.object_hash_remove(@model3.to_hash, :model)
 
       x = 0
-      model_array = @persist.model_get_all
-      model_array.each do
-        |m|
-        if m.guid == @new_uuid.to_s
+      model_hash_array = @persist.object_hash_get_all(:model)
+      model_hash_array.each do
+        |model_hash|
+        if model_hash["@uuid"] == @new_uuid.to_s
           x += 1
         end
       end

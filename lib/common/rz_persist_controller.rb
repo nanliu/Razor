@@ -10,7 +10,7 @@ require "rz_persist_mongo"
 require "rz_model"
 
 class RZPersistController
-   attr_accessor :persist_obj
+   attr_accessor :database
    attr_accessor :config
    # @param @config [RZConfiguration]
 
@@ -21,20 +21,20 @@ class RZPersistController
 
       # init correct database object
       if (config.persist_mode = :mongo)
-        @persist_obj = RZPersistMongo.new
+        @database = RZPersistMongo.new
         check_connection
       end
 
    end
 
    def teardown
-     @persist_obj.teardown
+     @database.teardown
    end
 
   # Returns true|false whether DB/Connection is open
   # Use this when you want to check but not reconnect
   def is_connected?
-    @persist_obj.is_db_selected?
+    @database.is_db_selected?
   end
 
   # Checks and reopens closed DB/Connection
@@ -47,42 +47,26 @@ class RZPersistController
 
   # Connect to database using RZPersistObject loaded
   def connect_database
-    @persist_obj.connect(@config.persist_host, @config.persist_port)
+    @database.connect(@config.persist_host, @config.persist_port)
   end
 
 
 
   # model operations
 
-  # get specific model with 'gui'
-  def with_guid(guid)
-
-  end
-
   # get all models in an array
-  def model_get_all
-    model_array = []
-    @persist_obj.model_get_all.each do
-      |model_hash|
-      model = RZModel.new(model_hash)
-      model_array << model
-    end
-    model_array
-  end
-
-  # get all models matching attributes in a hash returns array
-  def matching(hash)
-
+  def object_hash_get_all(collection)
+    @database.object_doc_get_all(collection)
   end
 
   # insert/update model
-  def model_update(model)
-    @persist_obj.model_update(model.to_hash)
+  def object_hash_update(object_doc, collection)
+    @database.object_doc_update(object_doc, collection)
   end
 
   # remove model from table/collection
-  def model_remove(model)
-    @persist_obj.model_remove(model.to_hash)
+  def object_hash_remove(object_doc, collection)
+    @database.object_doc_remove(object_doc, collection)
   end
 
 
