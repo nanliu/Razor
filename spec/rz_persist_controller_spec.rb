@@ -40,25 +40,16 @@ describe RZPersistController do
     end
 
     it "should disconnect from DatabaseEngine successfully when teardown called" do
-      if @persist.check_connection  # make sure we have it open
-        @persist.teardown  # do teardown
-        @persist.is_connected?.should == false  # should be false now
-      else
-        false # without an open connection we can't test
-      end
+      @persist.check_connection.should == true  # make sure we have it open
+      @persist.teardown  # do teardown
+      @persist.is_connected?.should_not == true  # should be false now
     end
 
     it "should reconnect should the connection drop/timeout" do
-      if @persist.check_connection  # make sure we have it open
-        @persist.teardown  # do teardown to break connection
-        if !@persist.is_connected?  # make sure it is not connected
-          @persist.check_connection.should == true  # should reconnect
-        else
-          false # we couldn't kill the connection for some reason
-        end
-      else
-        false # without an open connection we can't test
-      end
+      @persist.check_connection.should == true  # make sure we have it open
+      @persist.teardown  # do teardown to break connection
+      @persist.is_connected?.should_not == true  # make sure it is not connected
+      @persist.check_connection.should == true  # should reconnect
     end
   end
 
@@ -103,6 +94,7 @@ describe RZPersistController do
       flag.should == true
     end
     it "should see the last update to a Model in the collection" do
+      failure_message = "BLAH"
       flag = false
       model_array = @persist.model_get_all
       model_array.each do
