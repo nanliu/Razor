@@ -1,7 +1,11 @@
 
 # Custom Matches for RSpec testing
 module RZRSpecMatchers
+
+  # This calls is override/executed by the RZSpecMatchers.keys_with_values_count_equals
   class KeysWithValuesCountEquals
+
+    # Initialization takes a [Hash] with key/values to match and a [Numeric] count of how many should be in an [Array]
     # @param key_value_hash [Hash]
     # @param count [Numeric]
     def initialize(key_value_hash, count)
@@ -9,6 +13,8 @@ module RZRSpecMatchers
       @count = count
     end
 
+    # Override for RSpec.Config
+    # Matches [Array] of [Hash] for values that match @key_value_hash
     # @param hash_array [Array]
     def matches?(hash_array)
       @hash_array = hash_array
@@ -32,6 +38,8 @@ module RZRSpecMatchers
     end
 
   end
+
+  # Method to call by [should|should_not] for matching key/value combos, returns true for exact count match
   # @param key_value_hash [Hash]
   # @param count [Numeric]
   def keys_with_values_count_equals(key_value_hash, count)
