@@ -12,13 +12,14 @@ class RZObject
   attr_accessor :uuid
   attr_accessor :version
 
-
+  # Set default values
   def initialize
     @uuid = create_uuid
     @version = 0
   end
 
   private
+  # Return a new UUID string
   def create_uuid
     UUID.generate(format = :compact)
   end

@@ -48,8 +48,8 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
     unique_object_doc_array = []  # [Array] to hold new/unique docs
     old_object_doc_array = []  # [Array] to hold old/duplicate docs
 
-    # Get all docs from 'collection_name' Collection and sort Desc by '_timestamp'
-    collection_by_name(collection_name).find().sort("_timestamp",-1).each do
+    # Get all docs from 'collection_name' Collection and sort Desc by 'version'
+    collection_by_name(collection_name).find().sort("@version",-1).each do
       # Iterate over each doc
     |object_doc_in_coll|
 
@@ -60,7 +60,7 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
       |existing_unique_object_doc|
 
         # If an existing unique doc matches the 'uuid' of a collection doc it is old
-        if existing_unique_object_doc[:@uuid] == object_doc_in_coll[:@uuid]
+        if existing_unique_object_doc["@uuid"] == object_doc_in_coll["@uuid"]
           flag =  true # duplicate found because it is already in our unique [Array]
         end
       end
@@ -78,14 +78,14 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
     remove_mongo_keys(unique_object_doc_array) # we return our unique/new docs after removing mongo-related keys (_id, _timestamp)
   end
 
-  # Adds object document to the collection with an additional "_timestamp" key with the current timestamp
+  # Adds object document to the collection with an incremented "@version" key
   # @param object_doc [Hash]
   # @param collection_name [Symbol]
   # @return [Array] - returns the updated [Array] of documents
   def object_doc_update(object_doc, collection_name)
     # Add a timestamp key
     # We use this to always pull newest
-    object_doc["_timestamp"] = Time.now.to_i
+    object_doc["@version"] = get_next_version(object_doc, collection_name)
     collection_by_name(collection_name).insert(object_doc)
     object_doc_get_all(collection_name)
   end
@@ -100,7 +100,21 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
 
 
 
-  private # Mongo internal stuff we don't want exposed'
+  # private # Mongo internal stuff we don't want exposed'
+
+  # Gets the current version number and returns an incremented value, or returns '1' if none exists
+  # @param object_doc [Hash]
+  # @param collection_name [String]
+  def get_next_version(object_doc, collection_name)
+    object_array =collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
+    if (object_array.count < 1)
+      version = 0
+    else
+      version = object_array[0]["@version"]
+    end
+    version += 1
+    version
+  end
 
   # Takes [Array] of docs and removes MongoDB specific keys
   # @param object_doc_array [Array]

@@ -7,6 +7,5 @@ require "rz_object"
 # Used to apply RZModel to RZNode
 class RZPolicy < RZObject
   attr_accessor :name
-  attr_accessor :uuid
   attr_accessor :model
 end

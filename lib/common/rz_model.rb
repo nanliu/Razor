@@ -11,9 +11,8 @@ class RZModel < RZObject
   attr_accessor :values_hash
 
 
-  # @param name [String]
-  # @param model_type [Symbol]
-  # @param values_hash [Hash]
+
+  # @param hash [Hash]
   def initialize(hash)
     super()
     from_hash(hash)

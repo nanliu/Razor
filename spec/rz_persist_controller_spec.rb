@@ -14,17 +14,21 @@ RSpec.configure do |config|
 end
 
 describe RZPersistController do
-  before(:each) do
-        @config = RZConfiguration.new
-        @config.persist_mode = :mongo
-        @persist = RZPersistController.new(@config)
+  before(:all) do
+    @config = RZConfiguration.new
+    @config.persist_mode = :mongo
+    @persist = RZPersistController.new(@config)
   end
 
-  after(:each) do
-        @persist.teardown
+  after(:all) do
+    @persist.teardown
   end
 
   describe ".Initialize" do
+
+
+
+
     it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
       @persist.database.class.should == RZPersistDatabaseMongo
     end
@@ -72,10 +76,29 @@ describe RZPersistController do
 
   describe ".Model" do
     before(:all) do
+
+      #create junk models with random updates
+      (0..rand(10)).each do
+        |x|
+        temp_model = RZModel.new({:@name => "rspec_junk", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        (0..rand(10)).each do
+          @persist.object_hash_update(temp_model.to_hash, :model)
+        end
+      end
       @model1 = RZModel.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1"}})
-      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
+      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
     end
+
+
+    after(:all) do
+      model_hash_array = @persist.object_hash_get_all(:model)
+      model_hash_array.each do
+        |model_hash|
+        @persist.object_hash_remove(model_hash, :model)
+      end
+    end
+
 
     it "should be able to add/update a Model to the Model collection" do
 
@@ -89,15 +112,18 @@ describe RZPersistController do
       # Check if model_hash_array contains a model with the 'uuid' that matches our '@new_uuid'
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid },1)
     end
-    it "should see the last update to a Model in the collection" do
+    it "should see the last update to a Model in the collection and version number should be 3" do
       flag = false
       model_hash_array = @persist.object_hash_get_all(:model)
-      model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid , "@name" => "rspec_modelname03"},1)
+      model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid , "@name" => "rspec_modelname03", "@version" => 3},1)
     end
     it "should return a array of Models from the Model collection without duplicates" do
       model_hash_array = @persist.object_hash_get_all(:model)
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid },1)
     end
+
+
+
     it "should remove a Model from the Model collection" do
       @persist.object_hash_remove(@model3.to_hash, :model).should == true # should get positive return
       model_hash_array = @persist.object_hash_get_all(:model)
