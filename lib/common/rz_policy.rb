@@ -8,4 +8,11 @@ require "rz_object"
 class RZPolicy < RZObject
   attr_accessor :name
   attr_accessor :model
+  attr_accessor :policy_type
+
+  # @param hash [Hash]
+  def initialize(hash)
+    super()
+    from_hash(hash)
+  end
 end

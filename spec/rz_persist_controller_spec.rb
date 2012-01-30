@@ -6,8 +6,14 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "rz_configuration"
 require "rz_persist_controller"
 require "rz_model"
+require "rz_policy"
+require "rz_node"
 require "rz_rspec_matchers"
 require "uuid"
+
+# true == will remove all records from collection when done
+# false == will leave them for debugging
+CLEANUP = true
 
 RSpec.configure do |config|
   config.include(RZRSpecMatchers)
@@ -92,10 +98,12 @@ describe RZPersistController do
 
 
     after(:all) do
-      model_hash_array = @persist.object_hash_get_all(:model)
-      model_hash_array.each do
-        |model_hash|
-        @persist.object_hash_remove(model_hash, :model)
+      if CLEANUP
+        model_hash_array = @persist.object_hash_get_all(:model)
+        model_hash_array.each do
+          |model_hash|
+          @persist.object_hash_remove(model_hash, :model)
+        end
       end
     end
 
@@ -103,13 +111,11 @@ describe RZPersistController do
     it "should be able to add/update a Model to the Model collection" do
 
       @persist.object_hash_update(@model1.to_hash, :model)
-      sleep(1)
       @persist.object_hash_update(@model2.to_hash, :model)
-      sleep(1)
       @persist.object_hash_update(@model3.to_hash, :model)
 
       model_hash_array = @persist.object_hash_get_all(:model)
-      # Check if model_hash_array contains a model with the 'uuid' that matches our '@new_uuid'
+      # Check if model_hash_array contains a model with the 'uuid' that matches our object
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid },1)
     end
     it "should see the last update to a Model in the collection and version number should be 3" do
@@ -132,33 +138,110 @@ describe RZPersistController do
   end
 
   describe ".Policy" do
-    it "should add a Policy to the Policy collection"
-    it "should read a Policy from the Policy collection"
-    it "should return a array of Policy from the Policy collection"
-    it "should remove a Policy from the Policy collection"
-    it "should update an existing Policy in the Policy collection"
+    before(:all) do
+      #create junk policies with random updates
+      temp_model = RZModel.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      (0..rand(10)).each do
+        |x|
+        temp_policy = RZPolicy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
+        (0..rand(10)).each do
+          @persist.object_hash_update(temp_policy.to_hash, :policy)
+        end
+      end
+      @policy1 = RZPolicy.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
+      @policy2 = RZPolicy.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy3 = RZPolicy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+    end
+
+
+    after(:all) do
+      if CLEANUP
+        policy_hash_array = @persist.object_hash_get_all(:policy)
+        policy_hash_array.each do
+          |policy_hash|
+          @persist.object_hash_remove(policy_hash, :policy)
+        end
+      end
+    end
+
+
+    it "should be able to add/update a Policy to the Policy collection" do
+
+      @persist.object_hash_update(@policy1.to_hash, :policy)
+      @persist.object_hash_update(@policy2.to_hash, :policy)
+      @persist.object_hash_update(@policy3.to_hash, :policy)
+
+      policy_hash_array = @persist.object_hash_get_all(:policy)
+      # Check if policy_hash_array contains a Policy with the 'uuid' that matches our object
+      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
+    end
+    it "should see the last update to a Policy in the collection and version number should be 3" do
+      flag = false
+      policy_hash_array = @persist.object_hash_get_all(:policy)
+      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid , "@name" => @policy3.name, "@version" => 3},1)
+    end
+    it "should return a array of Policy from the Policy collection without duplicates" do
+      policy_hash_array = @persist.object_hash_get_all(:policy)
+      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
+    end
+    it "should remove a Policy from the Policy collection" do
+      @persist.object_hash_remove(@policy3.to_hash, :policy).should == true # should get positive return
+      policy_hash_array = @persist.object_hash_get_all(:policy)
+      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },0)
+    end
   end
 
-  describe ".State" do
-    describe ".LastState" do
-      it "should read the LastState of a specific node"
-      it "should set the LastState of a specific node"
-      it "should get an array of nodes of a specific LastState"
-      it "should get an array of all nodes LastState"
+  describe ".Node" do
+    before(:all) do
+      #create junk nodes with random updates
+
+      (0..rand(10)).each do
+        |x|
+        temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        (0..rand(10)).each do
+          @persist.object_hash_update(temp_node.to_hash, :node)
+        end
+      end
+      @node1 = RZNode.new({:@name => "rspec_node_name01", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node2 = RZNode.new({:@name => "rspec_node_name02", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node3 = RZNode.new({:@name => "rspec_node_name03", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
     end
 
-    describe ".CurrentState" do
-      it "should read the CurrentState of a specific node"
-      it "should set the CurrentState of a specific node"
-      it "should get an array of nodes of a specific CurrentState"
-      it "should get an array of all nodes CurrentState"
+
+    after(:all) do
+      if CLEANUP
+        node_hash_array = @persist.object_hash_get_all(:node)
+        node_hash_array.each do
+          |node_hash|
+          @persist.object_hash_remove(node_hash, :node)
+        end
+      end
     end
 
-    describe ".NextState" do
-      it "should read the NextState of a specific node"
-      it "should set the NextState of a specific node"
-      it "should get an array of nodes of a specific NextState"
-      it "should get an array of all nodes NextState"
+
+    it "should be able to add/update a Node to the Node collection" do
+
+      @persist.object_hash_update(@node1.to_hash, :node)
+      @persist.object_hash_update(@node2.to_hash, :node)
+      @persist.object_hash_update(@node3.to_hash, :node)
+
+      node_hash_array = @persist.object_hash_get_all(:node)
+      # Check if node_hash_array contains a Node with the 'uuid' that matches our object
+      node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid },1)
+    end
+    it "should see the last update to a Node in the collection and version number should be 3" do
+      flag = false
+      node_hash_array = @persist.object_hash_get_all(:node)
+      node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid , "@name" => @node3.name, "@version" => 3},1)
+    end
+    it "should return a array of Node from the Node collection without duplicates" do
+      node_hash_array = @persist.object_hash_get_all(:node)
+      node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid },1)
+    end
+    it "should remove a Node from the Node collection" do
+      @persist.object_hash_remove(@node3.to_hash, :node).should == true # should get positive return
+      node_hash_array = @persist.object_hash_get_all(:node)
+      node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid },0)
     end
   end
 end
