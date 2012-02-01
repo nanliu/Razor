@@ -22,6 +22,13 @@ class RZData
     setup_persist
   end
 
+
+
+
+
+
+  private
+
   def setup_persist
     @persist_controller = RZPersistController.new(@config)
   end
