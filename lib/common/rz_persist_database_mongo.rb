@@ -19,8 +19,22 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
   # @param hostname [String]
   # @param port [String]
   # @return [true, false] - returns connection status
-  def connect(hostname, port)
-    @connection = Mongo::Connection.new(hostname, port)
+  def connect(hostname, port, timeout)
+    begin
+      @connection = Mongo::Connection.new(hostname, port, {:connect_timeout => timeout})
+    rescue Mongo::ConnectionTimeoutError
+      puts "ConnectionTimeout"
+      return false
+    rescue Mongo::ConnectionError
+      puts "ConnectionError"
+      return false
+    rescue Mongo::ConnectionFailure
+      puts "ConnectionFailure"
+      return false
+    rescue  Mongo::OperationTimeout
+      puts "OperationTimeout"
+      return false
+    end
     @razor_database = @connection.db("razor")
     @connection.active?
   end

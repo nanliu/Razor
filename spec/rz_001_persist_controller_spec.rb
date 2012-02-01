@@ -31,35 +31,26 @@ describe RZPersistController do
   end
 
   describe ".Initialize" do
-
-
-
-
     it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
       @persist.database.class.should == RZPersistDatabaseMongo
     end
-
     it "should have stored config object and it should match" do
       @persist.config.should == @config
     end
-
     it "should have established a connection on initialization" do
       @persist.is_connected?.should == true
     end
-
   end
 
   describe ".Connection" do
     it "should connect to DatabaseEngine successfully using details in config" do
       @persist.is_connected?.should == true
     end
-
     it "should disconnect from DatabaseEngine successfully when teardown called" do
       @persist.check_connection.should == true  # make sure we have it open
       @persist.teardown  # do teardown
       @persist.is_connected?.should_not == true  # should be false now
     end
-
     it "should reconnect should the connection drop/timeout" do
       @persist.check_connection.should == true  # make sure we have it open
       @persist.teardown  # do teardown to break connection
@@ -72,17 +63,13 @@ describe RZPersistController do
     before(:each) do
       @persist.check_connection
     end
-
     it "should select/connect/bind to Razor database within DatabaseEngine successfully" do
       @persist.database.is_db_selected?.should == true
     end
   end
 
-
-
   describe ".Model" do
     before(:all) do
-
       #create junk models with random updates
       (0..rand(10)).each do
         |x|
@@ -96,7 +83,6 @@ describe RZPersistController do
       @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
     end
 
-
     after(:all) do
       if CLEANUP
         model_hash_array = @persist.object_hash_get_all(:model)
@@ -109,7 +95,6 @@ describe RZPersistController do
 
 
     it "should be able to add/update a Model to the Model collection" do
-
       @persist.object_hash_update(@model1.to_hash, :model)
       @persist.object_hash_update(@model2.to_hash, :model)
       @persist.object_hash_update(@model3.to_hash, :model)
@@ -127,9 +112,6 @@ describe RZPersistController do
       model_hash_array = @persist.object_hash_get_all(:model)
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid },1)
     end
-
-
-
     it "should remove a Model from the Model collection" do
       @persist.object_hash_remove(@model3.to_hash, :model).should == true # should get positive return
       model_hash_array = @persist.object_hash_get_all(:model)
@@ -153,7 +135,6 @@ describe RZPersistController do
       @policy3 = RZPolicy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
     end
 
-
     after(:all) do
       if CLEANUP
         policy_hash_array = @persist.object_hash_get_all(:policy)
@@ -164,9 +145,7 @@ describe RZPersistController do
       end
     end
 
-
     it "should be able to add/update a Policy to the Policy collection" do
-
       @persist.object_hash_update(@policy1.to_hash, :policy)
       @persist.object_hash_update(@policy2.to_hash, :policy)
       @persist.object_hash_update(@policy3.to_hash, :policy)
@@ -194,7 +173,6 @@ describe RZPersistController do
   describe ".Node" do
     before(:all) do
       #create junk nodes with random updates
-
       (0..rand(10)).each do
         |x|
         temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
@@ -207,7 +185,6 @@ describe RZPersistController do
       @node3 = RZNode.new({:@name => "rspec_node_name03", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
     end
 
-
     after(:all) do
       if CLEANUP
         node_hash_array = @persist.object_hash_get_all(:node)
@@ -218,9 +195,7 @@ describe RZPersistController do
       end
     end
 
-
     it "should be able to add/update a Node to the Node collection" do
-
       @persist.object_hash_update(@node1.to_hash, :node)
       @persist.object_hash_update(@node2.to_hash, :node)
       @persist.object_hash_update(@node3.to_hash, :node)

@@ -46,7 +46,7 @@ class RZPersistController
 
   # Connect to database using RZPersistDatabaseObject loaded
   def connect_database
-    @database.connect(@config.persist_host, @config.persist_port)
+    @database.connect(@config.persist_host, @config.persist_port, @config.persist_timeout)
   end
 
 

@@ -1,8 +1,7 @@
 # A sample Gemfile
 source "http://rubygems.org"
 
-# gem "rails"
-gem "mongo"
+# gem "mongo"  # You need to install the newest per the README
 gem "bson"
 gem "bson_ext"
 gem "rspec"

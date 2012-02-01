@@ -32,6 +32,20 @@ RAZOR_RSPEC_WEBPATH = local webserver path for writing Rspec HTML output (for un
 
 
 
+#### Notes
+
+# Using newest mongo driver build as there is a bug with connect_timeout scoping error that hasn't been merged into available gem yet
+# Fix below is assuming RVM
+# If using global RVM gems make sure and 'rvm use ruby-1.9.3@global' before installing
+
+wget https://github.com/mongodb/mongo-ruby-driver/zipball/master
+unzip master
+cd mongodb-mongo-ruby-driver-99d9dfd/
+gem build mongo.gemspec
+gem install mongo-1.5.2.gem
+
+
+
 #### Misc
 Contributors:
 Tom McSweeney
