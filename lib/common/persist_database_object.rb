@@ -7,12 +7,15 @@
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
+module Razor
+  module Persist
+    module Database
+      class Plugin
+        def initialize
 
-class RZPersistDatabaseObject
-  def initialize
+        end
 
+      end
+    end
   end
-
-
-
 end

@@ -3,14 +3,14 @@ require "rspec"
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
-require "rz_data"
+require "data"
 require "fileutils"
 
 PC_TIMEOUT = 3 # timeout for our connection to DB, using to make quicker tests
 NODE_COUNT = 5 # total amount of nodes to use for node testing
 
 def default_config
-  RZConfiguration.new
+  Razor::Configuration.new
 end
 
 
@@ -25,7 +25,7 @@ end
 
 
 
-describe RZData do
+describe Razor::Data do
 
   describe ".Configuration" do
     before(:all) do
@@ -54,7 +54,7 @@ describe RZData do
       config.persist_timeout = PC_TIMEOUT
       write_config(config)
 
-      data = RZData.new
+      data = Razor::Data.new
 
       # Check to make sure it is our config object
       data.config.admin_port.should == config.admin_port
@@ -72,7 +72,7 @@ describe RZData do
       File.delete(CONFIG_PATH) if File.exists?(CONFIG_PATH)
       File.exists?(CONFIG_PATH).should == false
 
-      data = RZData.new
+      data = Razor::Data.new
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -91,7 +91,7 @@ describe RZData do
       write_config(temp_str)
       File.exists?(CONFIG_PATH).should == true
 
-      data = RZData.new
+      data = Razor::Data.new
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -103,11 +103,11 @@ describe RZData do
     end
 
     it "should create a default config object if the YAML config creates any nil instance variables because of malformed YAML" do
-      temp_str = "--- !ruby/object:RZConfiguration\npersist_mode: :mongo\nDdDpersist_port: '27017'\ndDdadmin_port: '8017'\npersist_host: 127.0.0.1\napi_port: '8026'\n"
+      temp_str = "--- !ruby/object:Razor::Configuration\npersist_mode: :mongo\nDdDpersist_port: '27017'\ndDdadmin_port: '8017'\npersist_host: 127.0.0.1\napi_port: '8026'\n"
       write_config(temp_str)
       File.exists?(CONFIG_PATH).should == true
 
-      data = RZData.new
+      data = Razor::Data.new
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -123,7 +123,7 @@ describe RZData do
   describe ".PersistenceController" do
 
     before(:all) do
-      @data = RZData.new
+      @data = Razor::Data.new
     end
 
     after(:all) do
@@ -132,7 +132,7 @@ describe RZData do
 
 
     it "should create an Persistence Controller object with passed config" do
-      @data.persist_ctrl.kind_of?(RZPersistController).should == true
+      @data.persist_ctrl.kind_of?(Razor::Persist::Controller).should == true
     end
 
     it "should have an active Persistence Controller connection" do
@@ -145,11 +145,11 @@ describe RZData do
   describe ".Nodes" do
 
     before(:all) do
-      @data = RZData.new
+      @data = Razor::Data.new
 
       (1..NODE_COUNT).each do
       |x|
-        temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        temp_node = Razor::Node.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
         temp_node = @data.persist_object(temp_node)
         @last_uuid = temp_node.uuid
         #(0..rand(10)).each do
@@ -170,14 +170,14 @@ describe RZData do
 
     it "should get a single node by UUID" do
       node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(RZNode).should == true
+      node.is_a?(Razor::Node).should == true
 
       node = @data.fetch_object_by_uuid(:node, "12345")
       node.is_a?(NilClass).should == true
     end
 
     it "should be able to add a new Node (does not exist) and update" do
-      temp_node = RZNode.new({:@name => "rspec_node_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = Razor::Node.new({:@name => "rspec_node_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -186,7 +186,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Node by uuid" do
-      temp_node = RZNode.new({:@name => "rspec_node_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = Razor::Node.new({:@name => "rspec_node_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -198,7 +198,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Node by object" do
-      temp_node = RZNode.new({:@name => "rspec_node_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = Razor::Node.new({:@name => "rspec_node_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -211,7 +211,7 @@ describe RZData do
 
     it "should be able to update Node attributes for existing Node" do
       node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(RZNode).should == true
+      node.is_a?(Razor::Node).should == true
       node.attributes_hash = {:hostname => "nick_weaver", :ip_address => "1.1.1.1", :iq => 160}
       node.update_self
       node.attributes_hash["hostname"].should == "nick_weaver"
@@ -219,7 +219,7 @@ describe RZData do
       node.attributes_hash["iq"].should == 160
 
       node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(RZNode).should == true
+      node_confirm.is_a?(Razor::Node).should == true
       node_confirm.attributes_hash["hostname"].should == "nick_weaver"
       node_confirm.attributes_hash["ip_address"].should == "1.1.1.1"
       node_confirm.attributes_hash["iq"].should == 160
@@ -227,37 +227,37 @@ describe RZData do
 
     it "should be able to update the LastState for existing Node" do
       node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(RZNode).should == true
+      node.is_a?(Razor::Node).should == true
       node.last_state = :nick
       node.update_self
       node.last_state.should == :nick
 
       node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(RZNode).should == true
+      node_confirm.is_a?(Razor::Node).should == true
       node_confirm.last_state = :nick
     end
 
     it "should be able to update the CurrentState for existing Node" do
       node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(RZNode).should == true
+      node.is_a?(Razor::Node).should == true
       node.current_state = :nick
       node.update_self
       node.current_state.should == :nick
 
       node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(RZNode).should == true
+      node_confirm.is_a?(Razor::Node).should == true
       node_confirm.current_state = :nick
     end
 
     it "should be able to update the NextState for existing Node" do
       node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(RZNode).should == true
+      node.is_a?(Razor::Node).should == true
       node.next_state = :nick
       node.update_self
       node.next_state.should == :nick
 
       node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(RZNode).should == true
+      node_confirm.is_a?(Razor::Node).should == true
       node_confirm.next_state = :nick
     end
 
@@ -271,11 +271,11 @@ describe RZData do
   describe ".Models" do
 
     before(:all) do
-      @data = RZData.new
+      @data = Razor::Data.new
 
       (1..NODE_COUNT).each do
       |x|
-        temp_model = RZModel.new({:@name => "rspec_model_junk#{x}", :@model_type => :base, :@values_hash => {}})
+        temp_model = Razor::Model.new({:@name => "rspec_model_junk#{x}", :@model_type => :base, :@values_hash => {}})
         temp_model = @data.persist_object(temp_model)
         @last_uuid = temp_model.uuid
         #(0..rand(10)).each do
@@ -296,14 +296,14 @@ describe RZData do
 
     it "should get a single model by UUID" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(RZModel).should == true
+      model.is_a?(Razor::Model).should == true
 
       model = @data.fetch_object_by_uuid(:model, "12345")
       model.is_a?(NilClass).should == true
     end
 
     it "should be able to add a new Model (does not exist) and update" do
-      temp_model = RZModel.new({:@name => "rspec_model_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model.new({:@name => "rspec_model_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -312,7 +312,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Model by uuid" do
-      temp_model = RZModel.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -324,7 +324,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Model by object" do
-      temp_model = RZModel.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -337,7 +337,7 @@ describe RZData do
 
     it "should be able to update Model attributes for existing Model" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(RZModel).should == true
+      model.is_a?(Razor::Model).should == true
       model.values_hash = {:hostname => "nick_weaver", :ip_address => "1.1.1.1", :iq => 160}
       model.update_self
       model.values_hash["hostname"].should == "nick_weaver"
@@ -345,7 +345,7 @@ describe RZData do
       model.values_hash["iq"].should == 160
 
       model_confirm = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model_confirm.is_a?(RZModel).should == true
+      model_confirm.is_a?(Razor::Model).should == true
       model_confirm.values_hash["hostname"].should == "nick_weaver"
       model_confirm.values_hash["ip_address"].should == "1.1.1.1"
       model_confirm.values_hash["iq"].should == 160
@@ -353,13 +353,13 @@ describe RZData do
 
     it "should be able to update the LastState for existing Model" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(RZModel).should == true
+      model.is_a?(Razor::Model).should == true
       model.model_type = :nick
       model.update_self
       model.model_type.should == :nick
 
       model_confirm = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model_confirm.is_a?(RZModel).should == true
+      model_confirm.is_a?(Razor::Model).should == true
       model_confirm.model_type = :nick
     end
 
@@ -374,11 +374,11 @@ describe RZData do
   describe ".Policies" do
 
     before(:all) do
-      @data = RZData.new
+      @data = Razor::Data.new
 
       (1..NODE_COUNT).each do
       |x|
-        temp_policy = RZPolicy.new({:@name => "rspec_policy_junk#{x}", :@policy_type => :base, :@model => :base})
+        temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk#{x}", :@policy_type => :base, :@model => :base})
         temp_policy = @data.persist_object(temp_policy)
         @last_uuid = temp_policy.uuid
         #(0..rand(10)).each do
@@ -399,14 +399,14 @@ describe RZData do
 
     it "should get a single policy by UUID" do
       policy = @data.fetch_object_by_uuid(:policy, @last_uuid)
-      policy.is_a?(RZPolicy).should == true
+      policy.is_a?(Razor::Policy).should == true
 
       policy = @data.fetch_object_by_uuid(:policy, "12345")
       policy.is_a?(NilClass).should == true
     end
 
     it "should be able to add a new Policy (does not exist) and update" do
-      temp_policy = RZPolicy.new({:@name => "rspec_policy_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_policy = @data.persist_object(temp_policy)
       temp_policy.update_self
 
@@ -415,7 +415,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Policy by uuid" do
-      temp_policy = RZPolicy.new({:@name => "rspec_policy_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_policy = @data.persist_object(temp_policy)
       temp_policy.update_self
 
@@ -427,7 +427,7 @@ describe RZData do
     end
 
     it "should be able to delete a specific Policy by object" do
-      temp_policy = RZPolicy.new({:@name => "rspec_policy_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_policy = @data.persist_object(temp_policy)
       temp_policy.update_self
 
@@ -440,24 +440,24 @@ describe RZData do
 
     it "should be able to update Policy attributes for existing Policy" do
       policy = @data.fetch_object_by_uuid(:policy, @last_uuid)
-      policy.is_a?(RZPolicy).should == true
+      policy.is_a?(Razor::Policy).should == true
       policy.model = :nick
       policy.update_self
 
       policy_confirm = @data.fetch_object_by_uuid(:policy, @last_uuid)
-      policy_confirm.is_a?(RZPolicy).should == true
+      policy_confirm.is_a?(Razor::Policy).should == true
       policy_confirm.model.should == :nick
     end
 
     it "should be able to update the LastState for existing Policy" do
       policy = @data.fetch_object_by_uuid(:policy, @last_uuid)
-      policy.is_a?(RZPolicy).should == true
+      policy.is_a?(Razor::Policy).should == true
       policy.policy_type = :nick
       policy.update_self
       policy.policy_type.should == :nick
 
       policy_confirm = @data.fetch_object_by_uuid(:policy, @last_uuid)
-      policy_confirm.is_a?(RZPolicy).should == true
+      policy_confirm.is_a?(Razor::Policy).should == true
       policy_confirm.policy_type = :nick
     end
 

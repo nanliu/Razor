@@ -4,11 +4,11 @@ require "rspec"
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/spec/base"
 
-require "rz_configuration"
-require "rz_persist_controller"
-require "rz_model"
-require "rz_policy"
-require "rz_node"
+require "configuration"
+require "persist_controller"
+require "model"
+require "policy"
+require "node"
 require "rz_rspec_matchers"
 require "uuid"
 
@@ -20,11 +20,11 @@ RSpec.configure do |config|
   config.include(RZRSpecMatchers)
 end
 
-describe RZPersistController do
+describe Razor::Persist::Controller do
   before(:all) do
-    @config = RZConfiguration.new
+    @config = Razor::Configuration.new
     @config.persist_mode = :mongo
-    @persist = RZPersistController.new(@config)
+    @persist = Razor::Persist::Controller.new(@config)
   end
 
   after(:all) do
@@ -33,7 +33,7 @@ describe RZPersistController do
 
   describe ".Initialize" do
     it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
-      @persist.database.class.should == RZPersistDatabaseMongo
+      @persist.database.class.should == Razor::Persist::Database::MongoPlugin
     end
     it "should have stored config object and it should match" do
       #noinspection RubyResolve,RubyResolve
@@ -75,23 +75,22 @@ describe RZPersistController do
       #create junk models with random updates
       (0..rand(10)).each do
         |x|
-        temp_model = RZModel.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        temp_model = Razor::Model.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
         temp_model._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_model.to_hash, :model)
         end
       end
-      @model1 = RZModel.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1 = Razor::Model.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       @model1._persist_ctrl = @persist
-      @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
+      @model2 = Razor::Model.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
       @model2._persist_ctrl = @persist
-      @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
+      @model3 = Razor::Model.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
       @model3._persist_ctrl = @persist
     end
 
     after(:all) do
       if CLEANUP
-        #noinspection RubyResolve,RubyResolve,RubyResolve,RubyResolve,RubyResolve
         model_hash_array = @persist.object_hash_get_all(:model)
         model_hash_array.each do
           |model_hash|
@@ -128,20 +127,20 @@ describe RZPersistController do
   describe ".Policy" do
     before(:all) do
       #create junk policies with random updates
-      temp_model = RZModel.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      temp_model = Razor::Model.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       (0..rand(10)).each do
         |x|
-        temp_policy = RZPolicy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
+        temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
         temp_policy._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_policy.to_hash, :policy)
         end
       end
-      @policy1 = RZPolicy.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
+      @policy1 = Razor::Policy.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
       @policy1._persist_ctrl = @persist
-      @policy2 = RZPolicy.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy2 = Razor::Policy.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
       @policy2._persist_ctrl = @persist
-      @policy3 = RZPolicy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy3 = Razor::Policy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
       @policy3._persist_ctrl = @persist
     end
 
@@ -184,17 +183,17 @@ describe RZPersistController do
       #create junk nodes with random updates
       (0..rand(10)).each do
         |x|
-        temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        temp_node = Razor::Node.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
         temp_node._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_node.to_hash, :node)
         end
       end
-      @node1 = RZNode.new({:@name => "rspec_node_name01", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node1 = Razor::Node.new({:@name => "rspec_node_name01", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       @node1._persist_ctrl = @persist
-      @node2 = RZNode.new({:@name => "rspec_node_name02", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node2 = Razor::Node.new({:@name => "rspec_node_name02", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       @node2._persist_ctrl = @persist
-      @node3 = RZNode.new({:@name => "rspec_node_name03", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node3 = Razor::Node.new({:@name => "rspec_node_name03", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       @node3._persist_ctrl = @persist
     end
 

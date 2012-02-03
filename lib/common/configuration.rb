@@ -3,11 +3,12 @@
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
-require "rz_object_utility"
+require "utility"
 
-class RZConfiguration
+module Razor
+class Configuration
   # Mixin our ObjectUtilities
-  include(RZObjectUtility)
+  include(Razor::Utility)
 
   attr_accessor :persist_mode
   attr_accessor :persist_host
@@ -15,8 +16,8 @@ class RZConfiguration
   attr_accessor :persist_timeout
   
   attr_accessor :admin_port
-  
   attr_accessor :api_port
+  attr_accessor :log_path
   
   def initialize
     use_defaults
@@ -31,8 +32,9 @@ class RZConfiguration
     
     @admin_port = 8017
     @api_port = 8026
+    @logpath = "#{ENV['RAZOR_HOME']}/log/"
   end
 
 
-  
+end
 end

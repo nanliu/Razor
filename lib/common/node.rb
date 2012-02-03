@@ -1,11 +1,12 @@
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
-require "rz_object"
+require "object"
 
 # Razor class representing Nodes
 #noinspection RubyResolve
-class RZNode < RZObject
+module Razor
+class Node < Razor::Object
   attr_accessor :name
   attr_accessor :attributes_hash
   attr_accessor :last_state
@@ -19,4 +20,5 @@ class RZNode < RZObject
     @attributes_hash = {}
     from_hash(hash)
   end
+end
 end
