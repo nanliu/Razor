@@ -36,6 +36,7 @@ describe RZPersistController do
       @persist.database.class.should == RZPersistDatabaseMongo
     end
     it "should have stored config object and it should match" do
+      #noinspection RubyResolve,RubyResolve
       @persist.config.should == @config
     end
     it "should have established a connection on initialization" do
@@ -74,18 +75,23 @@ describe RZPersistController do
       #create junk models with random updates
       (0..rand(10)).each do
         |x|
-        temp_model = RZModel.new({:@name => "rspec_junk", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        temp_model = RZModel.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        temp_model._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_model.to_hash, :model)
         end
       end
       @model1 = RZModel.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1._persist_ctrl = @persist
       @model2 = RZModel.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
+      @model2._persist_ctrl = @persist
       @model3 = RZModel.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
+      @model3._persist_ctrl = @persist
     end
 
     after(:all) do
       if CLEANUP
+        #noinspection RubyResolve,RubyResolve,RubyResolve,RubyResolve,RubyResolve
         model_hash_array = @persist.object_hash_get_all(:model)
         model_hash_array.each do
           |model_hash|
@@ -105,7 +111,6 @@ describe RZPersistController do
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid },1)
     end
     it "should see the last update to a Model in the collection and version number should be 3" do
-      flag = false
       model_hash_array = @persist.object_hash_get_all(:model)
       model_hash_array.should keys_with_values_count_equals({"@uuid" => @model1.uuid , "@name" => "rspec_modelname03", "@version" => 3},1)
     end
@@ -127,13 +132,17 @@ describe RZPersistController do
       (0..rand(10)).each do
         |x|
         temp_policy = RZPolicy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
+        temp_policy._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_policy.to_hash, :policy)
         end
       end
       @policy1 = RZPolicy.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
+      @policy1._persist_ctrl = @persist
       @policy2 = RZPolicy.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy2._persist_ctrl = @persist
       @policy3 = RZPolicy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy3._persist_ctrl = @persist
     end
 
     after(:all) do
@@ -156,7 +165,6 @@ describe RZPersistController do
       policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
     end
     it "should see the last update to a Policy in the collection and version number should be 3" do
-      flag = false
       policy_hash_array = @persist.object_hash_get_all(:policy)
       policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid , "@name" => @policy3.name, "@version" => 3},1)
     end
@@ -177,17 +185,22 @@ describe RZPersistController do
       (0..rand(10)).each do
         |x|
         temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        temp_node._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_node.to_hash, :node)
         end
       end
       @node1 = RZNode.new({:@name => "rspec_node_name01", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node1._persist_ctrl = @persist
       @node2 = RZNode.new({:@name => "rspec_node_name02", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node2._persist_ctrl = @persist
       @node3 = RZNode.new({:@name => "rspec_node_name03", :@uuid => @node1.uuid , :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      @node3._persist_ctrl = @persist
     end
 
     after(:all) do
       if CLEANUP
+        #noinspection RubyResolve
         node_hash_array = @persist.object_hash_get_all(:node)
         node_hash_array.each do
           |node_hash|
@@ -206,7 +219,6 @@ describe RZPersistController do
       node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid },1)
     end
     it "should see the last update to a Node in the collection and version number should be 3" do
-      flag = false
       node_hash_array = @persist.object_hash_get_all(:node)
       node_hash_array.should keys_with_values_count_equals({"@uuid" => @node1.uuid , "@name" => @node3.name, "@version" => 3},1)
     end

@@ -59,6 +59,10 @@ class RZPersistController
     @database.object_doc_get_all(collection)
   end
 
+  def object_hash_get_by_uuid(object_doc, collection)
+    @database.object_doc_get_by_uuid(object_doc, collection)
+  end
+
   # Add/update object document to the collection: 'collection'
   # @param object_doc [Hash]
   # @param collection [Symbol]
@@ -75,5 +79,8 @@ class RZPersistController
     @database.object_doc_remove(object_doc, collection) || false
   end
 
+  def object_hash_remove_all(collection)
+    @database.object_doc_remove_all(collection)
+  end
 
 end

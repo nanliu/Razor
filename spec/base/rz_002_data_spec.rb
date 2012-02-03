@@ -7,6 +7,7 @@ require "rz_data"
 require "fileutils"
 
 PC_TIMEOUT = 3 # timeout for our connection to DB, using to make quicker tests
+NODE_COUNT = 5 # total amount of nodes to use for node testing
 
 def default_config
   RZConfiguration.new
@@ -25,6 +26,7 @@ end
 
 
 describe RZData do
+
   describe ".Configuration" do
     before(:all) do
       #Backup existing razor.conf being nice to the developer's environment
@@ -68,14 +70,14 @@ describe RZData do
 
       # Confirm we have our default config
       data.config.instance_variables.each do
-        |iv|
+      |iv|
         # Loop and make sure each object matches
         data.config.instance_variable_get(iv).should == default_config.instance_variable_get(iv)
       end
 
       #Confirm we have our default file
       File.exists?(CONFIG_PATH).should == true
-      data.persist_controller.teardown
+      data.persist_ctrl.teardown
     end
 
     it "should create a default config object if the YAML config has format errors" do
@@ -87,11 +89,11 @@ describe RZData do
 
       # Confirm we have our default config
       data.config.instance_variables.each do
-        |iv|
+      |iv|
         # Loop and make sure each object matches
         data.config.instance_variable_get(iv).should == default_config.instance_variable_get(iv)
       end
-      data.persist_controller.teardown
+      data.persist_ctrl.teardown
     end
 
     it "should create a default config object if the YAML config creates any nil instance variables because of malformed YAML" do
@@ -103,11 +105,11 @@ describe RZData do
 
       # Confirm we have our default config
       data.config.instance_variables.each do
-        |iv|
+      |iv|
         # Loop and make sure each object matches
         data.config.instance_variable_get(iv).should == default_config.instance_variable_get(iv)
       end
-      data.persist_controller.teardown
+      data.persist_ctrl.teardown
     end
 
   end
@@ -118,13 +120,17 @@ describe RZData do
       @data = RZData.new
     end
 
+    after(:all) do
+      @data.teardown
+    end
+
 
     it "should create an Persistence Controller object with passed config" do
-      @data.persist_controller.kind_of?(RZPersistController).should == true
+      @data.persist_ctrl.kind_of?(RZPersistController).should == true
     end
 
     it "should have an active Persistence Controller connection" do
-      @data.persist_controller.is_connected?.should == true
+      @data.persist_ctrl.is_connected?.should == true
     end
 
   end
@@ -132,24 +138,95 @@ describe RZData do
 
   describe ".Nodes" do
 
-    it "should have a list of Nodes"
+    before(:all) do
+      @data = RZData.new
 
-    it "should get a single node by UUID"
+      (1..NODE_COUNT).each do
+      |x|
+        temp_node = RZNode.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        temp_node._persist_ctrl = @data.persist_ctrl
+        @last_uuid = temp_node.uuid
+        #(0..rand(10)).each do
+        @data.persist_ctrl.object_hash_update(temp_node.to_hash, :node)
+        #end
+      end
+    end
 
-    it "should get one or more nodes by attribute matching"
+    after(:all) do
+      @data.persist_ctrl.object_hash_remove_all(:node).should == true
+      @data.teardown
+    end
 
-    it "should be able to add a new Node (does not exist)"
+    it "should have a list of Nodes" do
+      nodes = @data.fetch_all(:node)
+      nodes.count.should == NODE_COUNT
+    end
 
-    it "should be able to update Node attributes for existing Node"
+    it "should get a single node by UUID" do
+      node = @data.fetch_by_uuid(:node, @last_uuid)
+      node.is_a?(RZNode).should == true
 
-    it "should be able to update the LastState for existing Node"
+      node = @data.fetch_by_uuid(:node, "12345")
+      node.is_a?(NilClass).should == true
+    end
 
-    it "should be able to update the CurrentState for existing Node"
+    it "should be able to add a new Node (does not exist)" do
 
-    it "should be able to update the NextState for existing Node"
+    end
+
+    it "should be able to update Node attributes for existing Node" do
+      node = @data.fetch_by_uuid(:node, @last_uuid)
+      node.is_a?(RZNode).should == true
+      node.attributes_hash = {:hostname => "nick_weaver", :ip_address => "1.1.1.1", :iq => 160}
+      node.update_self
+      node.attributes_hash["hostname"].should == "nick_weaver"
+      node.attributes_hash["ip_address"].should == "1.1.1.1"
+      node.attributes_hash["iq"].should == 160
+
+      node_confirm = @data.fetch_by_uuid(:node, @last_uuid)
+      node_confirm.is_a?(RZNode).should == true
+      node_confirm.attributes_hash["hostname"].should == "nick_weaver"
+      node_confirm.attributes_hash["ip_address"].should == "1.1.1.1"
+      node_confirm.attributes_hash["iq"].should == 160
+    end
+
+    it "should be able to update the LastState for existing Node" do
+      node = @data.fetch_by_uuid(:node, @last_uuid)
+      node.is_a?(RZNode).should == true
+      node.last_state = :nick
+      node.update_self
+      node.last_state.should == :nick
+
+      node_confirm = @data.fetch_by_uuid(:node, @last_uuid)
+      node_confirm.is_a?(RZNode).should == true
+      node_confirm.last_state = :nick
+    end
+
+    it "should be able to update the CurrentState for existing Node" do
+      node = @data.fetch_by_uuid(:node, @last_uuid)
+      node.is_a?(RZNode).should == true
+      node.current_state = :nick
+      node.update_self
+      node.current_state.should == :nick
+
+      node_confirm = @data.fetch_by_uuid(:node, @last_uuid)
+      node_confirm.is_a?(RZNode).should == true
+      node_confirm.current_state = :nick
+    end
+
+
+    it "should be able to update the NextState for existing Node" do
+      node = @data.fetch_by_uuid(:node, @last_uuid)
+      node.is_a?(RZNode).should == true
+      node.next_state = :nick
+      node.update_self
+      node.next_state.should == :nick
+
+      node_confirm = @data.fetch_by_uuid(:node, @last_uuid)
+      node_confirm.is_a?(RZNode).should == true
+      node_confirm.next_state = :nick
+    end
 
   end
-
-
 
 end

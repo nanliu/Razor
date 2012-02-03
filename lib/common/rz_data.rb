@@ -13,7 +13,7 @@ CONFIG_PATH = "#{ENV['RAZOR_HOME']}/conf/razor.conf"
 class RZData
 
   attr_accessor :config
-  attr_accessor :persist_controller
+  attr_accessor :persist_ctrl
 
   # init our RZData object
   def initialize
@@ -22,15 +22,39 @@ class RZData
     setup_persist
   end
 
+  def teardown
+    @persist_ctrl.teardown
+  end
 
 
+
+  def fetch_all(object_symbol)
+    object_array = []
+    object_hash_array = persist_ctrl.object_hash_get_all(object_symbol)
+    object_hash_array.each { |object_hash| object_array << object_hash_to_object(object_hash) }
+    object_array
+  end
+
+  def fetch_by_uuid(object_symbol, object_uuid)
+    fetch_all(object_symbol).each do
+      |object|
+      return object if object.uuid == object_uuid
+    end
+    nil
+  end
 
 
 
   private
 
+  def object_hash_to_object(object_hash)
+    object = Object::const_get(object_hash["@classname"]).new(object_hash)
+    object._persist_ctrl = @persist_ctrl
+    object
+  end
+
   def setup_persist
-    @persist_controller = RZPersistController.new(@config)
+    @persist_ctrl = RZPersistController.new(@config)
   end
 
   # We attempt to load the file if it exists
@@ -39,6 +63,7 @@ class RZData
     if File.exist?(CONFIG_PATH)
       begin
         conf_file = File.open(CONFIG_PATH)
+        #noinspection RubyResolve,RubyResolve
         loaded_config = YAML.load(conf_file)
           # We catch the basic root errors
       rescue SyntaxError

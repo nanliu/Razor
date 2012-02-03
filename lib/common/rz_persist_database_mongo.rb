@@ -92,6 +92,16 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
     remove_mongo_keys(unique_object_doc_array) # we return our unique/new docs after removing mongo-related keys (_id, _timestamp)
   end
 
+  def object_doc_get_by_uuid( object_doc, collection_name)
+    object_array = collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
+    if object_array.count > 0
+      object_array[0]
+    else
+      nil
+    end
+  end
+
+
   # Adds object document to the collection with an incremented "@version" key
   # @param object_doc [Hash]
   # @param collection_name [Symbol]
@@ -109,12 +119,28 @@ class RZPersistDatabaseMongo < RZPersistDatabaseObject
   # @param collection_name [Symbol]
   # @return [true, Hash] - returns 'true' if successful, otherwise returns 'Hash' with last error
   def object_doc_remove(object_doc, collection_name)
-    collection_by_name(collection_name).remove({"@uuid" => object_doc["@uuid"]})
+    while collection_by_name(collection_name).find({"@uuid" => object_doc["@uuid"]}).count > 0
+      if !collection_by_name(collection_name).remove({"@uuid" => object_doc["@uuid"]})
+        return false
+      end
+    end
+    true
+  end
+
+  def object_doc_remove_all(collection_name)
+    while collection_by_name(collection_name).count > 0
+      if !collection_by_name(collection_name).remove()
+        return false
+      end
+    end
+    true
   end
 
 
 
-  # private # Mongo internal stuff we don't want exposed'
+
+
+  private # Mongo internal stuff we don't want exposed'
 
   # Gets the current version number and returns an incremented value, or returns '1' if none exists
   # @param object_doc [Hash]
