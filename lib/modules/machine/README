@@ -1,4 +1,0 @@
-*these README's are placeholders for RI docs
-
-Machine Module is where primary events are driven. This includes endpoint dynamic requests iPXE & Microkernel wrapped by HTTP.
-This also includes updating Model and Policies.

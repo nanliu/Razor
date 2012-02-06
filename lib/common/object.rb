@@ -3,9 +3,11 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "uuid"
 require "utility"
 
-# Common object for all base Razor objects
-# @abstract
+
+
 module Razor
+  # Common object for all base Razor objects
+  # @abstract
   class Object
     # Mixin our ObjectUtilities
     include(Razor::Utility)

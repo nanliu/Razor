@@ -29,6 +29,7 @@ DevOps-style tool sets.
 == Directory structure
     ./bin - control scripts
     ./conf - configuration YAML files
+    ./doc - Documentation (YARD)
     ./images - default images directory
     ./install - installation bits
     ./lib - root library folder
