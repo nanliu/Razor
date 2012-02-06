@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.7.5
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" media="screen" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  relpath = '';
+  if (relpath != '') relpath += '/';
+</script>
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+    
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html" title="Index">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+  
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a id="class_list_link" href="#">Class List</a>
+  
+    <a id="method_list_link" href="#">Method List</a>
+  
+    <a id="file_list_link" href="#">File List</a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+    
+    <iframe id="search_frame"></iframe>
+    
+    <div id="content"><div id='filecontents'>
+<h1>Project Razor</h1>
+
+<h2>Introduction</h2>
+
+<p>Project Razor is a power control, provisioning, and management application
+designed to deploy both bare-metal and virtual compute resources with tight
+integration with DevOps-style tool sets.</p>
+
+<h2>Authors</h2>
+
+<pre class="code ruby"><code><span class='const'>Nicholas</span> <span class='const'>Weaver</span> <span class='lbracket'>[</span><span class='label'>https:</span><span class='tstring'><span class='regexp_beg'>/</span><span class='regexp_end'>/github</span></span><span class='period'>.</span><span class='id identifier rubyid_com'>com</span><span class='op'>/</span><span class='id identifier rubyid_lynxbat'>lynxbat</span><span class='rbracket'>]</span>
+<span class='const'>Tom</span> <span class='const'>McSweeney</span> <span class='lbracket'>[</span><span class='label'>https:</span><span class='tstring'><span class='regexp_beg'>/</span><span class='regexp_end'>/github</span></span><span class='period'>.</span><span class='id identifier rubyid_com'>com</span><span class='op'>/</span><span class='id identifier rubyid_tjmcs'>tjmcs</span><span class='rbracket'>]</span></code></pre>
+
+<h2>Installation</h2>
+
+<pre class="code ruby"><code><span class='lparen'>(</span><span class='const'>COMING</span> <span class='const'>SOON</span><span class='rparen'>)</span></code></pre>
+
+<h2>Prereqs</h2>
+
+<pre class="code ruby"><code>1. Ruby &gt;= 1.9.3
+2. Assorted gems - see (Gemfile)
+3. Node.js &gt;= 0.6.10</code></pre>
+
+<h2>Environment Variables</h2>
+
+<pre class="code ruby"><code>(RAZOR_HOME = root directory for Razor)</code></pre>
+
+<h2>Directory structure</h2>
+
+<pre class="code ruby"><code>./bin - control scripts
+./conf - configuration YAML files
+./images - default images directory
+./install - installation bits
+./lib - root library folder
+./test_scripts - testing scripts
+./rspec - unit tests (RSpec)</code></pre>
+
+<h2>Notes</h2>
+
+<p>Use the newest mongo ruby driver build as there is a bug with
+connect_timeout scoping error that hasn’t been merged into available gem
+yet</p>
+
+<p>The fix below is assuming RVM as Ruby environment manager. If using global
+RVM gems make sure and ‘rvm use ruby-1.9.3@global’ before installing
+updated mongo driver.</p>
+
+<pre class="code ruby"><code>(wget https://github.com/mongodb/mongo-ruby-driver/zipball/master
+unzip master
+cd mongodb-mongo-ruby-driver-99d9dfd/
+gem build mongo.gemspec
+gem install mongo-1.5.2.gem)</code></pre>
+</div></div>
+    
+    <div id="footer">
+  Generated on Sun Feb  5 20:07:58 2012 by 
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.7.5 (ruby-1.9.3).
+</div>
+
+  </body>
+</html>

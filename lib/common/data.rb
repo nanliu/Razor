@@ -14,8 +14,6 @@ module Razor
 
   # This class is the interface to all querying and saving of objects for Razor
   # @author Nicholas Weaver
-  #
-  #
   class Data
 
     # {Razor::Configuration} object for {Razor::Data}
@@ -102,19 +100,30 @@ module Razor
 
 
 
-    private
 
+
+    # Takes a [Hash] from a {Razor::Persist:Controller} document and converts back into an {Razor::Object}
+    # @api private
+    # @param [Hash] object_hash The hash of the object
+    # @return [Razor::Object, nil]
     def object_hash_to_object(object_hash)
       object = Object::full_const_get(object_hash["@classname"]).new(object_hash)
       object._persist_ctrl = @persist_ctrl
       object
     end
 
+    # Initiates the {Razor::Persist::Controller} for {Razor::Data}
+    # @api private
+    #
+    # @return [Razor::Persist::Controller, nil]
     def setup_persist
       @persist_ctrl = Razor::Persist::Controller.new(@config)
     end
 
-    # We attempt to load the file if it exists
+    # Attempts to load the './conf/razor.conf' YAML file into @config
+    # @api private
+    #
+    # @return [Razor::Configuration, nil]
     def load_config
       loaded_config = nil
       if File.exist?(CONFIG_PATH)
@@ -144,7 +153,10 @@ module Razor
       end
     end
 
-    # This will create a default config object and save the razor.conf file if it doesn't exist'
+    # Creates new 'razor.conf' if one does not already exist
+    # @api private
+    #
+    # @return [Razor::Configuration, nil]
     def reset_config
       # use default init
       new_conf = Razor::Configuration.new
@@ -162,11 +174,13 @@ module Razor
       @config = new_conf
     end
 
+    # Returns a header for new 'razor.conf' files
+    # @api private
+    #
+    # @return [Razor::Configuration, nil]
     def new_conf_header
       "\n# This file is the main configuration for Razor\n#\n# -- this was system generated --\n#\n#\n"
     end
-
-
 
   end
 end
