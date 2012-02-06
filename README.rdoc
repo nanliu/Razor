@@ -8,8 +8,8 @@ DevOps-style tool sets.
 
 == Authors
 
-    Nicholas Weaver[https://github.com/lynxbat]
-    Tom McSweeney[https://github.com/tjmcs]
+Nicholas Weaver[https://github.com/lynxbat]
+Tom McSweeney[https://github.com/tjmcs]
 
 == Installation
 
