@@ -65,8 +65,9 @@ integration with DevOps-style tool sets.</p>
 
 <h2>Authors</h2>
 
-<pre class="code ruby"><code><span class='const'>Nicholas</span> <span class='const'>Weaver</span> <span class='lbracket'>[</span><span class='label'>https:</span><span class='tstring'><span class='regexp_beg'>/</span><span class='regexp_end'>/github</span></span><span class='period'>.</span><span class='id identifier rubyid_com'>com</span><span class='op'>/</span><span class='id identifier rubyid_lynxbat'>lynxbat</span><span class='rbracket'>]</span>
-<span class='const'>Tom</span> <span class='const'>McSweeney</span> <span class='lbracket'>[</span><span class='label'>https:</span><span class='tstring'><span class='regexp_beg'>/</span><span class='regexp_end'>/github</span></span><span class='period'>.</span><span class='id identifier rubyid_com'>com</span><span class='op'>/</span><span class='id identifier rubyid_tjmcs'>tjmcs</span><span class='rbracket'>]</span></code></pre>
+<p><a href="https://github.com/lynxbat">Nicholas Weaver</a></p>
+
+<p><a href="https://github.com/tjmcs">Tom McSweeney</a></p>
 
 <h2>Installation</h2>
 
@@ -86,6 +87,7 @@ integration with DevOps-style tool sets.</p>
 
 <pre class="code ruby"><code>./bin - control scripts
 ./conf - configuration YAML files
+./doc - Documentation (YARD)
 ./images - default images directory
 ./install - installation bits
 ./lib - root library folder
@@ -102,15 +104,15 @@ yet</p>
 RVM gems make sure and ‘rvm use ruby-1.9.3@global’ before installing
 updated mongo driver.</p>
 
-<pre class="code ruby"><code>(wget https://github.com/mongodb/mongo-ruby-driver/zipball/master
+<pre class="code ruby"><code>wget https://github.com/mongodb/mongo-ruby-driver/zipball/master
 unzip master
 cd mongodb-mongo-ruby-driver-99d9dfd/
 gem build mongo.gemspec
-gem install mongo-1.5.2.gem)</code></pre>
+gem install mongo-1.5.2.gem</code></pre>
 </div></div>
     
     <div id="footer">
-  Generated on Sun Feb  5 20:07:58 2012 by 
+  Generated on Mon Feb  6 18:04:17 2012 by 
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.7.5 (ruby-1.9.3).
 </div>
