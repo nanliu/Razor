@@ -22,5 +22,13 @@ module Razor
       self.instance_variables.each { |iv| flag = false if (self.instance_variable_get(iv) == nil && !iv.to_s.start_with?("@_")) }
       flag
     end
+
+    # Returns the version number as [String] from ./conf/version
+    def get_razor_version
+      file = File.open("#{ENV['RAZOR_HOME']}/conf/version", "rb")
+      version = file.read
+      file.close
+      version
+    end
   end
 end

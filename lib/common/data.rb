@@ -2,6 +2,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "configuration"
 require "persist_controller"
+require "utility"
 require "yaml"
 require "extlib"
 
@@ -15,6 +16,7 @@ module Razor
   # This class is the interface to all querying and saving of objects for Razor
   # @author Nicholas Weaver
   class Data
+    include(Razor::Utility)
 
     # {Razor::Configuration} object for {Razor::Data}
     attr_accessor :config
@@ -48,7 +50,7 @@ module Razor
     #
     # @param [Symbol] object_symbol
     # @param [String] object_uuid
-    # @return [Object]
+    # @return [Object, nil]
     def fetch_object_by_uuid(object_symbol, object_uuid)
       fetch_all_objects(object_symbol).each do
       |object|
@@ -66,6 +68,7 @@ module Razor
     def persist_object(object)
       persist_ctrl.object_hash_update(object.to_hash, object._collection)
       object._persist_ctrl = persist_ctrl
+      object.refresh_self
       object
     end
 
