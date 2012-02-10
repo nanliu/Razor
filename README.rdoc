@@ -41,7 +41,7 @@ DevOps-style tool sets.
 
 Start Razor API with:
         cd $RAZOR_HOME/bin/node
-        node razor.conf
+        node razor.js
 
 
 == Notes
