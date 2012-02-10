@@ -26,23 +26,6 @@ module Razor::Slice
       @slice_name = "Node"
     end
 
-    # Default call method for a slice. Used by {razor.rb}.
-    def slice_call
-      # First var in array should be our root command
-      @command = @command_array.shift
-      # check command and route based on it
-      flag = false
-      @slice_commands.each_pair do
-      |cmd_string, method|
-        if @command == cmd_string
-          self.send(method)
-          flag = true
-        end
-      end
-
-
-      slice_error("InvalidCommand") unless flag
-    end
 
 
     def discover_node
@@ -55,10 +38,7 @@ module Razor::Slice
         node_hash[:@last_state] = state
 
         setup_data
-
         new_node = insert_node(node_hash)
-
-        puts "#{new_node.version} : #{new_node.attributes_hash['hostname']} : #{new_node.attributes_hash['ip_address']}"
         slice_success if new_node.refresh_self
       else
         slice_error("MissingArguments")
@@ -92,6 +72,9 @@ module Razor::Slice
               if @command_array.count > 0
                 return_node_by_uuid(@command_array.shift)
                 return nil
+              else
+                slice_error("NodeUUIDNotProvided")
+                return nil
               end
           end
         end
@@ -117,6 +100,9 @@ module Razor::Slice
     end
 
     def cli_print_node(node_array)
+
+
+      if !@web_command
       puts "Nodes:"
 
       if !@verbose
@@ -143,15 +129,13 @@ module Razor::Slice
           end
           print "\n"
         end
-
-
       end
-
-
+      else
+        node_array = node_array.collect {|node| node.to_hash}
+        print node_array.to_json.tr("\\", "")
+      end
     end
 
-    def setup_data
-      @data = Razor::Data.new unless @data.class == Razor::Data
-    end
+
   end
 end

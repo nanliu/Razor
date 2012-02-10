@@ -20,10 +20,20 @@ module Razor
         @web_command = false
       end
 
+      # Default call method for a slice. Used by {razor.rb}.
       def slice_call
-        while @command_array.count > 0
-          puts "\t#{@command_array.shift}"
+        # First var in array should be our root command
+        @command = @command_array.shift
+        # check command and route based on it
+        flag = false
+        @slice_commands.each_pair do
+        |cmd_string, method|
+          if @command == cmd_string
+            self.send(method)
+            flag = true
+          end
         end
+        slice_error("InvalidCommand") unless flag
       end
 
       def slice_success
@@ -32,7 +42,7 @@ module Razor
         return_hash["command"] = @command
         return_hash["result"] = "Success"
         if @web_command
-          puts JSON.dump(return_hash).inspect
+          puts JSON.dump(return_hash)
         else
           print "\n\n#{@slice_name.capitalize}"
           print " #{return_hash["command"]}"
@@ -48,7 +58,7 @@ module Razor
         return_hash["command"] = @command
         return_hash["result"] = error
         if @web_command
-          puts JSON.dump(return_hash).inspect
+          puts JSON.dump(return_hash)
         else
           print "\nAvailable commands for [#{@slice_name}]:\n"
           @slice_commands.each do
@@ -61,6 +71,10 @@ module Razor
           print "<-#{return_hash["result"]}\n".yellow
           puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
         end
+      end
+
+      def setup_data
+        @data = Razor::Data.new unless @data.class == Razor::Data
       end
     end
   end
