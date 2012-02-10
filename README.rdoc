@@ -21,6 +21,7 @@ DevOps-style tool sets.
    1. Ruby >= 1.9.3
    2. Assorted gems - see (Gemfile)
    3. Node.js >= 0.6.10
+   4. Node.js Express package
 
 == Environment Variables
 
@@ -35,6 +36,12 @@ DevOps-style tool sets.
     ./lib - root library folder
     ./test_scripts - testing scripts
     ./rspec - unit tests (RSpec)
+
+== Starting services
+
+    1. Start Razor API with:
+        cd $RAZOR_HOME/bin/node
+        node razor.conf
 
 
 == Notes
