@@ -24,7 +24,6 @@ module Razor::Slice
       if @web_command # is this a web command
         print @data.config.to_hash.to_json
       else
-        slice_error("I Don't Like You")
         puts "Razor Config:"
         @data.config.to_hash.each do
         |key,val|

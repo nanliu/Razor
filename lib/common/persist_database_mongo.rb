@@ -26,16 +26,16 @@ module Razor
           begin
             @connection = Mongo::Connection.new(hostname, port, {:connect_timeout => timeout})
           rescue Mongo::ConnectionTimeoutError
-            puts "ConnectionTimeout"
+            #puts "ConnectionTimeout"
             return false
           rescue Mongo::ConnectionError
-            puts "ConnectionError"
+            #puts "ConnectionError"
             return false
           rescue Mongo::ConnectionFailure
-            puts "ConnectionFailure"
+            #puts "ConnectionFailure"
             return false
           rescue  Mongo::OperationTimeout
-            puts "OperationTimeout"
+            #puts "OperationTimeout"
             return false
           end
           @razor_database = @connection.db("razor")
