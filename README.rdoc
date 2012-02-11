@@ -14,10 +14,10 @@ DevOps-style tool sets.
 
 == Installation
 
-Node.js:
-    {Node.js install with package}[https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager]
-    {Node Package Manager(NPM)}[http://npmjs.org/]
-    {Express install via NPM}http://expressjs.com/guide.html
+=== Node.js:
+{Node.js install with package}[https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager]
+{Node Package Manager(NPM)}[http://npmjs.org/]
+{Express install via NPM}http://expressjs.com/guide.html
 
 == Prereqs
 
