@@ -6,7 +6,7 @@ require "node" # not needed in this example yet
 require "net/http"
 require "json"
 
-uri = URI 'http://127.0.0.1:3000/razor/slice/node/register' # root URI for node slice actions
+uri = URI 'http://127.0.0.1:8026/razor/slice/node/register' # root URI for node slice actions
 
 if ARGV.count < 2
 uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
