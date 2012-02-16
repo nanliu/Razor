@@ -18,11 +18,12 @@ module Razor::Slice
     def initialize(args)
       super(args)
       # Here we create a hash of the command string to the method it corresponds to for routing.
-      @slice_commands = {"register" => "discover_node",
-                         "query" => "query_node",
-                         "remove" => "remove_node",}
-      @slice_commands_help = {"register" => "node register [uuid] [last state] [attributes hash(JSON STRING)]",
-                              "query" => "node query [one | all] (uuid) (verbose)"}
+      @slice_commands = {:register => "discover_node",
+                         :query => "query_node",
+                         :remove => "remove_node",
+                          :default => "return_all_nodes"}
+      @slice_commands_help = {:register => "node register [uuid] [last state] [attributes hash(JSON STRING)]",
+                              :query => "node query [one | all] (uuid) (verbose)"}
       @slice_name = "Node"
     end
 

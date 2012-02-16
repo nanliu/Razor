@@ -24,6 +24,9 @@ module Razor
       def slice_call
         # First var in array should be our root command
         @command = @command_array.shift
+        if @command == nil && @web_command
+          @command = :default
+        end
         # check command and route based on it
         flag = false
         @slice_commands.each_pair do
@@ -60,17 +63,21 @@ module Razor
         if @web_command
           puts JSON.dump(return_hash)
         else
-          print "\nAvailable commands for [#{@slice_name}]:\n"
-          @slice_commands.each do
-          |k,y|
-            print "[#{k}] ".yellow
-          end
-          print "\n\n"
-          print "[#{@slice_name.capitalize}] "
-          print "[#{return_hash["command"]}] ".red
-          print "<-#{return_hash["result"]}\n".yellow
-          puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
+          available_commands(return_hash)
         end
+      end
+
+      def available_commands(return_hash)
+        print "\nAvailable commands for [#{@slice_name}]:\n"
+        @slice_commands.each do
+        |k,y|
+          print "[#{k}] ".yellow unless k == :default
+        end
+        print "\n\n"
+        print "[#{@slice_name.capitalize}] "
+        print "[#{return_hash["command"]}] ".red
+        print "<-#{return_hash["result"]}\n".yellow
+        puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
       end
 
       def setup_data

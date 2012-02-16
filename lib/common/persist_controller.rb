@@ -4,29 +4,37 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 require "configuration"
 require "persist_database_mongo"
 require "model"
+require "logging"
 
 # Persistence Controller for Razor
 module Razor
   module Persist
     class Controller
+      include(Razor::Logging)
+
       attr_accessor :database
       attr_accessor :config
 
       # Initializes the controller and configures the correct '@database' object based on the 'persist_mode' specified in the config
       # @param @config [Razor::Configuration]
       def initialize(config)
+        logger.debug "Initializing object"
         # copy config into instance
         @config = config
 
         # init correct database object
         if (config.persist_mode = :mongo)
+          logger.debug "Using Mongo plugin"
           @database = Razor::Persist::Database::MongoPlugin.new
           check_connection
+        else
+          logger.error "Invalid Database plugin(#{config.persist_mode})"
         end
       end
 
       # This is where all connection teardown is started. Calls the '@database.teardown'
       def teardown
+        logger.debug "Connection teardown"
         @database.teardown
       end
 
@@ -34,6 +42,7 @@ module Razor
       # Use this when you want to check but not reconnect
       # @return [true, false]
       def is_connected?
+        logger.debug "Checking if DB is selected(#{@database.is_db_selected?})"
         @database.is_db_selected?
       end
 
@@ -41,6 +50,7 @@ module Razor
       # Use this to check connection after trying to make sure it is open
       # @return [true, false]
       def check_connection
+        logger.debug "Checking connection (#{is_connected?})"
         is_connected? || connect_database
         # return connection status
         is_connected?
@@ -48,6 +58,7 @@ module Razor
 
       # Connect to database using Razor::Persist::Database::Plugin loaded
       def connect_database
+        logger.debug "Connecting to database(#{@config.persist_host}:@config.persist_port) with timeout(#{@config.persist_timeout})"
         @database.connect(@config.persist_host, @config.persist_port, @config.persist_timeout)
       end
 
@@ -58,10 +69,12 @@ module Razor
       # @param collection [Symbol] - name of the collection
       # @return [Array] - Array containing the
       def object_hash_get_all(collection)
+        logger.debug "Retrieving object documents from collection(#{collection})"
         @database.object_doc_get_all(collection)
       end
 
       def object_hash_get_by_uuid(object_doc, collection)
+        logger.debug "Retrieving object document from collection(#{collection}) by uuid(#{object_doc['@uuid']})"
         @database.object_doc_get_by_uuid(object_doc, collection)
       end
 
@@ -70,6 +83,7 @@ module Razor
       # @param collection [Symbol]
       # @return [Hash]
       def object_hash_update(object_doc, collection)
+        logger.debug "Updating object document from collection(#{collection}) by uuid(#{object_doc['@uuid']})"
         @database.object_doc_update(object_doc, collection)
       end
 
@@ -78,10 +92,12 @@ module Razor
       # @param collection [Symbol]
       # @return [true, false]
       def object_hash_remove(object_doc, collection)
+        logger.debug "Removing object document from collection(#{collection}) by uuid(#{object_doc['@uuid']})"
         @database.object_doc_remove(object_doc, collection) || false
       end
 
       def object_hash_remove_all(collection)
+        logger.debug "Removing all object documents from collection(#{collection})"
         @database.object_doc_remove_all(collection)
       end
     end

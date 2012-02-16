@@ -5,6 +5,7 @@ require "persist_controller"
 require "utility"
 require "yaml"
 require "extlib"
+require "logging"
 
 CONFIG_PATH = "#{ENV['RAZOR_HOME']}/conf/razor.conf"
 
@@ -17,6 +18,7 @@ module Razor
   # @author Nicholas Weaver
   class Data
     include(Razor::Utility)
+    include(Razor::Logging)
 
     # {Razor::Configuration} object for {Razor::Data}
     attr_accessor :config
@@ -26,12 +28,14 @@ module Razor
     # Initializes our {Razor::Data} object
     #  Attempts to load {Razor::Configuration} and initialize {Razor::Persist::Controller}
     def initialize
+      logger.debug "Initializing object"
       load_config
       setup_persist
     end
 
     # Called when work with {Razor::Data} is complete
     def teardown
+      logger.debug "Teardown called"
       @persist_ctrl.teardown
     end
 
@@ -40,6 +44,7 @@ module Razor
     # @param [Symbol] object_symbol
     # @return [Array]
     def fetch_all_objects(object_symbol)
+      logger.debug "Fetching all objects (#{object_symbol})"
       object_array = []
       object_hash_array = persist_ctrl.object_hash_get_all(object_symbol)
       object_hash_array.each { |object_hash| object_array << object_hash_to_object(object_hash) }
@@ -52,6 +57,7 @@ module Razor
     # @param [String] object_uuid
     # @return [Object, nil]
     def fetch_object_by_uuid(object_symbol, object_uuid)
+      logger.debug "Fetching object by uuid (#{object_uuid}) in collection (#{object_symbol})"
       fetch_all_objects(object_symbol).each do
       |object|
         return object if object.uuid == object_uuid
@@ -62,10 +68,10 @@ module Razor
     # Takes an {Razor::Object} and creates/persists it within the database.
     # @note If {Razor::Object} already exists it is simply updated
     #
-    # @param [Symbol] object_symbol
-    # @param [String] object_uuid
+    # @param [Razor::Object] object
     # @return [Razor::Object] returned object is a copy of passed {Razor::Object} with bindings enabled for {Razor::Object#refresh_self} and {Razor::Object#update_self}
     def persist_object(object)
+      logger.debug "Persisting an object (#{object.uuid})"
       persist_ctrl.object_hash_update(object.to_hash, object._collection)
       object._persist_ctrl = persist_ctrl
       object.refresh_self
@@ -77,6 +83,7 @@ module Razor
     # @param [Symbol] object_symbol The name of the collection
     # @return [true, false]
     def delete_all_objects(object_symbol)
+      logger.debug "Deleting all objects (#{object_symbol})"
       persist_ctrl.object_hash_remove_all(object_symbol)
     end
 
@@ -85,6 +92,7 @@ module Razor
     # @param [Razor::Object] object The {Razor::Object} to delete
     # @return [true, false]
     def delete_object(object)
+      logger.debug "Deleting an object (#{object.uuid})"
       persist_ctrl.object_hash_remove(object.to_hash, object._collection)
     end
 
@@ -94,6 +102,7 @@ module Razor
     # @param [String] object_uuid The 'uuid' of the {Razor::Object}
     # @return [true, false]
     def delete_object_by_uuid(object_symbol, object_uuid)
+      logger.debug "Deleting an object by uuid (#{object_uuid} #{object_symbol}"
       fetch_all_objects(object_symbol).each do
       |object|
         return persist_ctrl.object_hash_remove(object.to_hash, object_symbol) if object.uuid == object_uuid
@@ -110,6 +119,7 @@ module Razor
     # @param [Hash] object_hash The hash of the object
     # @return [Razor::Object, nil]
     def object_hash_to_object(object_hash)
+      logger.debug "Converting object hash to object (#{object_hash['@classname']})"
       object = Object::full_const_get(object_hash["@classname"]).new(object_hash)
       object._persist_ctrl = @persist_ctrl
       object
@@ -120,6 +130,7 @@ module Razor
     #
     # @return [Razor::Persist::Controller, nil]
     def setup_persist
+      logger.debug "Persist controller init"
       @persist_ctrl = Razor::Persist::Controller.new(@config)
     end
 
@@ -128,6 +139,7 @@ module Razor
     #
     # @return [Razor::Configuration, nil]
     def load_config
+      logger.debug "Loading config at (#{CONFIG_PATH}"
       loaded_config = nil
       if File.exist?(CONFIG_PATH)
         begin
@@ -136,8 +148,10 @@ module Razor
           loaded_config = YAML.load(conf_file)
             # We catch the basic root errors
         rescue SyntaxError
+          logger.warn "SyntaxError loading (#{CONFIG_PATH})"
           loaded_config = nil
         rescue StandardError
+          logger.warn "Generic error loading (#{CONFIG_PATH})"
           loaded_config = nil
         ensure
           conf_file.close
@@ -149,9 +163,13 @@ module Razor
         if loaded_config.validate_instance_vars
           @config = loaded_config
         else
+          logger.warn "Config parameter validation error loading (#{CONFIG_PATH})"
+          logger.warn "Resetting (#{CONFIG_PATH}) and loading default config"
           reset_config
         end
       else
+        logger.warn "Cannot load (#{CONFIG_PATH})"
+
         reset_config
       end
     end
@@ -161,6 +179,7 @@ module Razor
     #
     # @return [Razor::Configuration, nil]
     def reset_config
+      logger.warn "Resetting (#{CONFIG_PATH}) and loading default config"
       # use default init
       new_conf = Razor::Configuration.new
 
@@ -170,8 +189,9 @@ module Razor
           new_conf_file = File.new(CONFIG_PATH,'w+')
           new_conf_file.write(("#{new_conf_header}#{YAML.dump(new_conf)}"))
           new_conf_file.close
+          logger.info "Default config saved to (#{CONFIG_PATH})"
         rescue
-          # Error writing file, add logging here later but we are ok with this to continue
+          logger.error "Cannot save default config to (#{CONFIG_PATH})"
         end
       end
       @config = new_conf

@@ -3,6 +3,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "persist_database_object"
 require "mongo"
+require "logging"
 
 # MongoDB version of Razor::Persist::Database::Plugin
 # used by Razor::Persist::Controller when ':mongo' is the 'persist_mode' in Razor configuration
@@ -10,10 +11,12 @@ module Razor
   module Persist
     module Database
       class MongoPlugin < Razor::Persist::Database::Plugin
+        include(Razor::Logging)
 
         # Closes connection if it is active
         # @return [true, false] - returns connection status
         def teardown
+          logger.debug "Connection teardown"
           @connection.active? && disconnect
           @connection.active?
         end
@@ -23,19 +26,20 @@ module Razor
         # @param port [String]
         # @return [true, false] - returns connection status
         def connect(hostname, port, timeout)
+          logger.debug "Connecting to MongoDB (#{hostname}:#{port}) with timeout (#{timeout})"
           begin
             @connection = Mongo::Connection.new(hostname, port, {:connect_timeout => timeout})
           rescue Mongo::ConnectionTimeoutError
-            #puts "ConnectionTimeout"
+            logger.error "Mongo::ConnectionTimeoutError"
             return false
           rescue Mongo::ConnectionError
-            #puts "ConnectionError"
+            logger.error "Mongo::ConnectionError"
             return false
           rescue Mongo::ConnectionFailure
-            #puts "ConnectionFailure"
+            logger.error "Mongo::ConnectionFailure"
             return false
           rescue  Mongo::OperationTimeout
-            #puts "OperationTimeout"
+            logger.error "Mongo::OperationTimeout"
             return false
           end
           @razor_database = @connection.db("razor")
@@ -45,6 +49,7 @@ module Razor
         # Disconnects connection
         # @return [true, false] - returns connection status
         def disconnect
+          logger.debug "Disconnecting from MongoDB"
           @connection.close
           @connection.active?
         end
@@ -52,6 +57,7 @@ module Razor
         # Checks whether DB 'Razor' is selected in MongoDB
         # @return [true, false]
         def is_db_selected?
+          logger.debug "Is Razor DB selected?(#{(@razor_database != nil and @connection.active?)})"
           (@razor_database != nil and @connection.active?)
         end
 
@@ -61,7 +67,7 @@ module Razor
         # @param collection_name [Symbol]
         # @return [Array]
         def object_doc_get_all(collection_name)
-
+          logger.debug "Get all documents from collection (#{collection_name})"
           unique_object_doc_array = []  # [Array] to hold new/unique docs
           old_object_doc_array = []  # [Array] to hold old/duplicate docs
 
@@ -95,7 +101,8 @@ module Razor
           remove_mongo_keys(unique_object_doc_array) # we return our unique/new docs after removing mongo-related keys (_id, _timestamp)
         end
 
-        def object_doc_get_by_uuid( object_doc, collection_name)
+        def object_doc_get_by_uuid(object_doc, collection_name)
+          logger.debug "Get document from collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
           object_array = collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
           if object_array.count > 0
             object_array[0]
@@ -110,6 +117,7 @@ module Razor
         # @param collection_name [Symbol]
         # @return [Hash] - returns the updated [Hash] of doc
         def object_doc_update(object_doc, collection_name)
+          logger.debug "Update document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
           # Add a timestamp key
           # We use this to always pull newest
           object_doc["@version"] = get_next_version(object_doc, collection_name)
@@ -122,8 +130,9 @@ module Razor
         # @param collection_name [Symbol]
         # @return [true, Hash] - returns 'true' if successful, otherwise returns 'Hash' with last error
         def object_doc_remove(object_doc, collection_name)
+          logger.debug "Remove document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
           while collection_by_name(collection_name).find({"@uuid" => object_doc["@uuid"]}).count > 0
-            if !collection_by_name(collection_name).remove({"@uuid" => object_doc["@uuid"]})
+            unless collection_by_name(collection_name).remove({"@uuid" => object_doc["@uuid"]})
               return false
             end
           end
@@ -131,8 +140,9 @@ module Razor
         end
 
         def object_doc_remove_all(collection_name)
+          logger.debug "Remove all documents in collection (#{collection_name})"
           while collection_by_name(collection_name).count > 0
-            if !collection_by_name(collection_name).remove()
+            unless collection_by_name(collection_name).remove()
               return false
             end
           end
@@ -149,6 +159,7 @@ module Razor
         # @param object_doc [Hash]
         # @param collection_name [String]
         def get_next_version(object_doc, collection_name)
+          logger.debug "Get next version number for document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
           object_array =collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
           if (object_array.count < 1)
             version = 0
@@ -163,6 +174,7 @@ module Razor
         # @param object_doc_array [Array]
         # @return [Array]
         def remove_mongo_keys(object_doc_array)
+          logger.debug "Strip MongoDB keys from document"
           object_doc_array.each do
           |object_doc|
             # remove the doc "_id" key as it won't match an instance variable
@@ -178,6 +190,7 @@ module Razor
         # @param old_object_doc_array [Array]
         # @param collection_name [Symbol]
         def cleanup_old_docs(old_object_doc_array, collection_name)
+          logger.debug "Clean up old documents"
           # iterate over each old doc
           old_object_doc_array.each do
           |old_object_doc|

@@ -2,7 +2,7 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "uuid"
 require "utility"
-
+require "logging"
 
 
 module Razor
@@ -11,6 +11,7 @@ module Razor
   class Object
     # Mixin our ObjectUtilities
     include(Razor::Utility)
+    include(Razor::Logging)
 
     # There variables are required in all Razor objects
     attr_accessor :uuid # All objects must have a uuid / can be overridden in child object
@@ -31,6 +32,7 @@ module Razor
 
     # Refreshes object from PersistController
     def refresh_self
+      logger.debug "Refreshing object from persist controller"
       return false if @_persist_ctrl == nil
       new_hash = @_persist_ctrl.object_hash_get_by_uuid(self.to_hash, @_collection)
       self.from_hash(new_hash) unless new_hash == nil
@@ -39,16 +41,23 @@ module Razor
 
     # Updates object through PersistController
     def update_self
+      logger.debug "Updating object in persist controller"
       return false if @_persist_ctrl == nil
       @_persist_ctrl.object_hash_update(self.to_hash, @_collection)
       refresh_self
       true
     end
 
+
+    def get_logger
+      logger
+    end
+
     private
 
     # Return a new UUID string
     def create_uuid
+      logger.debug "Generate UUID"
       UUID.generate(format = :compact)
     end
   end

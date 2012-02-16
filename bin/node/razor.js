@@ -1,4 +1,4 @@
-var razor_bin = process.env.RAZOR_HOME + "/bin/razor.rb -w"; // Set razor.rb path
+var razor_bin = process.env.RAZOR_HOME + "/bin/razor -w"; // Set razor.rb path
 var exec = require("child_process").exec; // create our exec object
 var express = require('express'); // include our express libs
 

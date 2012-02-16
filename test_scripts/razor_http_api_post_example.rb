@@ -22,7 +22,9 @@ attributes_hash = {"hostname" => "nick01.example.com",
                    "ip_address" => "1.1.1.1"}
 json_hash["@attributes_hash"] = attributes_hash
 uri = URI "#{uri}/#{uuid}/#{state}"
-res = Net::HTTP.post_form(uri, 'json_hash' => json_hash.to_json)
+
+jsonString = JSON.generate(json_hash)
+res = Net::HTTP.post_form(uri, 'json_hash' => jsonString)
 print "\nRegistered node:"
 print" #{uuid}".green
 print " at "
