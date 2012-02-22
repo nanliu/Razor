@@ -7,36 +7,40 @@ app.use(express.bodyParser()); // Enable body parsing for POST
 // app.use(express.profiler()); // Uncomment for profiling to console
 // app.use(express.logger()); // Uncomment for logging to console
 
-app.get('/razor/slice/*',
+app.get('/razor/api/*',
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
         var args_string = getArguments(args);
-        process.stdout.write('\033[2J\033[0;0H');
-        exec(razor_bin + args_string, function (err, stdout, stderr) {
-            res.send(stdout, 200, {"Content-Type": "json/application"});
+        if (args.length < 2) {
+            args_string = args_string + "default "
+        }
+        query_param = "'" + JSON.stringify(req.query) + "'";
+        console.log(razor_bin + args_string + query_param);
+        //process.stdout.write('\033[2J\033[0;0H'); - screen clearing trick
+        exec(razor_bin + args_string + query_param, function (err, stdout, stderr) {
+            returnResult(res, stdout);
         });
     });
 
-app.post('/razor/slice/*',
+app.post('/razor/api/*',
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
         var json_data = "'" + req.param('json_hash', null) + "'";
 
         var args_string = getArguments(args);
-        process.stdout.write('\033[2J\033[0;0H');
+        //process.stdout.write('\033[2J\033[0;0H');
         console.log(args_string);
         console.log(razor_bin + args_string + json_data);
         exec(razor_bin + args_string + json_data, function (err, stdout, stderr) {
-            res.send(stdout, 200, {"Content-Type": "json/application"});
+            returnResult(res, stdout);
         });
     });
 
 
 app.get('/*',
     function(req, res) {
-
         switch(req.path)
         {
             case "/":
@@ -45,13 +49,23 @@ app.get('/*',
             case "/razor":
                 res.send('404 Error: Bad Request(No module selected)', 404);
                 break;
-            case "/razor/slice":
+            case "/razor/api":
                 res.send('404 Error: Bad Request(No slice selected)', 404);
                 break;
             default:
                 res.send('404 Error: Bad Request', 404);
         }
     });
+
+function returnResult(res, json_string) {
+    return_obj = JSON.parse(json_string);
+
+    if (return_obj['errcode'] == 0) {
+        res.send(json_string, 200, {"Content-Type": "json/application"});
+    } else {
+        res.send(json_string, 400, {"Content-Type": "json/application"});
+    }
+}
 
 function getArguments(args_array) {
     var arg_string = " ";
@@ -63,15 +77,17 @@ function getArguments(args_array) {
 
 function getConfig() {
     exec(razor_bin + " config read", function (err, stdout, stderr) {
+        console.log(stdout);
         startServer(stdout);
     });
 }
 
+// TODO Add catch for if razor.js is already running on port
 function startServer(json_config) {
     config = JSON.parse(json_config);
     if (config['@api_port'] != null) {
-    app.listen(config['@api_port']);
-    console.log('Razor API Web Server started and listening on:%s', app.address().port);
+        app.listen(config['@api_port']);
+        console.log('Razor API Web Server started and listening on:%s', app.address().port);
     } else {
         console.log("There is a problem with your Razor configuration. Cannot load config.")
     }

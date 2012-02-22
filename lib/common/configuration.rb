@@ -24,6 +24,10 @@ module Razor
     attr_accessor :api_port
     attr_accessor :log_path
 
+    attr_accessor :checkin_sleep
+    attr_accessor :checkin_offset
+    attr_accessor :register_timeout
+
     def initialize
       use_defaults
     end

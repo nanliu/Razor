@@ -1,5 +1,9 @@
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/slices"
+
 require "json"
 require "colored"
+require "logging"
 
 # Root Razor namespace
 # @author Nicholas Weaver
@@ -10,6 +14,7 @@ module Razor
     # @author Nicholas Weaver
 
     class Base
+      include(Razor::Logging)
 
       attr_accessor :web_command
       # [Array] @command_array
@@ -22,28 +27,36 @@ module Razor
 
       # Default call method for a slice. Used by {razor.rb}.
       def slice_call
+
         # First var in array should be our root command
         @command = @command_array.shift
-        if @command == nil && @web_command
-          @command = :default
-        end
         # check command and route based on it
         flag = false
+        @command = "default" if @command == nil
+
         @slice_commands.each_pair do
         |cmd_string, method|
-          if @command == cmd_string
+          if @command == cmd_string.to_s
+            logger.debug "Slice command called: #{@command}"
             self.send(method)
             flag = true
           end
         end
-        slice_error("InvalidCommand") unless flag
+
+        if @command == "help"
+          available_commands(nil)
+        else
+          slice_error("InvalidCommand") unless flag
+        end
       end
 
-      def slice_success
+      def slice_success(response)
         return_hash = {}
-        return_hash["slice"] = self.class.to_s
+        return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
-        return_hash["result"] = "Success"
+        return_hash["result"] = "success"
+        return_hash["errcode"] = 0
+        return_hash["response"] = response
         if @web_command
           puts JSON.dump(return_hash)
         else
@@ -51,6 +64,7 @@ module Razor
           print " #{return_hash["command"]}"
           print "#{return_hash["result"]}"
         end
+        logger.debug "(#{return_hash["resource"]}  #{return_hash["command"]}  #{return_hash["result"]})"
       end
 
       def slice_error(error)
@@ -59,12 +73,14 @@ module Razor
         return_hash = {}
         return_hash["slice"] = self.class.to_s
         return_hash["command"] = @command
+        return_hash["errcode"] = 1
         return_hash["result"] = error
         if @web_command
           puts JSON.dump(return_hash)
         else
           available_commands(return_hash)
         end
+        logger.error "Slice error: #{return_hash.inspect}"
       end
 
       def available_commands(return_hash)
@@ -74,10 +90,12 @@ module Razor
           print "[#{k}] ".yellow unless k == :default
         end
         print "\n\n"
-        print "[#{@slice_name.capitalize}] "
-        print "[#{return_hash["command"]}] ".red
-        print "<-#{return_hash["result"]}\n".yellow
-        puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
+        if return_hash != nil
+          print "[#{@slice_name.capitalize}] "
+          print "[#{return_hash["command"]}] ".red
+          print "<-#{return_hash["result"]}\n".yellow
+          puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
+        end
       end
 
       def setup_data

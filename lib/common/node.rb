@@ -9,6 +9,7 @@ module Razor
 class Node < Razor::Object
   attr_accessor :name
   attr_accessor :attributes_hash
+  attr_accessor :timestamp
   attr_accessor :last_state
   attr_accessor :current_state
   attr_accessor :next_state
