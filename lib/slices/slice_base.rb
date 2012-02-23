@@ -12,7 +12,6 @@ module Razor
     # Abstract parent class for all Razor Modules
     # @abstract
     # @author Nicholas Weaver
-
     class Base
       include(Razor::Logging)
 

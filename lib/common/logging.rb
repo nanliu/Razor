@@ -1,8 +1,10 @@
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+
 require "logger"
+#require "data"
 
 # TODO link to configuration for Log Level
 # TODO link to configuration for Log path
-LOG_FILE = "#{ENV['RAZOR_HOME']}/log/razor.log"
 LOG_LEVEL = Logger::DEBUG
 LOG_ROTATION = "daily"
 
@@ -18,8 +20,6 @@ module Razor::Logging
 
   # Returns the logger object specific to the instance that called it
   def logger
-    #TODO make logging to STDOUT flip-able
-    threadid = Thread.current.object_id
     classname = self.class.name
     methodname = caller[0][/`([^']*)'/, 1]
     @logger ||= Razor::Logging.logger_for(classname, methodname)
@@ -29,6 +29,21 @@ module Razor::Logging
 
   # Singleton override that returns a logger for each specific instance
   class << self
+
+    def get_log_path
+      if ENV['RAZOR_LOG_PATH'] == nil
+        return "#{ENV['RAZOR_HOME']}/log/razor.log"
+      end
+      "#{ENV['RAZOR_LOG_PATH']}/razor.log"
+    end
+
+    def get_log_level
+      if ENV['RAZOR_LOG_LEVEL'] == nil
+        return 3
+      end
+      ENV['RAZOR_LOG_LEVEL'].to_i
+    end
+
     # Returns specific logger instance from loggers[Hash] or creates one if it doesn't exist
     def logger_for(classname, methodname)
       @loggers[classname] ||= configure_logger_for(classname, methodname)
@@ -36,8 +51,8 @@ module Razor::Logging
 
     # Creates a logger instance
     def configure_logger_for(classname, methodname)
-      logger = Logger.new LOG_FILE, LOG_ROTATION
-      logger.level = LOG_LEVEL
+      logger = Logger.new get_log_path, LOG_ROTATION
+      logger.level = get_log_level
       logger
     end
   end
