@@ -31,17 +31,18 @@ DevOps-style tool sets.
 
 == Environment Variables
 
-   RAZOR_HOME = root directory for Razor
-   RAZOR_RSPEC_WEBPATH = root directory for dropping RSpec html #optional
-   RAZOR_LOG_PATH = path for razor logs #optional / default = $RAZOR_HOME/log
-===  RAZOR_LOG_LEVEL = Verbosity for logs
-===== Optional
-===== 0 = Debug
-===== 1 = Info
-===== 2 = Warn
-===== 3 = Error (default)
-===== 4 = Fatal
-===== 5 = Unknown
+===== RAZOR_HOME = root directory for Razor
+===== RAZOR_RSPEC_WEBPATH = root directory for dropping RSpec html #optional
+===== RAZOR_LOG_PATH = path for razor logs #optional / default = $RAZOR_HOME/log
+===== RAZOR_LOG_LEVEL
+   Verbosity for logs
+   #Optional
+   0 = Debug
+   1 = Info
+   2 = Warn
+   3 = Error (default)
+   4 = Fatal
+   5 = Unknown
 
 
 == Directory structure
