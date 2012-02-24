@@ -2,11 +2,12 @@ require "rspec"
 
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/models"
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/spec/base"
 
 require "configuration"
 require "persist_controller"
-require "model"
+require "model_base"
 require "policy"
 require "node"
 require "rz_rspec_matchers"
@@ -75,17 +76,17 @@ describe Razor::Persist::Controller do
       #create junk models with random updates
       (0..rand(10)).each do
         |x|
-        temp_model = Razor::Model.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        temp_model = Razor::Model::Base.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
         temp_model._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_model.to_hash, :model)
         end
       end
-      @model1 = Razor::Model.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1 = Razor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       @model1._persist_ctrl = @persist
-      @model2 = Razor::Model.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
+      @model2 = Razor::Model::Base.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
       @model2._persist_ctrl = @persist
-      @model3 = Razor::Model.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
+      @model3 = Razor::Model::Base.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
       @model3._persist_ctrl = @persist
     end
 
@@ -127,7 +128,7 @@ describe Razor::Persist::Controller do
   describe ".Policy" do
     before(:all) do
       #create junk policies with random updates
-      temp_model = Razor::Model.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      temp_model = Razor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       (0..rand(10)).each do
         |x|
         temp_policy = Razor::Policy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})

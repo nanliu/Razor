@@ -28,11 +28,12 @@ module Razor
     attr_accessor :checkin_offset
     attr_accessor :register_timeout
 
+    # init
     def initialize
       use_defaults
     end
 
-
+    # Set defaults
     def use_defaults
       @persist_mode = :mongo
       @persist_host = "127.0.0.1"
@@ -41,7 +42,11 @@ module Razor
 
       @admin_port = 8017
       @api_port = 8026
-      @logpath = "#{ENV['RAZOR_HOME']}/log/"
+      @logpath = "#{ENV['RAZOR_HOME']}/log"
+
+      @checkin_sleep = 60
+      @checkin_offset = 5
+      @register_timeout = 120
     end
 
 

@@ -15,18 +15,21 @@ module Razor
     class Base
       include(Razor::Logging)
 
+      # Bool for indicating whether this was driven from Node.js
       attr_accessor :web_command
-      # [Array] @command_array
-      # [Hash] @slice_commands
+
+      # Initializes the Slice Base
+      # @param [Array] args
       def initialize(args)
         @command_array = args
         @slice_commands = {}
         @web_command = false
       end
 
-      # Default call method for a slice. Used by {razor.rb}.
+      # Default call method for a slice
+      # Used by {./bin/razor}
+      # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
-
         # First var in array should be our root command
         @command = @command_array.shift
         # check command and route based on it
@@ -49,6 +52,9 @@ module Razor
         end
       end
 
+      # Called when slice action is successful
+      # Returns a json string representing a [Hash] with metadata and response
+      # @param [Hash] response
       def slice_success(response)
         return_hash = {}
         return_hash["resource"] = self.class.to_s
@@ -66,6 +72,9 @@ module Razor
         logger.debug "(#{return_hash["resource"]}  #{return_hash["command"]}  #{return_hash["result"]})"
       end
 
+      # Called when a slice action triggers an error
+      # Returns a json string representing a [Hash] with metadata including error code and message
+      # @param [Hash] error
       def slice_error(error)
         @command = "null" if @command == nil
 
@@ -82,6 +91,8 @@ module Razor
         logger.error "Slice error: #{return_hash.inspect}"
       end
 
+      # Prints available commands to CLI for slice
+      # @param [Hash] return_hash
       def available_commands(return_hash)
         print "\nAvailable commands for [#{@slice_name}]:\n"
         @slice_commands.each do
@@ -97,6 +108,7 @@ module Razor
         end
       end
 
+      # Initializes [Razor::Data] in not already instantiated
       def setup_data
         @data = Razor::Data.new unless @data.class == Razor::Data
       end

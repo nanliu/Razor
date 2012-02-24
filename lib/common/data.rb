@@ -184,9 +184,9 @@ module Razor
       new_conf = Razor::Configuration.new
 
       # Very important that we only write the file if it doesn't exist as we may not be the only thread using it
-      if !File.exist?(CONFIG_PATH)
+      unless File.exist?(CONFIG_PATH)
         begin
-          new_conf_file = File.new(CONFIG_PATH,'w+')
+          new_conf_file = File.new(CONFIG_PATH, 'w+')
           new_conf_file.write(("#{new_conf_header}#{YAML.dump(new_conf)}"))
           new_conf_file.close
           logger.info "Default config saved to (#{CONFIG_PATH})"

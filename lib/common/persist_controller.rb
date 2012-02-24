@@ -3,7 +3,6 @@ $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
 require "configuration"
 require "persist_database_mongo"
-require "model"
 require "logging"
 
 # Persistence Controller for Razor

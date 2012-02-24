@@ -11,16 +11,20 @@ module Razor::Slice
   # @author Nicholas Weaver
   class Config < Razor::Slice::Base
 
+    # init
+    # @param [Array] args
     def initialize(args)
       super(args)
       # Define your commands and help text
-      @slice_commands = {"read" => "read_config"}
-      @slice_commands_help = {"read" => "config [read]"}
+      @slice_commands = {:read => "read_config",
+                         :default => "read_config"}
+      @slice_commands_help = {:read => "config [read]"}
       @slice_name = "Config"
     end
 
+    # Reads the Razor config
     def read_config
-      setup_data # inits our Razor::Data if it doesn't exist
+      setup_data
       if @web_command # is this a web command
         print @data.config.to_hash.to_json
       else

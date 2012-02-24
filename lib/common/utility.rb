@@ -1,9 +1,14 @@
 require "yaml"
 
+# Root Razor namespace
+# @author Nicholas Weaver
 module Razor
+
+  # Razor::Utility namespace
+  # @author Nicholas Weaver
   module Utility
 
-    # returns a hash array of instance variable symbol and instance variable value for self
+    # Returns a hash array of instance variable symbol and instance variable value for self
     # will ignore instance variables that start with '_'
     def to_hash
       hash = {}
@@ -15,8 +20,9 @@ module Razor
       hash
     end
 
-    # sets instance variables
+    # Sets instance variables
     # will not include any that start with "_" (Mongo specific)
+    # @param [Hash] hash
     def from_hash(hash)
       hash.each_pair {|key, value| self.instance_variable_set(key,value) unless key.to_s.start_with?("_")}
     end
@@ -29,6 +35,7 @@ module Razor
     end
 
     # Returns the version number as [String] from ./conf/version
+    # @return [String]
     def get_razor_version
       file = File.open("#{ENV['RAZOR_HOME']}/conf/version", "rb")
       version = file.read

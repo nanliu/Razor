@@ -17,6 +17,7 @@ describe "Razor::Slice::Node" do
     end
 
     after(:all) do
+      @data.delete_all_objects(:node)
 
     end
 

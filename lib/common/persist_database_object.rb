@@ -7,6 +7,7 @@
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
 
+# @author Nicholas Weaver
 module Razor
   module Persist
     module Database

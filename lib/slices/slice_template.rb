@@ -11,6 +11,8 @@ module Razor::Slice
   # @author Nicholas Weaver
   class Template < Razor::Slice::Base
 
+    # init
+    # @param [Array] args
     def initialize(args)
       super(args)
       # Define your commands and help text

@@ -275,7 +275,7 @@ describe Razor::Data do
 
       (1..NODE_COUNT).each do
       |x|
-        temp_model = Razor::Model.new({:@name => "rspec_model_junk#{x}", :@model_type => :base, :@values_hash => {}})
+        temp_model = Razor::Model::Base.new({:@name => "rspec_model_junk#{x}", :@model_type => :base, :@values_hash => {}})
         temp_model = @data.persist_object(temp_model)
         @last_uuid = temp_model.uuid
         #(0..rand(10)).each do
@@ -296,14 +296,14 @@ describe Razor::Data do
 
     it "should get a single model by UUID" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(Razor::Model).should == true
+      model.is_a?(Razor::Model::Base).should == true
 
       model = @data.fetch_object_by_uuid(:model, "12345")
       model.is_a?(NilClass).should == true
     end
 
     it "should be able to add a new Model (does not exist) and update" do
-      temp_model = Razor::Model.new({:@name => "rspec_model_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model::Base.new({:@name => "rspec_model_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -312,7 +312,7 @@ describe Razor::Data do
     end
 
     it "should be able to delete a specific Model by uuid" do
-      temp_model = Razor::Model.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model::Base.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -324,7 +324,7 @@ describe Razor::Data do
     end
 
     it "should be able to delete a specific Model by object" do
-      temp_model = Razor::Model.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_model = Razor::Model::Base.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
       temp_model = @data.persist_object(temp_model)
       temp_model.update_self
 
@@ -337,7 +337,7 @@ describe Razor::Data do
 
     it "should be able to update Model attributes for existing Model" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(Razor::Model).should == true
+      model.is_a?(Razor::Model::Base).should == true
       model.values_hash = {:hostname => "nick_weaver", :ip_address => "1.1.1.1", :iq => 160}
       model.update_self
       model.values_hash["hostname"].should == "nick_weaver"
@@ -345,7 +345,7 @@ describe Razor::Data do
       model.values_hash["iq"].should == 160
 
       model_confirm = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model_confirm.is_a?(Razor::Model).should == true
+      model_confirm.is_a?(Razor::Model::Base).should == true
       model_confirm.values_hash["hostname"].should == "nick_weaver"
       model_confirm.values_hash["ip_address"].should == "1.1.1.1"
       model_confirm.values_hash["iq"].should == 160
@@ -353,13 +353,13 @@ describe Razor::Data do
 
     it "should be able to update the LastState for existing Model" do
       model = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model.is_a?(Razor::Model).should == true
+      model.is_a?(Razor::Model::Base).should == true
       model.model_type = :nick
       model.update_self
       model.model_type.should == :nick
 
       model_confirm = @data.fetch_object_by_uuid(:model, @last_uuid)
-      model_confirm.is_a?(Razor::Model).should == true
+      model_confirm.is_a?(Razor::Model::Base).should == true
       model_confirm.model_type = :nick
     end
 

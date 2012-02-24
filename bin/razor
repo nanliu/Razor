@@ -28,6 +28,7 @@ def load_slices
   get_slices_loaded
 end
 
+# Call the slice
 def call_razor_slice
   if is_slice?
     razor_module = Object.full_const_get(SLICE_PREFIX + @namespace.capitalize).new(@args)
@@ -44,6 +45,7 @@ def call_razor_slice
   end
 end
 
+# Load slices
 def get_slices_loaded
   temp_hash = {}
   ObjectSpace.each_object do
@@ -58,6 +60,7 @@ def get_slices_loaded
   @slice_array = @slice_array.each_value.collect {|x| x}
 end
 
+# Validate slice
 def is_slice?
   @slice_array.each { |slice| return true if @namespace.downcase == slice.downcase }
   false

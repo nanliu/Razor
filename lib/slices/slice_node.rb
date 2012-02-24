@@ -24,6 +24,8 @@ module Razor::Slice
     # TODO fill out comments
 
 
+    # Initializes Razor::Slice::Node including #slice_commands, #slice_commands_help, & #slice_name
+    # @param [Array] args
     def initialize(args)
       super(args)
       # Here we create a hash of the command string to the method it corresponds to for routing.
@@ -36,6 +38,7 @@ module Razor::Slice
       @slice_name = "Node"
     end
 
+    # Runs a node checkin returning appropriate command
     def checkin_node
       # TODO this needs to be wired to the *future* Razor::Engine
 
@@ -70,7 +73,7 @@ module Razor::Slice
               else
 
                 setup_data
-                if (node.timestamp - old_timestamp) > @data.config.register_timeout
+                 if (node.timestamp - old_timestamp) > @data.config.register_timeout
                   logger.debug "Checkin acknowledged: #{forced_action.to_s}"
                   slice_success(get_command(:register, {}))
                 else
@@ -96,6 +99,10 @@ module Razor::Slice
       end
     end
 
+    # Builds a command for a checkin
+    # @param [String] command_name
+    # @param [Hash] command_param
+    # @return [Hash]
     def get_command(command_name, command_param)
       command_response = {}
       command_response['command_name'] = command_name
@@ -103,6 +110,9 @@ module Razor::Slice
       command_response
     end
 
+    # Checks if node exists in DB returns node object or false
+    # @param [String] uuid
+    # @return [Razor::Node, false]
     def node_exist?(uuid)
       setup_data
       node = @data.fetch_object_by_uuid(:node, uuid)
@@ -110,6 +120,7 @@ module Razor::Slice
       false
     end
 
+    # Registers node
     def register_node
       logger.debug "Register node called"
       @command_name = "register_node"
@@ -142,15 +153,20 @@ module Razor::Slice
       end
     end
 
+    # Removes node
     def remove_node
       slice_error("NotImplemented")
     end
 
+    # Inserts node using hash
+    # @param [Hash] node_hash
+    # @return [Razor::Node]
     def insert_node(node_hash)
       setup_data
       @data.persist_object(Razor::Node.new(node_hash))
     end
 
+    # Queries [Array] of nodes matching filter if supplied in command
     def query_node
       logger.debug "Query nodes called"
 
@@ -169,7 +185,7 @@ module Razor::Slice
             else
               slice_error("InvalidFilter")
             end
-          rescue StandardError=>e
+          rescue StandardError => e
             slice_error(e.message)
           end
         else
@@ -181,11 +197,14 @@ module Razor::Slice
       end
     end
 
+    # Returns all nodes in DB from slice
     def return_all_nodes
       setup_data
       print_node(@data.fetch_all_objects(:node))
     end
 
+    # Return node matching uuid from Slice
+    # @param [String] uuid
     def return_node_by_uuid(uuid)
       setup_data
       node = @data.fetch_object_by_uuid(:node, uuid)
@@ -193,9 +212,9 @@ module Razor::Slice
       print_node([node])
     end
 
+    # Handles printing of node details to CLI or REST
+    # @param [Hash] node_array
     def print_node(node_array)
-
-
       unless @web_command
         puts "Nodes:"
 

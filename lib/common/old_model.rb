@@ -6,23 +6,22 @@ require "object"
 # Root Razor namespace
 # @author Nicholas Weaver
 module Razor
-
-  # Root Razor::Node namespace
+  # Root Model object
   # @author Nicholas Weaver
-  class Node < Razor::Object
+  # @abstract
+  class Model < Razor::Object
     attr_accessor :name
-    attr_accessor :attributes_hash
-    attr_accessor :timestamp
-    attr_accessor :last_state
-    attr_accessor :current_state
-    attr_accessor :next_state
+    attr_accessor :model_type
+    attr_accessor :values_hash
 
     # init
     # @param hash [Hash]
     def initialize(hash)
+      @name = nil
+      @model_type = nil
+      @values_hash = nil
       super()
-      @_collection = :node
-      @attributes_hash = {}
+      @_collection = :model
       from_hash(hash)
     end
   end

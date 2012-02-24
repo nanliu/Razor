@@ -83,6 +83,7 @@ function getConfig() {
 }
 
 // TODO Add catch for if razor.js is already running on port
+// Start our server if we can get a valid config
 function startServer(json_config) {
     config = JSON.parse(json_config);
     if (config['@api_port'] != null) {

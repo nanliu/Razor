@@ -4,7 +4,8 @@ require "uuid"
 require "utility"
 require "logging"
 
-
+# Root Razor namespace
+# @author Nicholas Weaver
 module Razor
   # Common object for all base Razor objects
   # @abstract
@@ -48,7 +49,7 @@ module Razor
       true
     end
 
-
+    # Get logger object
     def get_logger
       logger
     end
