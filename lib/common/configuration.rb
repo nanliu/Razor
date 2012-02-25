@@ -22,6 +22,7 @@ module Razor
 
     attr_accessor :admin_port
     attr_accessor :api_port
+    attr_accessor :imagesvc_port
     attr_accessor :log_path
 
     attr_accessor :checkin_sleep
@@ -40,8 +41,9 @@ module Razor
       @persist_port = 27017
       @persist_timeout = 10
 
-      @admin_port = 8017
+      @admin_port = 8025
       @api_port = 8026
+      @imagesvc_port = 8027
       @logpath = "#{ENV['RAZOR_HOME']}/log"
 
       @checkin_sleep = 60
