@@ -9,6 +9,23 @@ app.use(express.bodyParser()); // Enable body parsing for POST
 // app.use(express.profiler()); // Uncomment for profiling to console
 // app.use(express.logger()); // Uncomment for logging to console
 
+// Exception for boot API request
+app.get('/razor/api/boot',
+    function(req, res) {
+        args = req.path.split("/");
+        args.splice(0,3);
+        var args_string = getArguments(args);
+        if (args.length < 2) {
+            args_string = args_string + "default "
+        }
+        query_param = "'" + JSON.stringify(req.query) + "'";
+        console.log(razor_bin + args_string + query_param);
+        //process.stdout.write('\033[2J\033[0;0H'); - screen clearing trick
+        exec(razor_bin + args_string + query_param, function (err, stdout, stderr) {
+            res.send(stdout, 200, {"Content-Type": "text/plain"});
+        });
+    });
+
 app.get('/razor/api/*',
     function(req, res) {
         args = req.path.split("/");
@@ -24,6 +41,8 @@ app.get('/razor/api/*',
             returnResult(res, stdout);
         });
     });
+
+
 
 app.post('/razor/api/*',
     function(req, res) {
