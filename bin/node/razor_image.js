@@ -1,6 +1,7 @@
 // Node.js Endpoint for Razor Image Service
 
-var mk_iso = process.env.RAZOR_HOME + "/images/mk/rz_mk-image.iso";
+var memdisk = process.env.RAZOR_HOME + "/images/mk/memdisk";
+var mk_iso = process.env.RAZOR_HOME + "/images/mk/rz_mk_dev-image.0.1.1.0.iso";
 var razor_bin = process.env.RAZOR_HOME + "/bin/razor -w"; // Set razor.rb path
 var exec = require("child_process").exec; // create our exec object
 var express = require('express'); // include our express libs
@@ -13,6 +14,14 @@ app.get('/razor/image/mk',
     function(req, res) {
         res.writeHead(200, {'Content-Type': 'application/octet-stream'});
         var fileStream = fs.createReadStream(mk_iso);
+        fileStream.pipe(res);
+    });
+
+app.get('/razor/image/memdisk',
+    function(req, res) {
+        console.log("Called");
+        res.writeHead(200, {'Content-Type': 'application/octet-stream'});
+        var fileStream = fs.createReadStream(memdisk);
         fileStream.pipe(res);
     });
 

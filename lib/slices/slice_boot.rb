@@ -25,6 +25,17 @@ module Razor::Slice
       @slice_commands_help = {:default => "boot"}
       @slice_name = "Boot"
     end
+
+    def boot_called
+      if @web_command
+        # todo call engine with uuid
+        # prove out boot script can pull razor server from existing ixe var
+        # junk stub code to make ipxe boot work, calls razor image
+        puts "#!ipxe\ninitrd http://192.168.99.10:8027/razor/image/mk\nchain http://192.168.99.10:8027/razor/image/memdisk iso || reboot"
+        return
+      end
+      slice_error("NotImplemented")
+    end
   end
 
 end
