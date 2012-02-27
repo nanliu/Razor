@@ -51,6 +51,7 @@ module Razor::Slice
 
       @slice_array.each do
       |x|
+        #puts MODEL_PREFIX + x
         o = Object.full_const_get(MODEL_PREFIX + x).new(nil)
         puts o.model_description
       end
