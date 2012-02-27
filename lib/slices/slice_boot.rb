@@ -32,7 +32,8 @@ module Razor::Slice
         if @command_query_string != "{}" && @command_query_string != nil
           params = JSON.parse(@command_query_string)
           mac_address = params['mac']
-          logger.debug "Boot called by Node(MAC: #{mac_address}"
+          uuid = mac_address.gsub(":","")
+          logger.debug "Boot called by Node(MAC: #{mac_address}  UUID:#{uuid})"
           # todo call engine with uuid
           # prove out boot script can pull razor server from existing ixe var
           # junk stub code to make ipxe boot work, calls razor image
