@@ -6,6 +6,7 @@ require "slice_base"
 require "json"
 require "logging"
 require "yaml"
+require "engine"
 
 # Root Razor namespace
 # @author Nicholas Weaver
@@ -24,6 +25,7 @@ module Razor::Slice
       @slice_commands = {:default => "boot_called"}
       @slice_commands_help = {:default => "boot"}
       @slice_name = "Boot"
+      @engine = Razor::Engine.new
     end
 
     def boot_called
@@ -34,10 +36,10 @@ module Razor::Slice
           mac_address = params['mac']
           uuid = mac_address.gsub(":","")
           logger.debug "Boot called by Node(MAC: #{mac_address}  UUID:#{uuid})"
-          # todo call engine with uuid
-          # prove out boot script can pull razor server from existing ixe var
-          # junk stub code to make ipxe boot work, calls razor image
-          puts "#!ipxe\ninitrd http://192.168.99.10:8027/razor/image/mk\nchain http://192.168.99.10:8027/razor/image/memdisk iso"
+
+          logger.debug "Calling Engine for boot script"
+          puts @engine.get_boot(uuid)
+
           return
         end
       end
