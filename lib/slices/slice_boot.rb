@@ -36,7 +36,7 @@ module Razor::Slice
           # todo call engine with uuid
           # prove out boot script can pull razor server from existing ixe var
           # junk stub code to make ipxe boot work, calls razor image
-          puts "#!ipxe\ninitrd http://192.168.99.10:8027/razor/image/mk || reboot\nchain http://192.168.99.10:8027/razor/image/memdisk iso || reboot"
+          puts "#!ipxe\ninitrd http://192.168.99.10:8027/razor/image/mk\nchain http://192.168.99.10:8027/razor/image/memdisk iso"
           return
         end
       end
