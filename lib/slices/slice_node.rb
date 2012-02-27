@@ -73,7 +73,7 @@ module Razor::Slice
               else
 
                 setup_data
-                 if (node.timestamp - old_timestamp) > @data.config.register_timeout
+                if (node.timestamp - old_timestamp) > @data.config.register_timeout
                   logger.debug "Checkin acknowledged: #{forced_action.to_s}"
                   slice_success(get_command(:register, {}))
                 else
@@ -163,7 +163,13 @@ module Razor::Slice
     # @return [Razor::Node]
     def insert_node(node_hash)
       setup_data
-      @data.persist_object(Razor::Node.new(node_hash))
+      existing_node = @data.fetch_object_by_uuid(:node, node_hash['@uuid'])
+      if existing_node != nil
+        existing_node.last_state = node_hash['@last_state']
+        existing_node.attributes_hash = node_hash['@attributes_hash']
+      else
+        @data.persist_object(Razor::Node.new(node_hash))
+      end
     end
 
     # Queries [Array] of nodes matching filter if supplied in command

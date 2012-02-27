@@ -16,6 +16,7 @@ module Razor
     attr_accessor :last_state
     attr_accessor :current_state
     attr_accessor :next_state
+    attr_accessor :tags
 
     # init
     # @param hash [Hash]
