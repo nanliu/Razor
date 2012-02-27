@@ -1,4 +1,5 @@
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common/persist"
 
 require "configuration"
 require "persist_controller"

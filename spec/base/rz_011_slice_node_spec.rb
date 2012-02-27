@@ -72,8 +72,6 @@ describe "Razor::Slice::Node" do
       end
     end
 
-    it "Should be able to delete a single node by uuid from REST"
-
     it "Should be able to checkin a node by uuid from REST and get back acknowledge" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=#{@uuid}&last_state=idle_error"
 

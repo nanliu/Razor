@@ -28,6 +28,8 @@ module Razor::Slice
 
     def boot_called
       if @web_command
+
+        logger.debug ""
         # todo call engine with uuid
         # prove out boot script can pull razor server from existing ixe var
         # junk stub code to make ipxe boot work, calls razor image
