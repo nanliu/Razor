@@ -1,8 +1,9 @@
 # This adds Razor Common lib path to the load path for this child proc
 $LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common/persist"
 
 require "configuration"
-require "persist_database_mongo"
+require "database_mongo"
 require "logging"
 
 # Persistence Controller for Razor
