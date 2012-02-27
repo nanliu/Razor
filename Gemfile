@@ -11,3 +11,4 @@ gem "logger"
 gem "extlib" # used for full_const_get method
 gem "json"
 gem "colored"
+gem "bluepill"

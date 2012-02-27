@@ -1,0 +1,7 @@
+Bluepill.application("razor_api") do |app|
+      app.process("process_name") do |process|
+        process.start_command = "$RAZOR_HOME/bin/node/node razor_api.js"
+        process.pid_file = "/tmp/razor_api.pid"
+        process.daemonize = true
+      end
+    end

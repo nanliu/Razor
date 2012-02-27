@@ -29,6 +29,8 @@ module Razor
     attr_accessor :checkin_offset
     attr_accessor :register_timeout
 
+    attr_accessor :base_mk
+
     # init
     def initialize
       use_defaults
@@ -49,6 +51,8 @@ module Razor
       @checkin_sleep = 60
       @checkin_offset = 5
       @register_timeout = 120
+
+      @base_mk = "rz_mk-image.iso"
     end
 
 

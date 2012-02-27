@@ -1,7 +1,7 @@
 // Node.js Endpoint for Razor Image Service
 
 var memdisk = process.env.RAZOR_HOME + "/images/mk/memdisk";
-var mk_iso = process.env.RAZOR_HOME + "/images/mk/rz_mk_dev-image.0.1.1.0.iso";
+var mk_iso = process.env.RAZOR_HOME + "/images/mk/rz_mk-image.iso";
 var razor_bin = process.env.RAZOR_HOME + "/bin/razor -w"; // Set razor.rb path
 var exec = require("child_process").exec; // create our exec object
 var express = require('express'); // include our express libs
@@ -38,6 +38,12 @@ function getConfig() {
 function startServer(json_config) {
     config = JSON.parse(json_config);
     if (config['@imagesvc_port'] != null) {
+
+        if (config['@base_mk'] != null) {
+            mk_iso = process.env.RAZOR_HOME + "/images/mk/" + config['@base_mk'];
+        }
+
+
         app.listen(config['@imagesvc_port']);
         console.log('Razor Image Service Web Server started and listening on:%s', app.address().port);
     } else {
