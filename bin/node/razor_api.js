@@ -10,7 +10,7 @@ app.use(express.bodyParser()); // Enable body parsing for POST
 // app.use(express.logger()); // Uncomment for logging to console
 
 // Exception for boot API request
-app.get('/razor/api/boot',
+app.get('/razor/api/boot*',
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
