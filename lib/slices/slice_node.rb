@@ -169,7 +169,7 @@ module Razor::Slice
         existing_node.attributes_hash = node_hash['@attributes_hash']
         existing_node.update_self
         existing_node
-      end
+      else
         @data.persist_object(Razor::Node.new(node_hash))
       end
     end
