@@ -167,7 +167,9 @@ module Razor::Slice
       if existing_node != nil
         existing_node.last_state = node_hash['@last_state']
         existing_node.attributes_hash = node_hash['@attributes_hash']
-      else
+        existing_node.update_self
+        existing_node
+      end
         @data.persist_object(Razor::Node.new(node_hash))
       end
     end
