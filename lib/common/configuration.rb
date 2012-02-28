@@ -52,7 +52,9 @@ module Razor
       @checkin_offset = 5
       @register_timeout = 120
 
-      @base_mk = "rz_mk-image.iso"
+      @base_mk = "rz_mk_dev-image.0.1.3.0.iso"
+      @razor_ip = "127.0.0.1"
+
     end
 
 
