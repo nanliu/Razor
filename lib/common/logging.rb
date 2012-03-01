@@ -1,18 +1,19 @@
-$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+# Copyright © 2012 EMC Corporation, All Rights Reserved
+
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+
 
 require "logger"
-#require "data"
 
-# TODO link to configuration for Log Level
-# TODO link to configuration for Log path
 LOG_LEVEL = Logger::DEBUG
-LOG_ROTATION = "daily"
+LOG_MAX_SIZE = 2048576
+LOG_MAX_FILES = 10
 
 # Module used for all logging. Needs to be included in any Razor class that needs logging.
 # Uses Ruby Logger but overrides and instantiates one for each object that mixes in this module.
 # It auto prefixes each log message with classname and method from which it was called using progname
 module Razor::Logging
-
 
 
   # [Hash] holds the loggers for each instance that includes it
@@ -51,7 +52,7 @@ module Razor::Logging
 
     # Creates a logger instance
     def configure_logger_for(classname, methodname)
-      logger = Logger.new get_log_path, LOG_ROTATION
+      logger = Logger.new(get_log_path, shift_age = LOG_MAX_FILES, shift_size = LOG_MAX_SIZE)
       logger.level = get_log_level
       logger
     end

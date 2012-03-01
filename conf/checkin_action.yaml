@@ -2,4 +2,4 @@
 # use 'uuid' => command action(as Symbol)
 ---
 'TESTRSPEC': :reboot # DO NOT CHANGE THIS ONE, used for RSPEC unit test
-'12345678': :register
+'12345678': :reboot

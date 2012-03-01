@@ -3,15 +3,10 @@
 
 Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
 
+require "rspec"
 
-# Root namespace for Razor
-# @author Nicholas Weaver
-module Razor::System
+describe "My behaviour" do
 
-  # Root namespace for Systems defined in Razor for node handoff
-  # @author Nicholas Weaver
-  # @abstract
-  class Base
+  it "should do something"
 
-  end
 end

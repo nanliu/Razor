@@ -1,3 +1,6 @@
+// EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+// Copyright © 2012 EMC Corporation, All Rights Reserved
+//
 // Node.js Endpoint for Razor Image Service
 
 var memdisk = process.env.RAZOR_HOME + "/images/mk/memdisk";

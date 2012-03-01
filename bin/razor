@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 #
+# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+# Copyright © 2012 EMC Corporation, All Rights Reserved
+#
 # Primary control for Razor
 # Modules are dynamically loaded and accessed through corresponding namespace
 # Format will be 'razor [module namespace] [module args{}]'
@@ -7,7 +10,8 @@
 # This adds Razor Common lib path to the load path for this child proc
 
 
-$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+
 MODULE_PATH = "#{ENV['RAZOR_HOME']}/lib/slices"
 SLICE_PREFIX = "Razor::Slice::"
 

@@ -1,6 +1,8 @@
-# This adds Razor Common lib path to the load path for this child proc
-$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
-$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/models"
+# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+# Copyright © 2012 EMC Corporation, All Rights Reserved
+
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+
 
 require "model_base"
 

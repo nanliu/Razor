@@ -1,5 +1,9 @@
 # Project Razor
 
+## License
+### EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+### Copyright © 2012 EMC Corporation, All Rights Reserved
+
 ## Introduction
 
 Project Razor is a power control, provisioning, and management application designed
@@ -9,13 +13,16 @@ DevOps-style tool sets.
 ## Authors
 
 [Nicholas Weaver](https://github.com/lynxbat)
+
 [Tom McSweeney](https://github.com/tjmcs)
 
 ## Installation
 
 ### Node.js:
 [Node.js install with package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)
+
 [Node Package Manager(NPM)](http://npmjs.org/)
+
 [Express install via NPM](http://expressjs.com/guide.html)
 
 ### Database

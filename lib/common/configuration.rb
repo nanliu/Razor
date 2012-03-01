@@ -1,7 +1,8 @@
-# Razor config - this is imported via a YAML file define by install
+# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
+# Copyright © 2012 EMC Corporation, All Rights Reserved
 
-# This adds Razor Common lib path to the load path for this child proc
-$LOAD_PATH << "#{ENV['RAZOR_HOME']}/lib/common"
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+
 
 require "utility"
 
@@ -23,7 +24,6 @@ module Razor
     attr_accessor :admin_port
     attr_accessor :api_port
     attr_accessor :imagesvc_port
-    attr_accessor :log_path
 
     attr_accessor :checkin_sleep
     attr_accessor :checkin_offset
@@ -46,7 +46,6 @@ module Razor
       @admin_port = 8025
       @api_port = 8026
       @imagesvc_port = 8027
-      @logpath = "#{ENV['RAZOR_HOME']}/log"
 
       @checkin_sleep = 60
       @checkin_offset = 5
