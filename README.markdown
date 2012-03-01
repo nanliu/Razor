@@ -80,14 +80,3 @@ Start Razor API with:
 
 ## Notes
 
-Use the newest mongo ruby driver build as there is a bug with connect_timeout scoping error
-that hasn't been merged into available gem yet
-
-The fix below is assuming RVM as Ruby environment manager. If using global RVM gems make sure
-and 'rvm use ruby-1.9.3@global' before installing updated mongo driver.
-
-    wget https://github.com/mongodb/mongo-ruby-driver/zipball/master
-    unzip master
-    cd mongodb-mongo-ruby-driver-99d9dfd/
-    gem build mongo.gemspec
-    gem install mongo-1.5.2.gem
