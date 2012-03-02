@@ -112,7 +112,7 @@ module ProjectRazor
       def node_exist?(uuid)
         setup_data
         node = @data.fetch_object_by_uuid(:node, uuid)
-        return node if node.uuid == uuid
+        return node if node != nil
         false
       end
 
