@@ -81,7 +81,7 @@ module ProjectRazor
                 # Don't have record of this node
                 logger.debug "No record of this node"
 
-                slice_success(command_response)
+                slice_success(get_command(:register, {}))
               end
 
             else
