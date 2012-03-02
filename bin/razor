@@ -9,7 +9,7 @@
 #
 
 
-$lib_path = File.dirname(__FILE__).sub(/\/bin$/,"/lib")
+$lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
 $LOAD_PATH.unshift($lib_path)
 require "project_razor"
 require "extlib"

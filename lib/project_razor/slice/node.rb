@@ -38,7 +38,7 @@ module ProjectRazor
       def checkin_node
         # TODO this needs to be wired to the *future* ProjectRazor::Engine
 
-        f = File.open("#{ENV['RAZOR_HOME']}/conf/checkin_action.yaml","r")
+        f = File.open("#{$razor_root}/conf/checkin_action.yaml","r")
         checkin_actions = YAML.load(f)
 
 

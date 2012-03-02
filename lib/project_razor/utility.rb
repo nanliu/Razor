@@ -37,7 +37,7 @@ module ProjectRazor
     # Returns the version number as [String] from ./conf/version
     # @return [String]
     def get_razor_version
-      file = File.open("#{ENV['RAZOR_HOME']}/conf/version", "rb")
+      file = File.open("#{$razor_root}/conf/version", "rb")
       version = file.read
       file.close
       version

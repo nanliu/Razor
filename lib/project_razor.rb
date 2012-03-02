@@ -1,7 +1,7 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
-
+$razor_root = File.dirname(__FILE__).sub(/\/lib$/,"")
 $config_server_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/razor_server.conf"
 $img_svc_path = File.dirname(__FILE__).sub(/\/lib$/,"/image")
 $logging_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/project_razor.log"
