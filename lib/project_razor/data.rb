@@ -11,6 +11,7 @@ module ProjectRazor
   class Data
     include(ProjectRazor::Utility)
     include(ProjectRazor::Logging)
+    include(ProjectRazor::Filtering)
 
     # {ProjectRazor::Config::Server} object for {ProjectRazor::Data}
     attr_accessor :config
@@ -55,6 +56,21 @@ module ProjectRazor
         return object if object.uuid == object_uuid
       end
       nil
+    end
+
+    # Fetches a document from database using a filter hash - which matches any objects using ProjectRazor::Filtering module
+    #
+    # @param [Symbol] object_symbol
+    # @param [Hash] object_filter
+    # @return [Object, nil]
+    def fetch_objects_by_filter(object_symbol, object_filter)
+      logger.debug "Fetching objects by filter (#{object_filter}) in collection (#{object_symbol})"
+      object_array = []
+      fetch_all_objects(object_symbol).each do
+      |object|
+        object_array << object if check_filter_vs_hash(object_filter, object.to_hash)
+      end
+      object_array
     end
 
     # Takes an {ProjectRazor::Object} and creates/persists it within the database.

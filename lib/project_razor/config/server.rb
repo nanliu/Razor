@@ -52,9 +52,9 @@ module ProjectRazor
 
         @mk_checkin_interval = 60
         @mk_checkin_skew = 5
-        @mk_uri = "http:://#{get_an_ip}:#{@api_port}"
-        @mk_register_path = "/project_razor/api/node/register"
-        @mk_checkin_path = "/project_razor/api/node/checkin"
+        @mk_uri = "http://#{get_an_ip}:#{@api_port}"
+        @mk_register_path = "/razor/api/node/register"
+        @mk_checkin_path = "/razor/api/node/checkin"
         @mk_fact_excl_pattern = "(^uptime.*$)|(^memory.*$)"
 
         @image_svc_path = $img_svc_path

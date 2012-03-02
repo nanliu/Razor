@@ -7,9 +7,11 @@ $img_svc_path = File.dirname(__FILE__).sub(/\/lib$/,"/image")
 $logging_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/project_razor.log"
 
 require "project_razor/object"
-require "project_razor/data"
-require "project_razor/logging"
+require "project_razor/filtering"
 require "project_razor/utility"
+require "project_razor/logging"
+
+require "project_razor/data"
 require "project_razor/config"
 require "project_razor/node"
 require "project_razor/policy"
@@ -18,6 +20,7 @@ require "project_razor/slice"
 require "project_razor/persist"
 require "project_razor/model"
 require "project_razor/tagging"
+
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver

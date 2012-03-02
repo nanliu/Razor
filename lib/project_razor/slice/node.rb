@@ -170,8 +170,12 @@ module ProjectRazor
         end
       end
 
-      # Queries [Array] of nodes matching filter if supplied in command
       def query_node
+        print_node get_object("node", :node)
+      end
+
+      # Queries [Array] of nodes matching filter if supplied in command
+      def query_node_old
         logger.debug "Query nodes called"
 
         if @web_command

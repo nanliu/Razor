@@ -26,8 +26,8 @@ class ProjectRazor::Engine
 
     boot_script = ""
     boot_script << "#!ipxe\n"
-    boot_script << "initrd http://192.168.99.10:8027/project_razor/image/mk\n"
-    boot_script << "chain http://192.168.99.10:8027/project_razor/image/memdisk iso\n"
+    boot_script << "initrd http://192.168.99.10:8027/razor/image/mk\n"
+    boot_script << "chain http://192.168.99.10:8027/razor/image/memdisk iso\n"
     boot_script
   end
 

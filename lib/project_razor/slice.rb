@@ -2,7 +2,6 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "project_razor/slice_util/common"
-require "project_razor/slice_util/filtering"
 require "project_razor/slice/base"
 require "project_razor/slice/boot"
 require "project_razor/slice/config"

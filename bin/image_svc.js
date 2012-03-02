@@ -15,14 +15,14 @@ fs = require('fs');
 app = express.createServer(); // our express server
 
 
-app.get('/project_razor/image/mk',
+app.get('/razor/image/mk',
     function(req, res) {
         res.writeHead(200, {'Content-Type': 'application/octet-stream'});
         var fileStream = fs.createReadStream(mk_iso);
         fileStream.pipe(res);
     });
 
-app.get('/project_razor/image/memdisk',
+app.get('/razor/image/memdisk',
     function(req, res) {
         console.log("Called");
         res.writeHead(200, {'Content-Type': 'application/octet-stream'});

@@ -6,7 +6,6 @@ require "json"
 module ProjectRazor
   module SliceUtil
     module Common
-      #include(ProjectRazor::Slice::Utility::Filtering)
 
 
       # Gets a selection of objects for slice
@@ -14,7 +13,7 @@ module ProjectRazor
       # @param collection [Symbol] collection for object
 
       def get_object(noun, collection)
-        logger.debug "Query #{nodes} called"
+        logger.debug "Query #{noun} called"
 
         # Check if REST-driven request
         if @web_command
@@ -23,46 +22,37 @@ module ProjectRazor
           @filter_json_string = @command_array.shift
 
           # Check if we were passed a filter string
-          # TODO - make this more than just a uuid filter
           if @filter_json_string != "{}" && @filter_json_string != nil
             @command = "query_with_filter"
             begin
               # Render our JSON to a Hash
-              filter = JSON.parse(@filter_json_string)
-              logger.debug "Filter: #{filter["uuid"]}"
-
-              # Check is filter contains a valid field, in this case only uuid is implemented right now
-              if filter["uuid"] != nil
-                # Get objects based on filter
-                return_object_using_filter(filter)
-              else
-                # Return error signifying filter is invalid
-                slice_error("InvalidFilter")
-              end
+              return return_object_using_filter(JSON.parse(@filter_json_string), collection)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
               slice_error(e.message)
             end
           else
             @command = "query_all"
-            return_objects
+            return return_objects(collection)
           end
           # Is CLI driven
         else
-          return_objects
+          return_objects(collection)
         end
       end
 
       # Return objects using a filter
       # @param filter [Hash] contains key/values used for filtering
-      def return_object_using_filter(filter)
-
-
+      # @param collection [Symbol] collection symbol
+      def return_object_using_filter(collection, filter_hash)
+      setup_data
+        @data.fetch_objects_by_filter(filter_hash, collection)
       end
 
       # Return all objects (no filtering)
-      def return_objects
-
+      def return_objects(collection)
+        setup_data
+        @data.fetch_all_objects(collection)
       end
 
 
