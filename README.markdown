@@ -29,7 +29,7 @@ DevOps-style tool sets.
 
 #### Mongo
 
-_todo_
+Requires MongoDB 2.0.X+
 
 ## Prereqs
 

@@ -3,10 +3,15 @@
 
 Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds ProjectRazor lib/dirs to load path
 
-require "rspec"
 
-describe "My behaviour" do
+# Root namespace for ProjectRazor
+# @author Nicholas Weaver
+module ProjectRazor::System
 
-  it "should do something"
+  # Root namespace for Systems defined in ProjectRazor for node handoff
+  # @author Nicholas Weaver
+  # @abstract
+  class Base
 
+  end
 end

@@ -1,18 +1,18 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
-Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds ProjectRazor lib/dirs to load path
 
 require "rspec"
 require "data"
 require "tag_rule"
 
-describe Razor::TagRule do
+describe ProjectRazor::TagRule do
 
   before (:all) do
-    @data = Razor::Data.new
+    @data = ProjectRazor::Data.new
 
-    @tag_rule = Razor::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
+    @tag_rule = ProjectRazor::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
   end
 
 

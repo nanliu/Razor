@@ -1,19 +1,19 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
-Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds Razor lib/dirs to load path
+Dir.glob(ENV['RAZOR_HOME'] + '/lib/**/').each {|x| $LOAD_PATH << x} # adds ProjectRazor lib/dirs to load path
 
 require "rspec"
 require "net/http"
 require "json"
 require "data"
 
-describe "Razor::Slice::Node" do
+describe "ProjectRazor::Slice::Node" do
 
   describe ".RESTful Interface" do
 
     before(:all) do
-      @data = Razor::Data.new
+      @data = ProjectRazor::Data.new
       @config = @data.config
       @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
 
@@ -25,7 +25,7 @@ describe "Razor::Slice::Node" do
     end
 
     it "Should be able to register a node by uuid from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/register" # root URI for node slice actions
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node/register" # root URI for node slice actions
 
 
       state = "idle"
@@ -46,7 +46,7 @@ describe "Razor::Slice::Node" do
 
 
     it "Should be able to query a list of nodes from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
@@ -61,7 +61,7 @@ describe "Razor::Slice::Node" do
     end
 
     it "Should be able to query a single node by uuid from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node?uuid=#{@uuid}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node?uuid=#{@uuid}"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
@@ -76,7 +76,7 @@ describe "Razor::Slice::Node" do
     end
 
     it "Should be able to checkin a node by uuid from REST and get back acknowledge" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=#{@uuid}&last_state=idle_error"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node/checkin?uuid=#{@uuid}&last_state=idle_error"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
@@ -93,7 +93,7 @@ describe "Razor::Slice::Node" do
       node = @data.fetch_object_by_uuid(:node, @uuid)
       node.timestamp = 0 # force node register timeout to have been expired
       node.update_self
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=#{@uuid}&last_state=idle"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node/checkin?uuid=#{@uuid}&last_state=idle"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
@@ -111,7 +111,7 @@ describe "Razor::Slice::Node" do
 
       # First create test node
 
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/register" # root URI for node slice actions
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node/register" # root URI for node slice actions
       json_hash = {}
       json_hash["@uuid"] = "TESTRSPEC"
       json_hash["@last_state"] = "idle"
@@ -127,7 +127,7 @@ describe "Razor::Slice::Node" do
 
 
       # Now lets checkin
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=TESTRSPEC&last_state=idle_error"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/project_razor/api/node/checkin?uuid=TESTRSPEC&last_state=idle_error"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)

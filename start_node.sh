@@ -7,5 +7,5 @@
 # Starts node server or restarts if running
 
 killall -2 node
-nohup node $RAZOR_HOME/bin/node/razor_api.js &
-nohup node $RAZOR_HOME/bin/node/razor_image.js &
+nohup node $RAZOR_HOME/bin/api.js &
+nohup node $RAZOR_HOME/bin/image_svc.js &
