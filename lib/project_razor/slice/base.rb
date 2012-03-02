@@ -13,6 +13,8 @@ module ProjectRazor
     # @author Nicholas Weaver
     class Base
       include(ProjectRazor::Logging)
+      include(ProjectRazor::SliceUtil::Common)
+      include(ProjectRazor::SliceUtil::Filtering)
 
       # Bool for indicating whether this was driven from Node.js
       attr_accessor :web_command

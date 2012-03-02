@@ -7,7 +7,6 @@
 # Modules are dynamically loaded and accessed through corresponding namespace
 # Format will be 'project_razor [module namespace] [module args{}]'
 #
-# This adds ProjectRazor Common lib path to the load path for this child proc
 
 
 $lib_path = File.dirname(__FILE__).sub(/\/bin$/,"/lib")

@@ -30,7 +30,7 @@ module ProjectRazor::Logging
 
     def get_log_path
       if ENV['RAZOR_LOG_PATH'] == nil
-        return "#{ENV['RAZOR_HOME']}/log/project_razor.log"
+        return $logging_path
       end
       "#{ENV['RAZOR_LOG_PATH']}/project_razor.log"
     end

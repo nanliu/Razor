@@ -4,6 +4,7 @@
 
 $config_server_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/razor_server.conf"
 $img_svc_path = File.dirname(__FILE__).sub(/\/lib$/,"/image")
+$logging_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/project_razor.log"
 
 require "project_razor/object"
 require "project_razor/data"
