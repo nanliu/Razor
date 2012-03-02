@@ -17,6 +17,7 @@ app = express.createServer(); // our express server
 
 app.get('/razor/image/mk',
     function(req, res) {
+        console.log("MK request: " + mk_iso);
         res.writeHead(200, {'Content-Type': 'application/octet-stream'});
         var fileStream = fs.createReadStream(mk_iso);
         fileStream.pipe(res);
@@ -46,10 +47,6 @@ function startServer(json_config) {
     mk_iso = config['@image_svc_path']  + "/mk/" + config['@base_mk'] ;
 
     if (config['@imagesvc_port'] != null) {
-
-        if (config['@base_mk'] != null) {
-            mk_iso = process.env.RAZOR_HOME + "/images/mk/" + config['@base_mk'];
-        }
         app.listen(config['@imagesvc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
         console.log('Default MK path: ' + mk_iso)
