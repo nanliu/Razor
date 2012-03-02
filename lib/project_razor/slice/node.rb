@@ -27,7 +27,6 @@ module ProjectRazor
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:register => "register_node",
                            :checkin => "checkin_node",
-                           :remove => "remove_node",
                            :default => "query_node"}
         @slice_commands_help = {:register => "node register (JSON STRING)",
                                 :default => "node (JSON STRING)"}
@@ -48,9 +47,10 @@ module ProjectRazor
         if @command_query_string != "{}" && @command_query_string != nil
 
 
-
+          puts @command_query_string
           begin
             params = JSON.parse(@command_query_string)
+            puts params["uuid"]
             if params["uuid"] != nil && params["last_state"] != nil
 
               node = node_exist?(params["uuid"])
@@ -149,11 +149,6 @@ module ProjectRazor
         end
       end
 
-      # Removes node
-      def remove_node
-        slice_error("NotImplemented")
-      end
-
       # Inserts node using hash
       # @param [Hash] node_hash
       # @return [ProjectRazor::Node]
@@ -172,52 +167,6 @@ module ProjectRazor
 
       def query_node
         print_node get_object("node", :node)
-      end
-
-      # Queries [Array] of nodes matching filter if supplied in command
-      def query_node_old
-        logger.debug "Query nodes called"
-
-        if @web_command
-          @command_query_string = @command_array.shift
-          if @command_query_string != "{}" && @command_query_string != nil
-            @command = "query_with_filter"
-            begin
-              logger.debug "***#{@command_query_string}"
-              filter = JSON.parse(@command_query_string)
-
-              logger.debug "Filter: #{filter.inspect}"
-              logger.debug "Filter: #{filter["uuid"]}"
-              if filter["uuid"] != nil
-                return_node_by_uuid(filter["uuid"])
-              else
-                slice_error("InvalidFilter")
-              end
-            rescue StandardError => e
-              slice_error(e.message)
-            end
-          else
-            @command = "query_all"
-            return_all_nodes
-          end
-        else
-          return_all_nodes
-        end
-      end
-
-      # Returns all nodes in DB from slice
-      def return_all_nodes
-        setup_data
-        print_node(@data.fetch_all_objects(:node))
-      end
-
-      # Return node matching uuid from Slice
-      # @param [String] uuid
-      def return_node_by_uuid(uuid)
-        setup_data
-        node = @data.fetch_object_by_uuid(:node, uuid)
-        node = [] if node == nil
-        print_node([node])
       end
 
       # Handles printing of node details to CLI or REST
