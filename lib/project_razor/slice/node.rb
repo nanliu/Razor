@@ -45,12 +45,8 @@ module ProjectRazor
 
         @command_query_string = @command_array.shift
         if @command_query_string != "{}" && @command_query_string != nil
-
-
-          puts @command_query_string
           begin
             params = JSON.parse(@command_query_string)
-            puts params["uuid"]
             if params["uuid"] != nil && params["last_state"] != nil
 
               node = node_exist?(params["uuid"])
@@ -83,7 +79,6 @@ module ProjectRazor
 
                 slice_success(get_command(:register, {}))
               end
-
             else
               slice_error("InvalidOrMissingParameters")
             end
