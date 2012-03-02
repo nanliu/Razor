@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "yaml"
+require "bson"
 
 # ProjectRazor::Utility namespace
 # @author Nicholas Weaver
@@ -14,10 +15,30 @@ module ProjectRazor
       hash = {}
       self.instance_variables.each do |iv|
         if !iv.to_s.start_with?("@_") && self.instance_variable_get(iv).class != Logger
-          hash[iv.to_s] = self.instance_variable_get(iv)
+          if self.instance_variable_get(iv).class == BSON::OrderedHash
+            hash[iv.to_s] = bson_to_hash(self.instance_variable_get(iv))
+          else
+            hash[iv.to_s] = self.instance_variable_get(iv)
+          end
         end
       end
       hash
+    end
+
+    # Iterates and converts BSON:OrderedHash back to vanilla hash / MongoDB specific
+    # @param bson_hash [Hash]
+    # @return [Hash]
+    def bson_to_hash(bson_hash)
+      new_hash = {}
+      bson_hash.each_key do
+      |k|
+        if bson_hash[k].class == BSON::OrderedHash
+          new_hash[k] = bson_to_hash(bson_hash[k])
+        else
+          new_hash[k] = bson_hash[k]
+        end
+      end
+      new_hash
     end
 
     # Sets instance variables

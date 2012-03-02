@@ -14,7 +14,7 @@ app.use(express.bodyParser()); // Enable body parsing for POST
 // app.use(express.logger()); // Uncomment for logging to console
 
 // Exception for boot API request
-app.get('/project_razor/api/boot*',
+app.get('/razor/api/boot*',
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
@@ -30,7 +30,9 @@ app.get('/project_razor/api/boot*',
         });
     });
 
-app.get('/project_razor/api/*',
+app.get('/razor/api/*',
+    // TODO - need to decode vars
+
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
@@ -48,7 +50,7 @@ app.get('/project_razor/api/*',
 
 
 
-app.post('/project_razor/api/*',
+app.post('/razor/api/*',
     function(req, res) {
         args = req.path.split("/");
         args.splice(0,3);
@@ -71,10 +73,10 @@ app.get('/*',
             case "/":
                 res.send('404 Error: Bad Request', 404);
                 break;
-            case "/project_razor":
+            case "/razor":
                 res.send('404 Error: Bad Request(No module selected)', 404);
                 break;
-            case "/project_razor/api":
+            case "/razor/api":
                 res.send('404 Error: Bad Request(No slice selected)', 404);
                 break;
             default:
