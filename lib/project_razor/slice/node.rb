@@ -45,12 +45,8 @@ module ProjectRazor
 
         @command_query_string = @command_array.shift
         if @command_query_string != "{}" && @command_query_string != nil
-
-
-          puts @command_query_string
           begin
             params = JSON.parse(@command_query_string)
-            puts params["uuid"]
             if params["uuid"] != nil && params["last_state"] != nil
 
               node = node_exist?(params["uuid"])
@@ -81,9 +77,8 @@ module ProjectRazor
                 # Don't have record of this node
                 logger.debug "No record of this node"
 
-                slice_success(command_response)
+                slice_success(get_command(:register, {}))
               end
-
             else
               slice_error("InvalidOrMissingParameters")
             end
@@ -112,7 +107,7 @@ module ProjectRazor
       def node_exist?(uuid)
         setup_data
         node = @data.fetch_object_by_uuid(:node, uuid)
-        return node if node.uuid == uuid
+        return node if node != nil
         false
       end
 
