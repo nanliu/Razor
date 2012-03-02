@@ -24,7 +24,7 @@ app.get('/razor/image/mk',
 
 app.get('/razor/image/memdisk',
     function(req, res) {
-        console.log("Called");
+        console.log("Memdisk request: " + memdisk);
         res.writeHead(200, {'Content-Type': 'application/octet-stream'});
         var fileStream = fs.createReadStream(memdisk);
         fileStream.pipe(res);
@@ -53,6 +53,7 @@ function startServer(json_config) {
         app.listen(config['@imagesvc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
         console.log('Default MK path: ' + mk_iso)
+        console.log('Default memdisk path: ' + memdisk)
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
     }
