@@ -20,7 +20,6 @@ module ProjectRazor
 
           # Get request filter JSON string
           @filter_json_string = @command_array.shift
-
           # Check if we were passed a filter string
           if @filter_json_string != "{}" && @filter_json_string != nil
             @command = "query_with_filter"
@@ -29,10 +28,10 @@ module ProjectRazor
               return return_object_using_filter(JSON.parse(@filter_json_string), collection)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
-              slice_error(e.message)
+              slice_error(e.message, false)
             end
           else
-            @command = "query_all"
+            @command = "#{noun}_query_all"
             return return_objects(collection)
           end
           # Is CLI driven

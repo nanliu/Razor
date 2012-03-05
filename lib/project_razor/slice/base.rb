@@ -48,14 +48,14 @@ module ProjectRazor
         if @command == "help"
           available_commands(nil)
         else
-          slice_error("InvalidCommand") unless flag
+          slice_error("InvalidCommand", false) unless flag
         end
       end
 
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
       # @param [Hash] response
-      def slice_success(response)
+      def slice_success(response, mk_response)
         return_hash = {}
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
@@ -63,7 +63,7 @@ module ProjectRazor
         return_hash["errcode"] = 0
         return_hash["response"] = response
         setup_data
-        return_hash["client_config"] = @data.config.get_client_config_hash
+        return_hash["client_config"] = @data.config.get_client_config_hash if mk_response
         if @web_command
           puts JSON.dump(return_hash)
         else
@@ -77,7 +77,7 @@ module ProjectRazor
       # Called when a slice action triggers an error
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
-      def slice_error(error)
+      def slice_error(error, mk_response)
         @command = "null" if @command == nil
 
         return_hash = {}
@@ -86,7 +86,7 @@ module ProjectRazor
         return_hash["errcode"] = 1
         return_hash["result"] = error
         setup_data
-        return_hash["client_config"] = @data.config.get_client_config_hash
+        return_hash["client_config"] = @data.config.get_client_config_hash if mk_response
         if @web_command
           puts JSON.dump(return_hash)
         else

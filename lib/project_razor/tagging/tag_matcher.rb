@@ -8,8 +8,8 @@ module ProjectRazor
       include(ProjectRazor::Logging)
 
       attr_accessor :key          # the attribute key we want to match
-      attr_accessor :compare      # either :equal or :like
-      attr_accessor :value        # value as String - if @compare == :like then will be converted to Regex
+      attr_accessor :compare      # either "equal" or "like"
+      attr_accessor :value        # value as String - if @compare == "like" then will be converted to Regex
       attr_accessor :inverse      # true = flip operation result
 
       # Equal to
@@ -21,16 +21,26 @@ module ProjectRazor
       # Key Like String(Regex) | not
 
       def initialize(hash)
+        super()
+
+
         from_hash(hash) unless hash == nil
+        if @compare != "equal" && @compare != "like"
+          @compare = nil
+        end
+
+        if @inverse != "true" && @inverse != "false"
+          @inverse = nil
+        end
       end
 
       # @param property_value [String]
       def check_for_match(property_value)
         ret = true
-        ret = false unless @inverse == false
+        ret = false if @inverse == "true"
 
         case compare
-          when :equal
+          when "equal"
             logger.debug "Checking if key:#{@key}=#{property_value} is equal to matcher value:#{@value}"
             if property_value == @value
               logger.debug "Match found"
@@ -39,7 +49,7 @@ module ProjectRazor
               logger.debug "Match not found"
               return !ret
             end
-          when :like
+          when "like"
             logger.debug "Checking if key:#{@key}=#{property_value} is like matcher pattern:#{@value}"
             reg_ex = Regexp.new(@value)
             if (reg_ex =~ property_value) != nil

@@ -13,9 +13,6 @@ module ProjectRazor
     # @author Nicholas Weaver
     class Node < ProjectRazor::Slice::Base
 
-      # TODO add filtering by any value
-      # TODO add filtering by AND | OR
-      # TODO add REGEX to filtering
       # TODO finish logging
       # TODO fill out comments
 
@@ -61,32 +58,32 @@ module ProjectRazor
                 forced_action = checkin_actions[params["uuid"]]
                 if forced_action != nil
                   logger.debug "Forcing action: #{forced_action.to_s}"
-                  slice_success(get_command(forced_action, {}))
+                  slice_success(get_command(forced_action, {}), true)
                 else
 
                   setup_data
                   if (node.timestamp - old_timestamp) > @data.config.register_timeout
                     logger.debug "Checkin acknowledged: #{forced_action.to_s}"
-                    slice_success(get_command(:register, {}))
+                    slice_success(get_command(:register, {}), true)
                   else
                     logger.debug "Checkin acknowledged: #{forced_action.to_s}"
-                    slice_success(get_command(:acknowledge, {}))
+                    slice_success(get_command(:acknowledge, {}), true)
                   end
                 end
               else
                 # Don't have record of this node
                 logger.debug "No record of this node"
 
-                slice_success(get_command(:register, {}))
+                slice_success(get_command(:register, {}), true)
               end
             else
-              slice_error("InvalidOrMissingParameters")
+              slice_error("InvalidOrMissingParameters", true)
             end
           rescue StandardError => e
-            slice_error(e.message)
+            slice_error(e.message, true)
           end
         else
-          slice_error("MissingRequiredParameters(uuid, state)")
+          slice_error("MissingRequiredParameters(uuid, state)", true)
         end
       end
 
@@ -131,14 +128,14 @@ module ProjectRazor
               new_node = insert_node(details)
 
               if new_node.refresh_self
-                slice_success(new_node.to_hash)
+                slice_success(new_node.to_hash, true)
               else
                 logger.error "Could not register node"
-                slice_error("CouldNotRegister")
+                slice_error("CouldNotRegister", true)
               end
             else
               logger.error "Incomplete node details"
-              slice_error("IncompleteDetails")
+              slice_error("IncompleteDetails",true)
             end
           end
         end
@@ -197,7 +194,7 @@ module ProjectRazor
           end
         else
           node_array = node_array.collect { |node| node.to_hash }
-          slice_success node_array
+          slice_success(node_array,false)
         end
       end
 
