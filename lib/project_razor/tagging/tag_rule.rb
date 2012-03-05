@@ -12,9 +12,11 @@ module ProjectRazor
 
 
       def initialize(hash)
+        super()
         @name = "Tag Rule: #{@uuid}"
         @tag = ""
         @tag_matchers = []
+        @_collection = :tag
 
         from_hash(hash) unless hash == nil
         tag_matcher_from_hash unless hash == nil
@@ -51,13 +53,13 @@ module ProjectRazor
         logger.debug "New tag matcher: '#{key}' #{compare} '#{value}' inverse:#{inverse.to_s}"
         if key.class == String && value.class == String
           if compare.to_s == "equal" || compare.to_s == "like"
-            if inverse == true || inverse == false
+            if inverse == "true" || inverse == "false"
 
 
               tag_matcher = ProjectRazor::Tagging::TagMatcher.new({"@key" => key,
-                                                          "@value" => value,
-                                                          "@compare" => compare,
-                                                          "@inverse" => inverse})
+                                                                   "@value" => value,
+                                                                   "@compare" => compare,
+                                                                   "@inverse" => inverse})
               if tag_matcher.class == ProjectRazor::Tagging::TagMatcher
                 logger.debug "New tag matcher added successfully"
                 @tag_matchers << tag_matcher
@@ -70,6 +72,7 @@ module ProjectRazor
       end
 
       def remove_tag_matcher(uuid)
+        tag_matcher_from_hash
         tag_matchers.delete_if {|tag_matcher| tag_matcher.uuid == uuid}
       end
 
@@ -77,14 +80,29 @@ module ProjectRazor
         new_array = []
         @tag_matchers.each do
         |tag_matcher_hash|
-          if tag_matcher_hash.class == Hash
-            new_array << ProjectRazor::TagMatcher.new(tag_matcher_hash)
+          if tag_matcher_hash.class == Hash || tag_matcher_hash.class == BSON::OrderedHash # change this to check descendant of Hash
+            new_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher_hash)
           else
             new_array << tag_matcher_hash
           end
         end
 
         @tag_matchers = new_array
+      end
+
+
+      # Override from_hash to convert our tag matchers if they exist
+      def from_hash(hash)
+        super(hash)
+        new_tag_matchers_array = []
+        @tag_matchers.each do
+        |tag_matcher|
+          if tag_matcher.class == Hash
+            new_tag_matchers_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher)
+          else
+            new_tag_matchers_array << tag_matcher
+          end
+        end
       end
 
 

@@ -42,8 +42,8 @@ module ProjectRazor
               # We check for our '?:' prefix which indicates a Regex check
 
               if filter_hash[filter_key].start_with?('regex:')
-                filter_hash[filter_key] = filter_hash[filter_key].sub(/^regex:/,"")
-                if Regexp.new(filter_hash[filter_key]).match(object_hash[object_key]) == nil
+                regex_key = filter_hash[filter_key].sub(/^regex:/,"")
+                if Regexp.new(regex_key).match(object_hash[object_key]) == nil
                   logger.debug "no match - regex"
                   return false
                 end

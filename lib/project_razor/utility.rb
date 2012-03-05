@@ -15,10 +15,19 @@ module ProjectRazor
       hash = {}
       self.instance_variables.each do |iv|
         if !iv.to_s.start_with?("@_") && self.instance_variable_get(iv).class != Logger
-          if self.instance_variable_get(iv).class == BSON::OrderedHash
-            hash[iv.to_s] = bson_to_hash(self.instance_variable_get(iv))
+          if self.instance_variable_get(iv).class == Array
+            new_array = []
+            self.instance_variable_get(iv).each do
+            |val|
+              new_array << val.to_hash if val.respond_to?(:to_hash)
+            end
+            hash[iv.to_s] = new_array
           else
-            hash[iv.to_s] = self.instance_variable_get(iv)
+            if self.instance_variable_get(iv).respond_to?(:to_hash)
+              hash[iv.to_s] = self.instance_variable_get(iv).to_hash
+            else
+              hash[iv.to_s] = self.instance_variable_get(iv)
+            end
           end
         end
       end
@@ -45,7 +54,9 @@ module ProjectRazor
     # will not include any that start with "_" (Mongo specific)
     # @param [Hash] hash
     def from_hash(hash)
-      hash.each_pair {|key, value| self.instance_variable_set(key,value) unless key.to_s.start_with?("_")}
+      hash.each_pair do |key, value|
+        self.instance_variable_set(key, value) unless key.to_s.start_with?("_")
+      end
     end
 
     # Validates that all instance variables for the object are not nil

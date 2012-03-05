@@ -13,8 +13,8 @@ describe "ProjectRazor::Slice::Node" do
     before(:all) do
       @data = ProjectRazor::Data.new
       @config = @data.config
-      @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
 
+      @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
     end
 
     after(:all) do

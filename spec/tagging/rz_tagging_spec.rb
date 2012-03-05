@@ -8,7 +8,6 @@ describe ProjectRazor::Tagging::TagRule do
 
   before (:all) do
     @data = ProjectRazor::Data.new
-
     @tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
   end
 
@@ -22,7 +21,7 @@ describe ProjectRazor::Tagging::TagRule do
   it "should be able to create a tag matcher within tag rule" do
     @tag_rule.tag.should == "RSPEC"
 
-    @tag_rule.add_tag_matcher("hostname",'rspechost[\d]*$',:like,false).should == true
+    @tag_rule.add_tag_matcher("hostname",'rspechost[\d]*$',"like","false").should == true
   end
 
   it "should be able to correctly tag with tag rule with single matcher" do
@@ -35,10 +34,10 @@ describe ProjectRazor::Tagging::TagRule do
   end
 
   it "should be able to correctly tag with tag rule with multiple matchers" do
-    @tag_rule.add_tag_matcher("ip address",'^192.168.1[2-6].1[0-9][0-9]$',:like,false).should == true
-    @tag_rule.add_tag_matcher("building",'A',:equal,false).should == true
-    @tag_rule.add_tag_matcher("secure",'true',:equal,true).should == true
-    @tag_rule.add_tag_matcher("domainname",'secure-dev\w+',:like,true).should == true
+    @tag_rule.add_tag_matcher("ip address",'^192.168.1[2-6].1[0-9][0-9]$',"like","false").should == true
+    @tag_rule.add_tag_matcher("building",'A',"equal","false").should == true
+    @tag_rule.add_tag_matcher("secure",'true',"equal","true").should == true
+    @tag_rule.add_tag_matcher("domainname",'secure-dev\w+',"like","true").should == true
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.165",
@@ -98,11 +97,14 @@ describe ProjectRazor::Tagging::TagRule do
   end
 
   it "should be able to remove a tag matcher from a tag rule" do
-    tag_matchers = @tag_rule.tag_matchers
-    tag_matchers.each do
-    |tag_matcher|
-      @tag_rule.remove_tag_matcher(tag_matcher.uuid)
+    @tag_rule.refresh_self
+    @tag_rule.tag_matchers.count.should == 5
+
+    (1..@tag_rule.tag_matchers.count).each do
+      @tag_rule.remove_tag_matcher(@tag_rule.tag_matchers.shift.uuid)
     end
+
+
 
     @tag_rule.tag_matchers.count.should == 0
   end
