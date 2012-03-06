@@ -23,7 +23,7 @@ class ProjectRazor::Node < ProjectRazor::Object
 
   def tags
     # Dynamically return tags for this node
-    engine = ProjectRazor::Engine.new
+    engine = ProjectRazor::Engine.instance
     engine.node_tags(self)
   end
 
