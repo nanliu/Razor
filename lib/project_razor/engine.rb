@@ -17,24 +17,49 @@ module ProjectRazor
     # TODO tag rules resolve
 
 
-    def get_boot(uuid)
-      logger.debug "Getting boot for uuid:#{uuid}"
+    def boot_call(uuid)
+      @uuid  = uuid
+      logger.debug "Request for boot - uuid: #{@uuid}"
+      @node = $data.fetch_object_by_uuid(:node, @uuid)
 
+      if @node != nil
+        # Node is in DB, lets check for policy
+        logger.debug "Node identified - uuid: #{@uuid}"
 
-      # Run tagging policies
-      node_tagging(uuid)
+      else
+        # Node isn't in DB, we choose default BootMK
+        logger.debug "Node unknown - uuid: #{@uuid}"
+        default_mk_boot
+      end
+    end
 
-
-      boot_script = ""
-      boot_script << "#!ipxe\n"
-      boot_script << "initrd http://192.168.99.10:8027/razor/image/mk\n"
-      boot_script << "chain http://192.168.99.10:8027/razor/image/memdisk iso\n"
-      boot_script
+    def default_mk_boot
+      logger.debug "Responding with MK Boot - uuid: #{@uuid}"
+      default = ProjectRazor::Policy::BootMK.new
+      default.get_boot_script
     end
 
 
 
-    # TODO Tagging
+    def find_policy(node)
+      # Get all active policies
+      node_policies = $data.fetch_all_objects(:policy)
+
+      node_policies.each do
+        |np|
+        return np if check_tags(node.tags,np.tags)
+      end
+      false
+    end
+
+
+    def check_tags(node_tags,policy_tags)
+      policy_tags.each do
+        |pt|
+        return false unless node_tags.include?(pt)
+      end
+      true
+    end
 
 
     def node_tags(node)
@@ -50,25 +75,5 @@ module ProjectRazor
       end
       tags
     end
-
-
-
-
-    # TODO Policy
-
-    def node_policy
-
-
-    end
-
-
-    def mk_boot
-
-
-    end
-
-
-
-
   end
 end

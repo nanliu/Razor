@@ -124,17 +124,17 @@ describe ProjectRazor::Persist::Controller do
       temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       (0..rand(10)).each do
         |x|
-        temp_policy = ProjectRazor::Policy.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
+        temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
         temp_policy._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_policy.to_hash, :policy)
         end
       end
-      @policy1 = ProjectRazor::Policy.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
+      @policy1 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
       @policy1._persist_ctrl = @persist
-      @policy2 = ProjectRazor::Policy.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy2 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
       @policy2._persist_ctrl = @persist
-      @policy3 = ProjectRazor::Policy.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+      @policy3 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
       @policy3._persist_ctrl = @persist
     end
 

@@ -14,7 +14,6 @@ module ProjectRazor
     include(ProjectRazor::Filtering)
 
     # {ProjectRazor::Config::Server} object for {ProjectRazor::Data}
-    attr_accessor :config
     # {ProjectRazor::Controller} object for {ProjectRazor::Data}
     attr_accessor :persist_ctrl
 
@@ -24,6 +23,11 @@ module ProjectRazor
       logger.debug "Initializing object"
       load_config
       setup_persist
+    end
+
+    def config
+      load_config
+      @razor_config
     end
 
     # Called when work with {ProjectRazor::Data} is complete
@@ -144,7 +148,7 @@ module ProjectRazor
     # @return [ProjectRazor::Persist::Controller, ProjectRazor]
     def setup_persist
       logger.debug "Persist controller init"
-      @persist_ctrl = ProjectRazor::Persist::Controller.new(@config)
+      @persist_ctrl = ProjectRazor::Persist::Controller.new(config)
     end
 
     # Attempts to load the './conf/razor_server.conf' YAML file into @config
@@ -174,7 +178,7 @@ module ProjectRazor
       # If our object didn't load we run our config reset
       if loaded_config.is_a?(ProjectRazor::Config::Server)
         if loaded_config.validate_instance_vars
-          @config = loaded_config
+          @razor_config = loaded_config
         else
           logger.warn "Config parameter validation error loading (#{$config_server_path})"
           logger.warn "Resetting (#{$config_server_path}) and loading default config"
@@ -207,7 +211,7 @@ module ProjectRazor
           logger.error "Cannot save default config to (#{$config_server_path})"
         end
       end
-      @config = new_conf
+      @razor_config = new_conf
     end
 
     # Returns a header for new 'razor_server.conf' files

@@ -14,6 +14,8 @@ module ProjectRazor
 
       # (Symbol) representing the database plugin mode to use defaults to (:mongo)
 
+      attr_accessor :image_svc_host
+
       attr_accessor :persist_mode
       attr_accessor :persist_host
       attr_accessor :persist_port
@@ -21,7 +23,7 @@ module ProjectRazor
 
       attr_accessor :admin_port
       attr_accessor :api_port
-      attr_accessor :imagesvc_port
+      attr_accessor :image_svc_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -45,6 +47,7 @@ module ProjectRazor
 
       # Set defaults
       def use_defaults
+        @image_svc_host = get_an_ip
         @persist_mode = :mongo
         @persist_host = "127.0.0.1"
         @persist_port = 27017
@@ -52,7 +55,7 @@ module ProjectRazor
 
         @admin_port = 8025
         @api_port = 8026
-        @imagesvc_port = 8027
+        @image_svc_port = 8027
 
         @mk_checkin_interval = 60
         @mk_checkin_skew = 5

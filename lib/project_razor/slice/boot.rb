@@ -22,7 +22,7 @@ module ProjectRazor
         @slice_commands = {:default => "boot_called"}
         @slice_commands_help = {:default => "boot"}
         @slice_name = "Boot"
-        @engine = ProjectRazor::Engine.new
+        @engine = ProjectRazor::Engine.instance
       end
 
       def boot_called
@@ -35,7 +35,7 @@ module ProjectRazor
             logger.debug "Boot called by Node(MAC: #{mac_address}  UUID:#{uuid})"
 
             logger.debug "Calling Engine for boot script"
-            puts @engine.get_boot(uuid)
+            puts @engine.boot_call(uuid)
 
             return
           end
