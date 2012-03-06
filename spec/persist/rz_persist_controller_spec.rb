@@ -118,59 +118,59 @@ describe ProjectRazor::Persist::Controller do
     end
   end
 
-  describe ".Policy" do
-    before(:all) do
-      #create junk policies with random updates
-      temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
-      (0..rand(10)).each do
-        |x|
-        temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
-        temp_policy._persist_ctrl = @persist
-        (0..rand(10)).each do
-          @persist.object_hash_update(temp_policy.to_hash, :policy)
-        end
-      end
-      @policy1 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
-      @policy1._persist_ctrl = @persist
-      @policy2 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
-      @policy2._persist_ctrl = @persist
-      @policy3 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
-      @policy3._persist_ctrl = @persist
-    end
-
-    after(:all) do
-      if CLEANUP
-        policy_hash_array = @persist.object_hash_get_all(:policy)
-        policy_hash_array.each do
-          |policy_hash|
-          @persist.object_hash_remove(policy_hash, :policy)
-        end
-      end
-    end
-
-    it "should be able to add/update a Policy to the Policy collection" do
-      @persist.object_hash_update(@policy1.to_hash, :policy)
-      @persist.object_hash_update(@policy2.to_hash, :policy)
-      @persist.object_hash_update(@policy3.to_hash, :policy)
-
-      policy_hash_array = @persist.object_hash_get_all(:policy)
-      # Check if policy_hash_array contains a Policy with the 'uuid' that matches our object
-      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
-    end
-    it "should see the last update to a Policy in the collection and version number should be 3" do
-      policy_hash_array = @persist.object_hash_get_all(:policy)
-      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid , "@name" => @policy3.name, "@version" => 3},1)
-    end
-    it "should return a array of Policy from the Policy collection without duplicates" do
-      policy_hash_array = @persist.object_hash_get_all(:policy)
-      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
-    end
-    it "should remove a Policy from the Policy collection" do
-      @persist.object_hash_remove(@policy3.to_hash, :policy).should == true # should get positive return
-      policy_hash_array = @persist.object_hash_get_all(:policy)
-      policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },0)
-    end
-  end
+  #describe ".Policy" do
+  #  before(:all) do
+  #    #create junk policies with random updates
+  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+  #    (0..rand(10)).each do
+  #      |x|
+  #      temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk#{x}", :@model => temp_model.to_hash, :@policy_type => :unique})
+  #      temp_policy._persist_ctrl = @persist
+  #      (0..rand(10)).each do
+  #        @persist.object_hash_update(temp_policy.to_hash, :policy)
+  #      end
+  #    end
+  #    @policy1 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name01", :@model => temp_model.to_hash, :@policy_type => :unique})
+  #    @policy1._persist_ctrl = @persist
+  #    @policy2 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name02", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+  #    @policy2._persist_ctrl = @persist
+  #    @policy3 = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_name03", :@uuid => @policy1.uuid , :@model => @policy1.model, :@policy_type => :unique})
+  #    @policy3._persist_ctrl = @persist
+  #  end
+  #
+  #  after(:all) do
+  #    if CLEANUP
+  #      policy_hash_array = @persist.object_hash_get_all(:policy)
+  #      policy_hash_array.each do
+  #        |policy_hash|
+  #        @persist.object_hash_remove(policy_hash, :policy)
+  #      end
+  #    end
+  #  end
+  #
+  #  it "should be able to add/update a Policy to the Policy collection" do
+  #    @persist.object_hash_update(@policy1.to_hash, :policy)
+  #    @persist.object_hash_update(@policy2.to_hash, :policy)
+  #    @persist.object_hash_update(@policy3.to_hash, :policy)
+  #
+  #    policy_hash_array = @persist.object_hash_get_all(:policy)
+  #    # Check if policy_hash_array contains a Policy with the 'uuid' that matches our object
+  #    policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
+  #  end
+  #  it "should see the last update to a Policy in the collection and version number should be 3" do
+  #    policy_hash_array = @persist.object_hash_get_all(:policy)
+  #    policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid , "@name" => @policy3.name, "@version" => 3},1)
+  #  end
+  #  it "should return a array of Policy from the Policy collection without duplicates" do
+  #    policy_hash_array = @persist.object_hash_get_all(:policy)
+  #    policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },1)
+  #  end
+  #  it "should remove a Policy from the Policy collection" do
+  #    @persist.object_hash_remove(@policy3.to_hash, :policy).should == true # should get positive return
+  #    policy_hash_array = @persist.object_hash_get_all(:policy)
+  #    policy_hash_array.should keys_with_values_count_equals({"@uuid" => @policy1.uuid },0)
+  #  end
+  #end
 
   describe ".Node" do
     before(:all) do

@@ -85,13 +85,13 @@ app.get('/*',
     });
 
 function returnResult(res, json_string) {
-    return_obj = JSON.parse(json_string);
-
-    if (return_obj['errcode'] == 0) {
+//    return_obj = JSON.parse(json_string);
+//
+//    if (return_obj['errcode'] == 0) {
         res.send(json_string, 200, {"Content-Type": "json/application"});
-    } else {
-        res.send(json_string, 400, {"Content-Type": "json/application"});
-    }
+//    } else {
+//        res.send(json_string, 400, {"Content-Type": "json/application"});
+//    }
 }
 
 function getArguments(args_array) {
