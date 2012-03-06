@@ -18,14 +18,20 @@ module ProjectRazor
 
 
     def boot_call(uuid)
-      @uuid  = uuid
+      @uuid  = uuid_sanitize(uuid)
       logger.debug "Request for boot - uuid: #{@uuid}"
       @node = $data.fetch_object_by_uuid(:node, @uuid)
 
       if @node != nil
         # Node is in DB, lets check for policy
         logger.debug "Node identified - uuid: #{@uuid}"
-
+        policy = find_policy(@node)
+        if policy != false
+          logger.debug "Active policy found (#{policy.name}) - uuid: #{@uuid}"
+        else
+          logger.debug "No active policy found - uuid: #{@uuid}"
+          default_mk_boot
+        end
       else
         # Node isn't in DB, we choose default BootMK
         logger.debug "Node unknown - uuid: #{@uuid}"
@@ -74,6 +80,11 @@ module ProjectRazor
         end
       end
       tags
+    end
+
+    def uuid_sanitize(uuid)
+      uuid = uuid.gsub(/[:;,]/,"")
+      uuid = uuid.upcase
     end
   end
 end

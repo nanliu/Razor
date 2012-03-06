@@ -2,10 +2,13 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 $razor_root = File.dirname(__FILE__).sub(/\/lib$/,"")
-$config_server_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/razor_server.conf"
-$img_svc_path = File.dirname(__FILE__).sub(/\/lib$/,"/image")
-$logging_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/project_razor.log"
+$config_server_path = "#{$razor_root}/conf/razor_server.conf"
+$img_svc_path = "#{$razor_root}/image"
+$logging_path = "#{$razor_root}/log/project_razor.log"
 
+
+#puts "Razor root: #{$razor_root}"
+#puts "Logging path: #{$logging_path}"
 
 
 require "project_razor/object"
