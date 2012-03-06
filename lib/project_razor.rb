@@ -6,8 +6,9 @@ $config_server_path = "#{$razor_root}/conf/razor_server.conf"
 $img_svc_path = "#{$razor_root}/image"
 $logging_path = "#{$razor_root}/log/project_razor.log"
 
-puts "Razor root: #{$razor_root}"
-puts "Logging path: #{$logging_path}"
+
+#puts "Razor root: #{$razor_root}"
+#puts "Logging path: #{$logging_path}"
 
 
 require "project_razor/object"
