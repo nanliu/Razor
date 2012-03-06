@@ -25,7 +25,13 @@ module ProjectRazor
       if @node != nil
         # Node is in DB, lets check for policy
         logger.debug "Node identified - uuid: #{@uuid}"
-        default_mk_boot
+        policy = find_policy(@node)
+        if policy != false
+          logger.debug "Active policy found (#{policy.name}) - uuid: #{@uuid}"
+        else
+          logger.debug "No active policy found - uuid: #{@uuid}"
+          default_mk_boot
+        end
       else
         # Node isn't in DB, we choose default BootMK
         logger.debug "Node unknown - uuid: #{@uuid}"
