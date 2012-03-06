@@ -15,10 +15,12 @@ describe "ProjectRazor::Slice::Tag" do
       @config = @data.config
       @data.delete_all_objects(:tag)
       @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
+      @node_uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
     end
 
     after(:all) do
       @data.delete_all_objects(:tag)
+      @data.delete_all_objects(:node)
     end
 
     it "should be able to create a new empty tag rule from REST" do
@@ -188,6 +190,122 @@ describe "ProjectRazor::Slice::Tag" do
       tag_rules[0]['@name'].should == "test_tag_rule3"
       tag_rules[1]['@name'].should == "test_tag_rule4"
       tag_rules[2]['@name'].should == "test_tag_rule5"
+    end
+
+    it "should successfully tag and get tags back from node object (Complex test)"  do
+
+
+      #### We create an empty tag rule with the tag: RSPEC_ONE
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/rule/add"
+      name = "live_test_tag_rule1"
+      tag = "RSPEC_ONE"
+      json_hash = {}
+      json_hash["@name"] = name
+      json_hash["@tag"] = tag
+      json_hash["@tag_matchers"] = []
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      response_hash = JSON.parse(res.body)
+      live_tag_rule_uuid1 = response_hash['response']['@uuid']
+
+
+      # We add two tag matchers to it
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher/add/#{live_tag_rule_uuid1}"
+      json_hash = {}
+      json_hash["@key"] = "hostname"
+      json_hash["@value"] = "rspechost"
+      json_hash["@compare"] = "like"
+      json_hash["@inverse"] = "false"
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      json_hash = {}
+      json_hash["@key"] = "ip address"
+      json_hash["@value"] = '192\.168\.13\.1[6][0-9]'
+      json_hash["@compare"] = "like"
+      json_hash["@inverse"] = "false"
+      json_string = JSON.generate(json_hash)
+      Net::HTTP.post_form(uri, 'json_hash' => json_string)
+
+
+      #### We create an empty tag rule with the tag: RSPEC_TWO
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/rule/add"
+      name = "live_test_tag_rule2"
+      tag = "RSPEC_TWO"
+      json_hash = {}
+      json_hash["@name"] = name
+      json_hash["@tag"] = tag
+      json_hash["@tag_matchers"] = []
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      response_hash = JSON.parse(res.body)
+      live_tag_rule_uuid2 = response_hash['response']['@uuid']
+
+
+      # We add one tag matchers to it
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher/add/#{live_tag_rule_uuid2}"
+      json_hash = {}
+      json_hash["@key"] = "secure"
+      json_hash["@value"] = 'true'
+      json_hash["@compare"] = "like"
+      json_hash["@inverse"] = "true"
+      json_string = JSON.generate(json_hash)
+      Net::HTTP.post_form(uri, 'json_hash' => json_string)
+
+
+      #### We register first node with specific attributes
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/register" # root URI for node slice actions
+      state = "idle"
+      json_hash = {}
+      json_hash["@uuid"] = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
+      json_hash["@last_state"] = state
+      json_hash["@attributes_hash"] = {"hostname" => "rspechost123",
+                                       "ip address" => "192.168.13.165",
+                                       "building" => "A",
+                                       "domainname" => "test-dev",
+                                       "secure" => "true",
+                                       "junk" => "value"}
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      response_hash = JSON.parse(res.body)
+      response_hash['errcode'].should == 0
+      node = ProjectRazor::Node.new(response_hash['response'])
+      node.tags.should == %W(RSPEC_ONE) # Only should be tagged with the first tag
+
+      #### We register second node with specific attributes
+      state = "idle"
+      json_hash = {}
+      json_hash["@uuid"] = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
+      json_hash["@last_state"] = state
+      json_hash["@attributes_hash"] = {"hostname" => "rspechost123",
+                                       "ip address" => "192.168.13.165",
+                                       "building" => "A",
+                                       "domainname" => "test-dev",
+                                       "secure" => "false",
+                                       "junk" => "value"}
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      response_hash = JSON.parse(res.body)
+      response_hash['errcode'].should == 0
+      node = ProjectRazor::Node.new(response_hash['response'])
+      node.tags.should == %W(RSPEC_ONE RSPEC_TWO) # Should be tagged with both tags
+
+      #### We register third node with specific attributes
+      state = "idle"
+      json_hash = {}
+      json_hash["@uuid"] = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
+      json_hash["@last_state"] = state
+      json_hash["@attributes_hash"] = {"hostname" => "rspechost123",
+                                       "ip address" => "192.168.13.155",
+                                       "building" => "A",
+                                       "domainname" => "test-dev",
+                                       "secure" => "false",
+                                       "junk" => "value"}
+      json_string = JSON.generate(json_hash)
+      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      response_hash = JSON.parse(res.body)
+      response_hash['errcode'].should == 0
+      node = ProjectRazor::Node.new(response_hash['response'])
+      node.tags.should == %W(RSPEC_TWO) # Only should be tagged with the third tag
     end
 
   end
