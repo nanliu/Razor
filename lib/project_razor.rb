@@ -6,6 +6,8 @@ $config_server_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/razor_ser
 $img_svc_path = File.dirname(__FILE__).sub(/\/lib$/,"/image")
 $logging_path = "#{File.dirname(__FILE__).sub(/\/lib$/,"/conf")}/project_razor.log"
 
+
+
 require "project_razor/object"
 require "project_razor/filtering"
 require "project_razor/utility"
@@ -22,8 +24,10 @@ require "project_razor/model"
 require "project_razor/tagging"
 
 
+$data = ProjectRazor::Data.new
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
-  # Namespace root
+
 end

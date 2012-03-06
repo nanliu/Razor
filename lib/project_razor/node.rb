@@ -11,7 +11,6 @@ class ProjectRazor::Node < ProjectRazor::Object
   attr_accessor :last_state
   attr_accessor :current_state
   attr_accessor :next_state
-  attr_accessor :tags
 
   # init
   # @param hash [Hash]
@@ -20,5 +19,18 @@ class ProjectRazor::Node < ProjectRazor::Object
     @_collection = :node
     @attributes_hash = {}
     from_hash(hash)
+  end
+
+  def tags
+    # Dynamically return tags for this node
+    engine = ProjectRazor::Engine.new
+    engine.node_tags(self)
+  end
+
+  # We override the to_hash to add the 'tags key/value for sharing node tags
+  def to_hash
+    hash = super
+    hash['@tags'] = tags
+    hash
   end
 end

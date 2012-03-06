@@ -144,6 +144,7 @@ describe ProjectRazor::Data do
 
     before(:all) do
       @data = ProjectRazor::Data.new
+      @data.delete_all_objects(:node)
 
       (1..NODE_COUNT).each do
       |x|

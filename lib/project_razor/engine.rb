@@ -6,9 +6,6 @@
 class ProjectRazor::Engine
   include(ProjectRazor::Logging)
 
-  def initialize
-    @data = ProjectRazor::Data.new
-  end
 
   # TODO policy resolve
 
@@ -36,14 +33,18 @@ class ProjectRazor::Engine
   # TODO Tagging
 
 
-  def node_tagging(uuid)
-    node = @data.fetch_object_by_uuid(:node, uuid)
-    tag_policy = @data.fetch_all_objects(:tagpolicy)
+  def node_tags(node)
+    node.attributes_hash
+    tag_policies = $data.fetch_all_objects(:tag)
 
-    # Iterate over each tag rule and process against node
-
-
-
+    tags = []
+    tag_policies.each do
+      |tag_pol|
+      if tag_pol.check_tag_rule(node.attributes_hash)
+        tags << tag_pol.tag
+      end
+    end
+    tags
   end
 
 
