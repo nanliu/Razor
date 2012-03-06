@@ -33,4 +33,8 @@ class ProjectRazor::Node < ProjectRazor::Object
     hash['@tags'] = tags
     hash
   end
+
+  def uuid=(new_uuid)
+    @uuid = new_uuid.upcase
+  end
 end
