@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "socket"
+require "logger"
 
 # This class represents the ProjectRazor configuration. It is stored persistently in './conf/razor_server.conf' and editing by the user
 # @author Nicholas Weaver
@@ -28,6 +29,9 @@ module ProjectRazor
       attr_accessor :mk_fact_excl_pattern
       attr_accessor :mk_register_path # : /project_razor/api/node/register
       attr_accessor :mk_checkin_path # checkin: /project_razor/api/node/checkin
+      # mk_log_level should be 'Logger::FATAL', 'Logger::ERROR', 'Logger::WARN',
+      # 'Logger::INFO', or 'Logger::DEBUG' (default is 'Logger::ERROR')
+      attr_accessor :mk_log_level
 
       attr_accessor :image_svc_path
 
@@ -56,11 +60,12 @@ module ProjectRazor
         @mk_register_path = "/razor/api/node/register"
         @mk_checkin_path = "/razor/api/node/checkin"
         @mk_fact_excl_pattern = "(^uptime.*$)|(^memory.*$)"
+        @mk_log_level = "Logger::ERROR"
 
         @image_svc_path = $img_svc_path
 
         @register_timeout = 120
-        @base_mk = "rz_mk_dev-image.0.1.3.0.iso"
+        @base_mk = "rz_mk_dev-image.0.1.5.0.iso"
 
       end
 
