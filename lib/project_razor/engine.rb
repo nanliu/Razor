@@ -45,7 +45,7 @@ module ProjectRazor
 
 
       # If the node is in the DB we can check for bound policy on it
-      if @node != nil
+      if node != nil
         # Node is in DB, lets check for policy
         logger.debug "Node identified - uuid: #{uuid}"
         bound_policy = find_bound_policy(node)

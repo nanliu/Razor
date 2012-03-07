@@ -2,9 +2,15 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "rspec"
+require "project_razor"
 
-describe "My behaviour" do
+describe ProjectRazor::Engine do
 
-  it "should do something"
+  it "should do something" do
+    engine = ProjectRazor::Engine.instance
+
+    engine.boot_checkin("1234567890")
+
+  end
 
 end
