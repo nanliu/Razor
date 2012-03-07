@@ -6,6 +6,7 @@ module ProjectRazor
   # this is permanent unless a user removed the binding or deletes a node
   class PolicyBinding < ProjectRazor::Object
 
+    attr_accessor :timestamp
     attr_accessor :node_uuid
     attr_accessor :policy_bound
 

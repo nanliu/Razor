@@ -32,50 +32,18 @@ module ProjectRazor
 
       # Runs a node checkin returning appropriate command
       def checkin_node
-        # TODO this needs to be wired to the *future* ProjectRazor::Engine
-
-        f = File.open("#{$razor_root}/conf/checkin_action.yaml","r")
-        checkin_actions = YAML.load(f)
-
-
-        # ensure there are at least uuid & state
-
+        # Ensure there are at least uuid & state
         @command_query_string = @command_array.shift
         if @command_query_string != "{}" && @command_query_string != nil
           begin
             params = JSON.parse(@command_query_string)
             if params["uuid"] != nil && params["last_state"] != nil
 
-              node = node_exist?(params["uuid"])
-              if node
-                logger.debug "Node exists"
-                old_timestamp = node.timestamp
-                old_timestamp = 0 if old_timestamp == nil
-                node.last_state = params["last_state"]
-                node.timestamp = Time.now.to_i
-                node.update_self
-
-                forced_action = checkin_actions[params["uuid"]]
-                if forced_action != nil
-                  logger.debug "Forcing action: #{forced_action.to_s}"
-                  slice_success(get_command(forced_action, {}), true)
-                else
-
-                  setup_data
-                  if (node.timestamp - old_timestamp) > @data.config.register_timeout
-                    logger.debug "Checkin acknowledged: #{forced_action.to_s}"
-                    slice_success(get_command(:register, {}), true)
-                  else
-                    logger.debug "Checkin acknowledged: #{forced_action.to_s}"
-                    slice_success(get_command(:acknowledge, {}), true)
-                  end
-                end
-              else
-                # Don't have record of this node
-                logger.debug "No record of this node"
-
-                slice_success(get_command(:register, {}), true)
-              end
+              # We call the engine
+              engine = ProjectRazor::Engine.instance
+              command = engine.mk_checkin(params["uuid"],params["last_state"])
+              # Return the command the Engine provided us
+              slice_success(command, true)
             else
               slice_error("InvalidOrMissingParameters", true)
             end
@@ -87,26 +55,9 @@ module ProjectRazor
         end
       end
 
-      # Builds a command for a checkin
-      # @param [String] command_name
-      # @param [Hash] command_param
-      # @return [Hash]
-      def get_command(command_name, command_param)
-        command_response = {}
-        command_response['command_name'] = command_name
-        command_response['command_param'] = command_param
-        command_response
-      end
 
-      # Checks if node exists in DB returns node object or false
-      # @param [String] uuid
-      # @return [ProjectRazor::Node, false]
-      def node_exist?(uuid)
-        setup_data
-        node = @data.fetch_object_by_uuid(:node, uuid)
-        return node if node != nil
-        false
-      end
+
+
 
       # Registers node
       def register_node
