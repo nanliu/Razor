@@ -52,6 +52,7 @@ module ProjectRazor
         # Check for a node action override
         forced_action = checkin_action_override(uuid)
         # Return the forced command if it exists
+        logger.debug "Forced action for Node #{node.uuid} found #{forced_action.to_s}" if forced_action
         return mk_command(forced_action,{}) if forced_action
 
 
