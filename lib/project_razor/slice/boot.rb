@@ -35,7 +35,7 @@ module ProjectRazor
             logger.debug "Boot called by Node(MAC: #{mac_address}  UUID:#{uuid})"
 
             logger.debug "Calling Engine for boot script"
-            puts @engine.boot_call(uuid)
+            puts @engine.boot_checkin(uuid)
 
             return
           end
