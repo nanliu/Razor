@@ -12,6 +12,7 @@ module ProjectRazor
 
     def initialize(hash)
       super()
+      @_collection = :bound_policy
       from_hash(hash)
     end
 

@@ -24,7 +24,7 @@ module ProjectRazor
         @policy_type = :hidden
         @model_type = []
 
-        @_collection = :policy
+        @_collection = :policy_rule
       end
 
 

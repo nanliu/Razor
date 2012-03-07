@@ -52,7 +52,7 @@ module ProjectRazor
         # Check for a node action override
         forced_action = checkin_action_override(uuid)
         # Return the forced command if it exists
-        logger.debug "Forced action for Node #{node.uuid} found #{forced_action.to_s}" if forced_action
+        logger.debug "Forced action for Node #{node.uuid} found (#{forced_action.to_s})" if forced_action
         return mk_command(forced_action,{}) if forced_action
 
 
@@ -70,13 +70,12 @@ module ProjectRazor
         # A bound policy means the node will never evaluate a policy rule
         # So for safety's sake - we set an extra flag (bound_policy_flag) which
         # prevents the policy eval below to run
-        @bound_policy_flag = true
-
+        bound_policy_flag = mk_check_bound_policy
 
 
         # Evaluate node vs policy rules to see if a policy needs to be bound
-        unless @bound_policy_flag
-
+        unless bound_policy_flag
+          mk_eval_vs_policy_rule(node)
         end
 
 
@@ -92,12 +91,45 @@ module ProjectRazor
 
 
     def mk_check_bound_policy
-
+      false
     end
 
 
-    def mk_eval_vs_policy_rule
+    def mk_eval_vs_policy_rule(node)
+      logger.debug "Evaluating policy rules vs Node #{node.uuid}"
 
+      # Get all the policy rules
+      policy_rules = $data.fetch_all_objects(:policy_rules)
+
+      logger.debug "Total policy rules #{policy_rules.count}"
+      # Sort the policy rules based on line_number
+      policy_rules.sort! do
+        |a,b|
+        a.line_number <=> b.line_number
+      end
+
+      # Loop through each rule checking node's tags to see if that match
+
+      policy_rules.each do
+        |policy_rule|
+        if check_tags(node.tags, policy_rule.tags)
+          logger.debug "Found a matching policy rule (#{policy_rule.name}) for Node #{node.uuid}"
+          # We found a policy that matches
+          # we call the policy binding and exit loop
+          mk_bind_policy(node, policy_rule)
+          return
+        end
+      end
+    end
+
+
+    def mk_bind_policy(node, policy_rule)
+      logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.name})"
+      policy_binding = ProjectRazor::PolicyBinding.new({})
+      policy_binding.node_uuid = node.uuid
+      policy_binding.policy_bound = policy_rule
+      policy_binding.timestamp = Time.now.to_i
+      $data.persist_object(policy_binding)
     end
 
 
@@ -204,12 +236,35 @@ module ProjectRazor
     end
 
 
-    def check_tags(node_tags,policy_tags)
+
+
+
+
+    ######## Boot init section
+
+
+
+
+
+
+    ########
+
+
+    ########
+    # Util #
+    ########
+
+    def check_tags(node_tags, policy_tags)
       policy_tags.each do
-        |pt|
+      |pt|
         return false unless node_tags.include?(pt)
       end
       true
+    end
+
+    def uuid_sanitize(uuid)
+      uuid = uuid.gsub(/[:;,]/,"")
+      uuid = uuid.upcase
     end
 
 
@@ -225,24 +280,6 @@ module ProjectRazor
         end
       end
       tags
-    end
-
-
-    ######## Boot init section
-
-
-
-
-
-
-    ########
-
-
-
-
-    def uuid_sanitize(uuid)
-      uuid = uuid.gsub(/[:;,]/,"")
-      uuid = uuid.upcase
     end
   end
 end
