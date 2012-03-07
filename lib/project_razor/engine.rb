@@ -11,36 +11,89 @@ module ProjectRazor
     include(ProjectRazor::Logging)
     include(Singleton)
 
-    # TODO policy resolve
+    # MK POLICY CHECKIN
+    # Look for applicable policies
+    # If found, bind, and reboot
 
 
-    # TODO tag rules resolve
+    # BOOT POLICY CHECKIN
+    # Look for applied policies
+    # If found pass state receive boot script (install, boot)
 
 
-    def boot_call(uuid)
-      @uuid  = uuid_sanitize(uuid)
-      logger.debug "Request for boot - uuid: #{@uuid}"
-      @node = $data.fetch_object_by_uuid(:node, @uuid)
+    # STATE POLICY CHECKIN (Called by node install or ops & node_babysitter daemon)
+    # Call-in for a state change for a node with a bound policy
+    # Used to drive state changes within model and polling actions
 
-      if @node != nil
-        # Node is in DB, lets check for policy
-        logger.debug "Node identified - uuid: #{@uuid}"
-        policy = find_policy(@node)
-        if policy != false
-          logger.debug "Active policy found (#{policy.name}) - uuid: #{@uuid}"
-        else
-          logger.debug "No active policy found - uuid: #{@uuid}"
-          default_mk_boot
-        end
-      else
-        # Node isn't in DB, we choose default BootMK
-        logger.debug "Node unknown - uuid: #{@uuid}"
-        default_mk_boot
-      end
+
+
+    def mk_checkin
+
     end
 
-    def default_mk_boot
-      logger.debug "Responding with MK Boot - uuid: #{@uuid}"
+
+    def boot_checkin(input_uuid)
+      # Called by a node boot process
+
+      # We sanitize the UUID to prevent compare issues
+      uuid  = uuid_sanitize(input_uuid)
+
+      logger.debug "Request for boot - uuid: #{uuid}"
+
+      # We attempt to fetch the node object
+      node = $data.fetch_object_by_uuid(:node, uuid)
+
+
+      # If the node is in the DB we can check for bound policy on it
+      if @node != nil
+        # Node is in DB, lets check for policy
+        logger.debug "Node identified - uuid: #{uuid}"
+        bound_policy = find_bound_policy(node)
+
+        # If there is a bound policy we pass it the node to a common
+        # method call from a boot
+        if bound_policy
+
+          logger.debug "Active policy found (#{bound_policy.name}) - uuid: #{uuid}"
+          bound_policy.boot_call(@node)
+        else
+
+          # There is not bound policy so we boot the MK
+          logger.debug "No active policy found - uuid: #{uuid}"
+          default_mk_boot(uuid)
+        end
+      else
+
+        # Node isn't in DB, we boot it into the MK
+        # This is a default behavior
+        logger.debug "Node unknown - uuid: #{uuid}"
+        default_mk_boot(uuid)
+      end
+
+    end
+
+
+    def state_checkin
+
+    end
+
+
+    def find_bound_policy(node)
+      bound_policies = $data.fetch_all_objects(:bound_policy)
+      bound_policies.each do
+        |bp|
+        # If we find a bound policy we return it
+        return bp.policy_bound if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
+      end
+      # Otherwise we return false indicating we have no policy
+      false
+    end
+
+
+
+
+    def default_mk_boot(uuid)
+      logger.debug "Responding with MK Boot - uuid: #{uuid}"
       default = ProjectRazor::Policy::BootMK.new
       default.get_boot_script
     end
@@ -81,6 +134,19 @@ module ProjectRazor
       end
       tags
     end
+
+
+    ######## Boot init section
+
+
+
+
+
+
+    ########
+
+
+
 
     def uuid_sanitize(uuid)
       uuid = uuid.gsub(/[:;,]/,"")
