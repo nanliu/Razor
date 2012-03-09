@@ -86,11 +86,16 @@ module ProjectRazor
         # A bound policy means the node will never evaluate a policy rule
         # So for safety's sake - we set an extra flag (bound_policy_flag) which
         # prevents the policy eval below to run
-        bound_policy_flag = mk_check_bound_policy
+        bound_policy = mk_check_bound_policy(node.uuid)
 
 
-        # Evaluate node vs policy rules to see if a policy needs to be bound
-        unless bound_policy_flag
+
+
+        if bound_policy
+          command_array = bound_policy.policy.mk_call(node)
+          return mk_command(command_array[0],command_array[1])
+        else
+          # Evaluate node vs policy rules to see if a policy needs to be bound
           mk_eval_vs_policy_rule(node)
         end
 
@@ -106,8 +111,14 @@ module ProjectRazor
     end
 
 
-    def mk_check_bound_policy
-      false
+    def mk_check_bound_policy(node_uuid)
+      bound_policy.each do
+        |bp|
+        if bp.node_uuid == node_uuid
+          return bp
+        end
+      end
+      nil
     end
 
 
@@ -138,7 +149,7 @@ module ProjectRazor
       logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.name})"
       policy_binding = ProjectRazor::PolicyBinding.new({})
       policy_binding.node_uuid = node.uuid
-      policy_binding.policy_bound = policy_rule
+      policy_binding.policy = policy_rule
       policy_binding.timestamp = Time.now.to_i
       $data.persist_object(policy_binding)
     end
@@ -213,16 +224,16 @@ module ProjectRazor
     end
 
 
-    def find_bound_policy(node)
-      bound_policies = $data.fetch_all_objects(:bound_policy)
-      bound_policies.each do
-      |bp|
-        # If we find a bound policy we return it
-        return bp.policy_bound if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
-      end
-      # Otherwise we return false indicating we have no policy
-      false
-    end
+    #def find_bound_policy(node)
+    #  bound_policies = $data.fetch_all_objects(:bound_policy)
+    #  bound_policies.each do
+    #  |bp|
+    #    # If we find a bound policy we return it
+    #    return bp.policy_bound if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
+    #  end
+    #  # Otherwise we return false indicating we have no policy
+    #  false
+    #end
 
 
 

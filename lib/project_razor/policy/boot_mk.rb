@@ -11,7 +11,7 @@ module ProjectRazor
       def initialize
         super(nil)
 
-        @policy_type = :mkboot
+        @policy_type = :hidden
 
         @data = ProjectRazor::Data.new
         @config = @data.config
