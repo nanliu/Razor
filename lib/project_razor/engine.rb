@@ -6,11 +6,27 @@
 
 require "singleton"
 
+
 module ProjectRazor
   class Engine
     include(ProjectRazor::Logging)
     include(Singleton)
-    include(Logging)
+
+    attr_accessor :policy_rules
+
+    def initialize
+      # create the singelton for policy_rules
+      @policy_rules = ProjectRazor::PolicyRules.instance
+    end
+
+    def bound_policy
+      $data.fetch_all_objects(:bound_policy)
+    end
+
+
+
+    #####################
+
 
     # MK POLICY CHECKIN
     # Look for applicable policies
@@ -34,7 +50,7 @@ module ProjectRazor
       old_timestamp = 0 # we set this early in case a timestamp field is nil
 
       uuid  = uuid_sanitize(input_uuid)
-      # We attempt to fetch the node object
+                        # We attempt to fetch the node object
       node = $data.fetch_object_by_uuid(:node, uuid)
 
       # Check to see if node is known
@@ -84,7 +100,7 @@ module ProjectRazor
 
       else
         # Never seen this node - we tell it to checkin
-        logger.debug "Unknown Node #{node.uuid}, asking to register"
+        logger.debug "Unknown Node #{uuid}, asking to register"
         mk_command(:register,{})
       end
     end
@@ -98,27 +114,22 @@ module ProjectRazor
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
 
-      # Get all the policy rules
-      policy_rules = $data.fetch_all_objects(:policy_rules)
-
-      logger.debug "Total policy rules #{policy_rules.count}"
-      # Sort the policy rules based on line_number
-      policy_rules.sort! do
-        |a,b|
-        a.line_number <=> b.line_number
-      end
-
       # Loop through each rule checking node's tags to see if that match
-
-      policy_rules.each do
-        |policy_rule|
-        if check_tags(node.tags, policy_rule.tags)
-          logger.debug "Found a matching policy rule (#{policy_rule.name}) for Node #{node.uuid}"
-          # We found a policy that matches
-          # we call the policy binding and exit loop
-          mk_bind_policy(node, policy_rule)
-          return
+      policy_rules.get.each do
+      |pl|
+        # Make sure there is at least one tag
+        if pl.tags.count > 0
+          if check_tags(node.tags, pl.tags)
+            logger.debug "Matching policy rule (#{pl.name}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
+            # We found a policy that matches
+            # we call the policy binding and exit loop
+            mk_bind_policy(node, pl)
+            return
+          end
+        else
+          logger.error "Policy (#{pl.name}) has no tags configured"
         end
+        logger.debug "No matching rules"
       end
     end
 
@@ -205,7 +216,7 @@ module ProjectRazor
     def find_bound_policy(node)
       bound_policies = $data.fetch_all_objects(:bound_policy)
       bound_policies.each do
-        |bp|
+      |bp|
         # If we find a bound policy we return it
         return bp.policy_bound if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
       end
@@ -220,19 +231,6 @@ module ProjectRazor
       logger.debug "Responding with MK Boot - uuid: #{uuid}"
       default = ProjectRazor::Policy::BootMK.new
       default.get_boot_script
-    end
-
-
-
-    def find_policy(node)
-      # Get all active policies
-      node_policies = $data.fetch_all_objects(:policy)
-
-      node_policies.each do
-        |np|
-        return np if check_tags(node.tags,np.tags)
-      end
-      false
     end
 
 

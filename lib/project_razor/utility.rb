@@ -19,7 +19,11 @@ module ProjectRazor
             new_array = []
             self.instance_variable_get(iv).each do
             |val|
-              new_array << val.to_hash if val.respond_to?(:to_hash)
+              if val.respond_to?(:to_hash)
+                new_array << val.to_hash
+              else
+                new_array << val
+              end
             end
             hash[iv.to_s] = new_array
           else
@@ -55,7 +59,19 @@ module ProjectRazor
     # @param [Hash] hash
     def from_hash(hash)
       hash.each_pair do |key, value|
-        self.instance_variable_set(key, value) unless key.to_s.start_with?("_")
+
+        # We need to catch hashes representing child objects
+        # If the hash key:value is a of a Hash/BSON:Ordered hash
+        if hash[key].class == Hash || hash[key].class == BSON::OrderedHash
+          # If we have a classname we know we need to return to an object
+          if hash[key]["@classname"]
+            self.instance_variable_set(key, Object::full_const_get(hash[key]["@classname"]).new(hash[key])) unless key.to_s.start_with?("_")
+          else
+            self.instance_variable_set(key, value) unless key.to_s.start_with?("_")
+          end
+        else
+          self.instance_variable_set(key, value) unless key.to_s.start_with?("_")
+        end
       end
     end
 

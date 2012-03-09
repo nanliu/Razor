@@ -15,6 +15,5 @@ module ProjectRazor
       @_collection = :bound_policy
       from_hash(hash)
     end
-
   end
 end
