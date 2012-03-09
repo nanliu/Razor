@@ -7,24 +7,14 @@ module ProjectRazor
   module Policy
     class LinuxDeploy < ProjectRazor::Policy::Base
       attr_accessor :kernel_path
-      attr_accessor :line_number
-      attr_accessor :model
-      attr_accessor :tags
-      attr_accessor :active
-      attr_reader :policy_type
-      attr_reader :model_type
+
 
       # @param hash [Hash]
-      def initialize
-        super
-        @active = false
-        @line_number = -1
-        @model = nil
-        @tags = []
-        @policy_type = :hidden
-        @model_type = []
+      def initialize(hash)
+        super(hash)
+        @policy_type = :standard
 
-        @_collection = :policy
+        from_hash(hash) unless hash == nil
       end
     end
   end

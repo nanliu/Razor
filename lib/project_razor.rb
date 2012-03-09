@@ -26,6 +26,7 @@ require "project_razor/persist"
 require "project_razor/model"
 require "project_razor/tagging"
 require "project_razor/policy_binding"
+require "project_razor/policy_rules"
 
 
 $data = ProjectRazor::Data.new

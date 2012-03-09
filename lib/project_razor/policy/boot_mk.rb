@@ -9,7 +9,7 @@ module ProjectRazor
 
       # @param hash [Hash]
       def initialize
-        super
+        super(nil)
 
         @policy_type = :mkboot
 

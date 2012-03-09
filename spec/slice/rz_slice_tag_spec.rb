@@ -14,6 +14,7 @@ describe "ProjectRazor::Slice::Tag" do
       @data = ProjectRazor::Data.new
       @config = @data.config
       @data.delete_all_objects(:tag)
+      @data.delete_all_objects(:node)
       @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
       @node_uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
     end
@@ -187,6 +188,11 @@ describe "ProjectRazor::Slice::Tag" do
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']
+
+      tag_rules.sort do
+        |a,b|
+        a["@name"] <=> b["@name"]
+      end
       tag_rules[0]['@name'].should == "test_tag_rule3"
       tag_rules[1]['@name'].should == "test_tag_rule4"
       tag_rules[2]['@name'].should == "test_tag_rule5"

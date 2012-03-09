@@ -10,23 +10,19 @@ module ProjectRazor
       attr_accessor :line_number
       attr_accessor :model
       attr_accessor :tags
-      attr_accessor :active
       attr_reader :policy_type
       attr_reader :model_type
 
       # @param hash [Hash]
-      def initialize
-        super
-        @active = false
-        @line_number = -1
-        @model = nil
+      def initialize(hash)
+        super()
+
         @tags = []
         @policy_type = :hidden
-        @model_type = []
 
         @_collection = :policy_rule
+        from_hash(hash) unless hash == nil
       end
-
 
       # These are required methods called by the engine for all policies
 

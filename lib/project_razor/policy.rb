@@ -3,6 +3,7 @@
 
 require "project_razor/policy/base"
 require "project_razor/policy/boot_mk"
+require "project_razor/policy/linux_deploy"
 
 module ProjectRazor
   module Policy
