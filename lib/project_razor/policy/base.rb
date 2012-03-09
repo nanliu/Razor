@@ -29,7 +29,7 @@ module ProjectRazor
       # Called when a MK does a checkin from a node bound to this policy
       def mk_call(node)
         # This is our base model - we have nothing to do so we just tell the MK : acknowledge
-        [:acknowledge, []]
+        [:acknowledge, {}
       end
 
       # Called from a node bound to this policy does a boot and requires a script

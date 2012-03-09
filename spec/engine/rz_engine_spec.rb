@@ -127,8 +127,6 @@ describe ProjectRazor::Engine do
       # This should trigger a policy binding because of a match to the policy rules tag and the node's tag
       @engine.mk_checkin("TESTRSPECENGINE", "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
 
-      puts @engine.bound_policy[0].policy.inspect.gsub(",","\n")
-
       # We should now have a binding for our node
       @engine.bound_policy.count.should == 1
       @engine.bound_policy[0].node_uuid.should == "TESTRSPECENGINE"
