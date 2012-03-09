@@ -8,7 +8,7 @@ module ProjectRazor
 
     attr_accessor :timestamp
     attr_accessor :node_uuid
-    attr_accessor :policy_bound
+    attr_accessor :policy
 
     def initialize(hash)
       super()
