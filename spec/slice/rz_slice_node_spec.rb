@@ -103,41 +103,42 @@ describe "ProjectRazor::Slice::Node" do
       node.last_state.should == "idle"
     end
 
-    it "Should be able to checkin a node by uuid from REST and get a reboot command back (forced through checkin_action.yaml)" do
-      # This requires that checkin_action.yaml have the 'TESTRSPEC': :reboot  set
-
-
-      # First create test node
-
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/register" # root URI for node slice actions
-      json_hash = {}
-      json_hash["@uuid"] = "TESTRSPEC"
-      json_hash["@last_state"] = "idle"
-      json_hash["@attributes_hash"] = {"hostname" => "nick01.example.com",
-                                       "ip_address" => "1.1.1.1"}
-
-      json_string = JSON.generate(json_hash)
-      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
-      response_hash = JSON.parse(res.body)
-
-      response_hash['errcode'].should == 0
-      response_hash['response']['@uuid'].should == "TESTRSPEC"
-
-
-      # Now lets checkin
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=TESTRSPEC&last_state=idle_error"
-
-      res = Net::HTTP.get(uri)
-      response_hash = JSON.parse(res)
-
-      response_hash['errcode'].should == 0
-      response_hash['response']['command_name'].should == "reboot"
-
-      node = @data.fetch_object_by_uuid(:node, "TESTRSPEC")
-      node.last_state.should == "idle_error"
-
-
-    end
+    # Removing this test as the checkin_actions.yaml is optional now and not core functionality
+    #it "Should be able to checkin a node by uuid from REST and get a reboot command back (forced through checkin_action.yaml)" do
+    #  # This requires that checkin_action.yaml have the 'TESTRSPEC': :reboot  set
+    #
+    #
+    #  # First create test node
+    #
+    #  uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/register" # root URI for node slice actions
+    #  json_hash = {}
+    #  json_hash["@uuid"] = "TESTRSPEC"
+    #  json_hash["@last_state"] = "idle"
+    #  json_hash["@attributes_hash"] = {"hostname" => "nick01.example.com",
+    #                                   "ip_address" => "1.1.1.1"}
+    #
+    #  json_string = JSON.generate(json_hash)
+    #  res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+    #  response_hash = JSON.parse(res.body)
+    #
+    #  response_hash['errcode'].should == 0
+    #  response_hash['response']['@uuid'].should == "TESTRSPEC"
+    #
+    #
+    #  # Now lets checkin
+    #  uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/checkin?uuid=TESTRSPEC&last_state=idle_error"
+    #
+    #  res = Net::HTTP.get(uri)
+    #  response_hash = JSON.parse(res)
+    #
+    #  response_hash['errcode'].should == 0
+    #  response_hash['response']['command_name'].should == "reboot"
+    #
+    #  node = @data.fetch_object_by_uuid(:node, "TESTRSPEC")
+    #  node.last_state.should == "idle_error"
+    #
+    #
+    #end
 
   end
 end

@@ -20,7 +20,7 @@ module ProjectRazor
 
       def mk_call(node)
         # Placeholder - tell it to reboot
-        [:reboot, []]
+        [:reboot, {}]
       end
     end
   end
