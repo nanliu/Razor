@@ -198,16 +198,16 @@ module ProjectRazor
 
         # If there is a bound policy we pass it the node to a common
         # method call from a boot
-        if bound_policy
-
-          logger.debug "Active policy found (#{bound_policy.name}) - uuid: #{uuid}"
-          bound_policy.boot_call(@node)
-        else
+        #if bound_policy
+        #
+        #  logger.debug "Active policy found (#{bound_policy.name}) - uuid: #{uuid}"
+        #  bound_policy.boot_call(@node)
+        #else
 
           # There is not bound policy so we boot the MK
           logger.debug "No active policy found - uuid: #{uuid}"
           default_mk_boot(uuid)
-        end
+        #end
       else
 
         # Node isn't in DB, we boot it into the MK
