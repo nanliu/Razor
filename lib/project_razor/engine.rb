@@ -194,7 +194,7 @@ module ProjectRazor
       if node != nil
         # Node is in DB, lets check for policy
         logger.debug "Node identified - uuid: #{uuid}"
-        bound_policy = find_bound_policy(node)
+        #bound_policy = find_bound_policy(node)  # commented out until refactor
 
         # If there is a bound policy we pass it the node to a common
         # method call from a boot
