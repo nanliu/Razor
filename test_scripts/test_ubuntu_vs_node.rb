@@ -28,7 +28,7 @@ data.delete_all_objects(:policy_rule)
 data.delete_all_objects(:bound_policy)
 
 node = data.fetch_object_by_uuid(:node, node_uuid)
-
+p node
 if node
 
 
