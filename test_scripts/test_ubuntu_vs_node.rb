@@ -18,7 +18,7 @@ puts "Make sure your checkin forced actions are clear for the node, these overri
 puts "\n\n"
 
 puts "** Please enter the UUID of the node to work with:"
-node_uuid = gets
+node_uuid = gets,strip
 
 data = ProjectRazor::Data.new
 engine = ProjectRazor::Engine.instance
