@@ -20,6 +20,7 @@ module ProjectRazor
 
       def mk_call(node)
         # Placeholder - tell it to reboot
+        logger.debug "Telling our node to reboot (placeholder)"
         [:reboot, {}]
       end
     end
