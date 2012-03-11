@@ -26,7 +26,7 @@ module ProjectRazor
         boot_script << "initrd #{image_svc_uri}/mk || goto error\n"
         boot_script << "chain #{image_svc_uri}/memdisk iso || goto error\n"
         boot_script << "\n\n\n"
-        boot_script << ":error\nsleep #{@config.mk_checkin_interval}\nreboot\n"
+        boot_script << ":error\necho ERROR, will reboot in #{@config.mk_checkin_interval}\nsleep #{@config.mk_checkin_interval}\nreboot\n"
         boot_script
       end
     end

@@ -5,6 +5,7 @@ $razor_root = File.dirname(__FILE__).sub(/\/lib$/,"")
 $config_server_path = "#{$razor_root}/conf/razor_server.conf"
 $img_svc_path = "#{$razor_root}/image"
 $logging_path = "#{$razor_root}/log/project_razor.log"
+$temp_path = "#{$razor_root}/tmp"
 
 
 #puts "Razor root: #{$razor_root}"
@@ -27,6 +28,7 @@ require "project_razor/model"
 require "project_razor/tagging"
 require "project_razor/policy_binding"
 require "project_razor/policy_rules"
+require "project_razor/image_service"
 
 
 $data = ProjectRazor::Data.new
