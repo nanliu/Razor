@@ -28,10 +28,17 @@ module ProjectRazor
           # Get filename
           @filename = File.basename(fullpath)
 
+          puts "fullpath: #{fullpath}".red
+          puts "filename: #{@filename}".red
+          puts "mount path: #{mount_path}".red
 
+
+          # Make sure file exists
+
+          return cleanup([false,"File does not exist"]) unless File.exist?(fullpath)
 
           # Make sure it has an .iso extension
-          cleanup([false,"File is not an ISO"]) if @filename[-4..-1] != ".iso"
+          return cleanup([false,"File is not an ISO"]) if @filename[-4..-1] != ".iso"
 
 
 
@@ -43,7 +50,7 @@ module ProjectRazor
             puts "not mounted"
             unless mount(fullpath)
               logger.error "Could not mount #{fullpath} on #{mount_path}"
-              cleanup([false,"Could not mount"])
+              return cleanup([false,"Could not mount"])
             end
           end
 
@@ -65,11 +72,9 @@ module ProjectRazor
 
         rescue => e
           logger.error e.message
-          cleanup([false,e.message])
+          return cleanup([false,e.message])
         end
-        puts "fullpath: #{fullpath}".red
-        puts "filename: #{@filename}".red
-        puts "mount path: #{mount_path}".red
+
 
         cleanup([true ,""])
       end
@@ -102,7 +107,7 @@ module ProjectRazor
         FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
 
         `mount -o loop #{src_image_path} #{mount_path} 2> /dev/null`
-        if $? == 0
+        if $?.to_i == 0
           true
         else
           false
