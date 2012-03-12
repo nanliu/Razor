@@ -26,14 +26,14 @@ module ProjectRazor
       end
 
 
-      # Registers node
+      # Registers BMC NIC
       def register_bmc
         logger.debug "Register bmc called"
         @command_name = "register_bmc"
         if @web_command
           @command_query_string = @command_array.shift
           if @command_query_string == "{}"
-            logger.error "Missing node details"
+            logger.error "Missing bmc details"
             slice_error("MissingDetails")
           else
             details = JSON.parse(@command_query_string)
@@ -42,10 +42,10 @@ module ProjectRazor
 
               logger.debug "bmc: #{details['@mac']} #{details['@ip']}"
               details['@timestamp'] = Time.now.to_i
-              new_node = insert_bmc(details)
+              new_bmc = insert_bmc(details)
 
-              if new_node.refresh_self
-                slice_success(new_node.to_hash, true)
+              if new_bmc.refresh_self
+                slice_success(new_bmc.to_hash, true)
               else
                 logger.error "Could not register bmc"
                 slice_error("CouldNotRegister", true)
@@ -58,9 +58,9 @@ module ProjectRazor
         end
       end
 
-      # Inserts node using hash
-      # @param [Hash] node_hash
-      # @return [ProjectRazor::Node]
+      # Inserts bmc using hash
+      # @param [Hash] bmc_hash
+      # @return [ProjectRazor::Bmc]
       def insert_bmc(bmc_hash)
         setup_data
         existing_bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
@@ -70,7 +70,7 @@ module ProjectRazor
           existing_bmc.update_self
           existing_bmc
         else
-          @data.persist_object(ProjectRazor::Bmc.new(node_hash))
+          @data.persist_object(ProjectRazor::Bmc.new(bmc_hash))
         end
       end
 
@@ -78,8 +78,8 @@ module ProjectRazor
         print_bmc get_object("bmc", :bmc)
       end
 
-      # Handles printing of node details to CLI or REST
-      # @param [Hash] node_array
+      # Handles printing of bmc details to CLI or REST
+      # @param [Hash] bmc_array
       def print_bmc(bmc_array)
         unless @web_command
           puts "BMC:"
@@ -101,7 +101,7 @@ module ProjectRazor
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
-                  print "#{node.instance_variable_get(iv)}  ".green
+                  print "#{bmc.instance_variable_get(iv)}  ".green
                 end
               end
               print "\n"
