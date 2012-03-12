@@ -19,26 +19,26 @@ module ProjectRazor
 
       # These are required methods called by the engine for all policies
 
-      # Called when a MK does a checkin from a node bound to this policy
-      def mk_call(node)
+      # Called when a MK does a checkin from a bmc bound to this policy
+      def mk_call(bmc)
         # This is our base model - we have nothing to do so we just tell the MK : acknowledge
         [:acknowledge, {}]
       end
 
-      # Called from a node bound to this policy does a boot and requires a script
-      def boot_call(node)
+      # Called from a bmc bound to this policy does a boot and requires a script
+      def boot_call(bmc)
 
       end
 
-      # Called from either REST slice call by node or daemon doing polling
-      def state_call(node, new_state)
+      # Called from either REST slice call by bmc or daemon doing polling
+      def state_call(bmc, new_state)
 
       end
 
 
       # Placeholder - may be removed and used within state_call
-      # intended to be called by node or daemon for connection/hand-off to systems
-      def system_call(node, new_state)
+      # intended to be called by bmc or daemon for connection/hand-off to systems
+      def system_call(bmc, new_state)
 
       end
 
