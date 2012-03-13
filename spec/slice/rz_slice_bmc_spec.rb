@@ -15,16 +15,14 @@ describe "ProjectRazor::Slice::Bmc" do
     before(:all) do
       @data = ProjectRazor::Data.new
       @config = @data.config
-      @data.delete_all_objects(:tag)
-      @data.delete_all_objects(:node)
+      @data.delete_all_objects(:bmc)
       @uuid = ["001517FAE036", "001517FADE66", "001517FA7B0A"]
       @mac = ["00:15:17:FA:E0:36", "00:15:17:FA:DE:66", "00:15:17:FA:7B:0A"]
       @ip = ["192.168.2.51", "192.168.2.52", "192.168.2.53"]
     end
 
     after(:all) do
-      @data.delete_all_objects(:tag)
-      @data.delete_all_objects(:node)
+      @data.delete_all_objects(:bmc)
     end
 
     it "should be able to create a new empty bmc object from REST" do
@@ -45,7 +43,7 @@ describe "ProjectRazor::Slice::Bmc" do
     end
 
     it "should be able to get one bmc 'node' from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?#{@uuid[0]}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@uuid=#{@uuid[0]}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       res_hash['response']['@uuid'].should == @uuid[0]
@@ -82,15 +80,15 @@ describe "ProjectRazor::Slice::Bmc" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@ip=regex:192\.168\.2\.5[1-2]"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      tag_rules = res_hash['response']
+      bmc_nodes = res_hash['response']
 
-      tag_rules.sort do
+      bmc_nodes.sort do
         |a,b|
         a["@ip"] <=> b["@ip"]
       end
-      tag_rules.count.should = 2
-      tag_rules[0]['@mac'].should == "00:15:17:FA:E0:36"
-      tag_rules[1]['@mac'].should == "00:15:17:FA:DE:66"
+      bmc_nodes.count.should = 2
+      bmc_nodes[0]['@mac'].should == "00:15:17:FA:E0:36"
+      bmc_nodes[1]['@mac'].should == "00:15:17:FA:DE:66"
     end
 
   end
