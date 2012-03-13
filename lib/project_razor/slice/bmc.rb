@@ -19,9 +19,11 @@ module ProjectRazor
         super(args)
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:register => "register_bmc",
+                           :get => "query_bmc",
                            :default => "query_bmc"}
         @slice_commands_help = {:register => "bmc register (JSON STRING)",
-                                :default => "bmc (JSON STRING)"}
+                                :get => "bmc [get] (JSON STRING)",
+                                :default => "bmc [get] (JSON STRING)"}
         @slice_name = "Bmc"
       end
 
@@ -36,23 +38,27 @@ module ProjectRazor
             logger.error "Missing bmc details"
             slice_error("MissingDetails")
           else
-            details = JSON.parse(@command_query_string)
+            begin
+              details = JSON.parse(@command_query_string)
 
-            if details['@uuid'] != nil && details['@mac'] != nil && details['@ip'] != nil
+              if details['@uuid'] != nil && details['@mac'] != nil && details['@ip'] != nil
 
-              logger.debug "bmc: #{details['@mac']} #{details['@ip']}"
-              details['@timestamp'] = Time.now.to_i
-              new_bmc = insert_bmc(details)
+                logger.debug "bmc: #{details['@mac']} #{details['@ip']}"
+                details['@timestamp'] = Time.now.to_i
+                new_bmc = insert_bmc(details)
 
-              if new_bmc.refresh_self
-                slice_success(new_bmc.to_hash, true)
+                if new_bmc.refresh_self
+                  slice_success(new_bmc.to_hash, false)
+                else
+                  logger.error "Could not register bmc"
+                  slice_error("CouldNotRegister", false)
+                end
               else
-                logger.error "Could not register bmc"
-                slice_error("CouldNotRegister", true)
+                logger.error "Incomplete bmc details"
+                slice_error("IncompleteDetails", false)
               end
-            else
-              logger.error "Incomplete bmc details"
-              slice_error("IncompleteDetails",true)
+            rescue StandardError => e
+              slice_error(e.message, false)
             end
           end
         end
@@ -65,8 +71,8 @@ module ProjectRazor
         setup_data
         existing_bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
         if existing_bmc != nil
-          existing_bmc.last_state = bmc_hash['@last_state']
-          existing_bmc.attributes_hash = bmc_hash['@attributes_hash']
+          existing_bmc.mac = bmc_hash['@mac']
+          existing_bmc.ip = bmc_hash['@ip']
           existing_bmc.update_self
           existing_bmc
         else
@@ -89,7 +95,7 @@ module ProjectRazor
             |bmc|
               print "\tmac: "
               print "#{bmc.mac}  ".green
-              print "last state: "
+              print "ip: "
               print "#{bmc.ip}   ".green
               print "\n"
             end
@@ -109,7 +115,7 @@ module ProjectRazor
           end
         else
           bmc_array = bmc_array.collect { |bmc| bmc.to_hash }
-          slice_success(bmc_array,false)
+          slice_success(bmc_array, false)
         end
       end
 
