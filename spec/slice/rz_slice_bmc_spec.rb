@@ -38,24 +38,28 @@ describe "ProjectRazor::Slice::Bmc" do
       response_hash = JSON.parse(res.body)
 
       response_hash['errcode'].should == 0
-      response_hash['response']['@mac'].should == @mac[0]
-      response_hash['response']['@ip'].should == @ip[0]
+      bmc_nodes = response_hash['response']
+      bmc_nodes['@mac'].should == @mac[0]
+      bmc_nodes['@ip'].should == @ip[0]
     end
 
     it "should be able to get one bmc 'node' from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@uuid=#{@uuid[0]}"
       res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['response']['@uuid'].should == @uuid[0]
+      response_hash = JSON.parse(res)
+      bmc_nodes = response_hash['response']
+      bmc_nodes[0]['@uuid'].should == @uuid[0]
     end
 
     it "should be able to get all bmc 'nodes' from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/register"
 
       len = @uuid.length
-      (0..len).each do
+      # for all indexes from 0 to the len-1, loop and register each BMC
+      (0...len).each do
       |x|
 
+        json_hash = {}
         json_hash["@uuid"] = @uuid[x]
         json_hash["@mac"] = @mac[x]
         json_hash["@ip"] = @ip[x]
@@ -65,28 +69,31 @@ describe "ProjectRazor::Slice::Bmc" do
         response_hash = JSON.parse(res.body)
 
         response_hash['errcode'].should == 0
-        response_hash['response']['@mac'].should == @mac[x]
-        response_hash['response']['@ip'].should == @ip[x]
+        bmc_nodes = response_hash['response']
+        bmc_nodes['@mac'].should == @mac[x]
+        bmc_nodes['@ip'].should == @ip[x]
       end
 
+      # now get all of them, and test the response length (should be the same as the
+      # @uuid array length, determined above)
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc"
       res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      bmc_nodes = res_hash['response']
+      response_hash = JSON.parse(res)
+      bmc_nodes = response_hash['response']
       bmc_nodes.count.should == len
     end
 
     it "should be able to get all bmc 'nodes' that match attributes from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@ip=regex:192\.168\.2\.5[1-2]"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@ip=regex:192.168.2.5[1-2]"
       res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      bmc_nodes = res_hash['response']
+      response_hash = JSON.parse(res)
+      bmc_nodes = response_hash['response']
 
       bmc_nodes.sort do
         |a,b|
         a["@ip"] <=> b["@ip"]
       end
-      bmc_nodes.count.should = 2
+      bmc_nodes.count.should == 2
       bmc_nodes[0]['@mac'].should == "00:15:17:FA:E0:36"
       bmc_nodes[1]['@mac'].should == "00:15:17:FA:DE:66"
     end
