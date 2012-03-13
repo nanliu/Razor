@@ -76,7 +76,7 @@ module ProjectRazor
           existing_bmc.update_self
           existing_bmc
         else
-          @data.persist_object(ProjectRazor::Bmc.new(bmc_hash))
+          @data.persist_object(ProjectRazor::PowerControl::Bmc.new(bmc_hash))
         end
       end
 
