@@ -45,7 +45,7 @@ describe "ProjectRazor::Slice::Bmc" do
     end
 
     it "should be able to get one bmc 'node' from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/#{@uuid[0]}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?#{@uuid[0]}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       res_hash['response']['@uuid'].should == @uuid[0]
@@ -79,7 +79,7 @@ describe "ProjectRazor::Slice::Bmc" do
     end
 
     it "should be able to get all bmc 'nodes' that match attributes from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/rule?@ip=regex:192\.168\.2\.5[1-2]"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@ip=regex:192\.168\.2\.5[1-2]"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']
