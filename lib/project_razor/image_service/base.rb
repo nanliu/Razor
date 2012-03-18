@@ -109,7 +109,7 @@ module ProjectRazor
         FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
 
         `mount -o loop #{src_image_path} #{mount_path} 2> /dev/null`
-        if $?.to_i == 0
+        if $? == 0
           logger.debug "mounted: #{src_image_path} on #{mount_path}"
           true
         else
@@ -124,7 +124,7 @@ module ProjectRazor
           logger.debug "unmounted: #{mount_path}"
           true
         else
-          logger.debug "could not unmout: #{mount_path}"
+          logger.debug "could not unmount: #{mount_path}"
           false
         end
       end
