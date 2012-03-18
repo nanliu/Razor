@@ -34,7 +34,6 @@ module ProjectRazor
 
 
           # Make sure file exists
-
           return cleanup([false,"File does not exist"]) unless File.exist?(fullpath)
 
           # Make sure it has an .iso extension
@@ -136,8 +135,8 @@ module ProjectRazor
       end
 
       def cleanup(ret)
-        #umount
-        #FileUtils.rm_r(mount_path, :force => true) if Dir.exist?(mount_path)
+        umount
+        FileUtils.rm_r(mount_path, :force => true) if Dir.exist?(mount_path)
         ret
       end
 
