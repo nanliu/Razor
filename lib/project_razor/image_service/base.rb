@@ -29,8 +29,11 @@ module ProjectRazor
           @filename = File.basename(fullpath)
 
           puts "fullpath: #{fullpath}".red
+          logger.debug "fullpath: #{fullpath}"
           puts "filename: #{@filename}".red
+          logger.debug "filename: #{@filename}"
           puts "mount path: #{mount_path}".red
+          logger.debug "mount path: #{mount_path}"
 
 
           # Make sure file exists
@@ -105,10 +108,12 @@ module ProjectRazor
       def mount(src_image_path)
         FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
 
-        `mount -o loop #{src_image_path} #{mount_path} 2> /dev/null`
+        `mount -o loop src_image_path #{mount_path} 2> /dev/null`
         if $?.to_i == 0
+          logger.debug "mounted: #{src_image_path} on #{mount_path}"
           true
         else
+          logger.debug "could not mount: #{src_image_path} on #{mount_path}"
           false
         end
       end
@@ -116,8 +121,10 @@ module ProjectRazor
       def umount
         `umount #{mount_path} 2> /dev/null`
         if $? == 0
+          logger.debug "unmounted: #{mount_path}"
           true
         else
+          logger.debug "could not unmout: #{mount_path}"
           false
         end
       end
@@ -137,6 +144,7 @@ module ProjectRazor
       def cleanup(ret)
         umount
         FileUtils.rm_r(mount_path, :force => true) if Dir.exist?(mount_path)
+        logger.error "Error: #{ret[1]}" if !ret[0]
         ret
       end
 
