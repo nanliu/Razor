@@ -108,7 +108,7 @@ module ProjectRazor
       def mount(src_image_path)
         FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
 
-        `mount -o loop src_image_path #{mount_path} 2> /dev/null`
+        `mount -o loop #{src_image_path} #{mount_path} 2> /dev/null`
         if $?.to_i == 0
           logger.debug "mounted: #{src_image_path} on #{mount_path}"
           true
