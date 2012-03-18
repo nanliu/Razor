@@ -46,7 +46,7 @@ module ProjectRazor
           if is_mounted?(fullpath)
             puts "already mounted"
           else
-            puts "not mounted"
+            puts "not mounted already"
             unless mount(fullpath)
               logger.error "Could not mount #{fullpath} on #{mount_path}"
               return cleanup([false,"Could not mount"])
