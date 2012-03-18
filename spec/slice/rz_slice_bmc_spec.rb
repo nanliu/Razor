@@ -25,7 +25,7 @@ describe "ProjectRazor::Slice::Bmc" do
       @data.delete_all_objects(:bmc)
     end
 
-    it "should be able to create a new empty bmc object from REST" do
+    it "should be able to register a bmc object by uuid from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/register"
 
       json_hash = {}
