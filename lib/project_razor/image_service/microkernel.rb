@@ -26,11 +26,15 @@ module ProjectRazor
           resp = super(src_image_path, image_svc_path)
           if resp[0]
 
-            @iso_build_time = @meta['iso_build_time']
-            @iso_version = @meta['iso_version']
-            @kernel = @meta['kernel']
-            @initrd = @meta['initrd']
-
+            if verify(image_svc_path)
+              @iso_build_time = @meta['iso_build_time']
+              @iso_version = @meta['iso_version']
+              @kernel = @meta['kernel']
+              @initrd = @meta['initrd']
+            else
+              logger.error "Missing metadata"
+              return [false, "Missing metadata"]
+            end
           else
             resp
           end
