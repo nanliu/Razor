@@ -184,9 +184,10 @@ module ProjectRazor
         FileUtils.cp_r(mount_path, image_path)
       end
 
-      def get_dir_hash(dir)
-        logger.debug "Generating hash for path: #{dir}"
-        files_string = Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.join("\n")
+      def get_dir_hash(hash_dir)
+        puts hash_dir
+        logger.debug "Generating hash for path: #{hash_dir}"
+        files_string = Dir.glob("#{hash_dir}/**/*").map {|x| x.sub("#{hash_dir}/","")}.join("\n")
         puts files_string
         Digest::SHA2.hexdigest(files_string)
       end
