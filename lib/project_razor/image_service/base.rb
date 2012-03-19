@@ -73,10 +73,7 @@ module ProjectRazor
           end
 
           # Attempt to copy from mount path to image path
-          unless copy_to_image_path
-            logger.error "Cannot copy to image path: #{image_path}"
-            return cleanup([false, "Cannot copy to image path: #{image_path}"])
-          end
+          copy_to_image_path
 
           # Verify diff between mount / image paths
           # For speed/flexibility reasons we just verify all files exists and not their contents
