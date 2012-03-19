@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "fileutils"
+require "digest/sha2"
 
 module ProjectRazor
   module ImageService
@@ -11,18 +12,22 @@ module ProjectRazor
       attr_accessor :filename
       attr_accessor :description
       attr_accessor :size
+      attr_accessor :verification_hash
+      attr_accessor :path_prefix
 
       def initialize(hash)
         super()
+        @path_prefix = "base"
         from_hash(hash) unless hash == nil
       end
 
 
       # Used to add an image to the service
       # Within each child class the methods are overridden for that child type
-      def add(src_image_path, image_svc_path)
-        begin
+      def add(src_image_path)
+        @image_svc_path = image_svc_path + "/" + @path_prefix
 
+        begin
           # Get full path
           fullpath = File.expand_path(src_image_path)
           # Get filename
@@ -44,7 +49,6 @@ module ProjectRazor
 
 
 
-
           # Confirm a mount doesn't already exist
           if is_mounted?(fullpath)
             puts "already mounted"
@@ -56,27 +60,36 @@ module ProjectRazor
             end
           end
 
-
-            # Determine if there is an existing image path
+          # Determine if there is an existing image path for iso
+          if is_image_path?
             ## Remove if there is
-            ## Create image path
+            remove_dir_completely(image_path)
+          end
 
-            # Attempt to copy from mount path to image path
+          ## Create image path
+          unless create_image_path
+            logger.error "Cannot create image path: #{image_path}"
+            return cleanup([false, "Cannot create image path: #{image_path}"])
+          end
 
-            # Verify diff between mount / image paths
+          # Attempt to copy from mount path to image path
+          unless copy_to_image_path
+            logger.error "Cannot copy to image path: #{image_path}"
+            return cleanup([false, "Cannot copy to image path: #{image_path}"])
+          end
 
-            # Verify using verify method
-
-            # Run unmount cleanup
-
-            # Return result
-
+          # Verify diff between mount / image paths
+          # For speed/flexibility reasons we just verify all files exists and not their contents
+          @verification_hash = get_dir_hash(image_path)
+          unless get_dir_hash(mount_path) == @verification_hash
+            logger.error "Image copy failed verification: #{image_path}"
+            return cleanup([false, "Image copy failed verification: #{image_path}"])
+          end
 
         rescue => e
           logger.error e.message
           return cleanup([false,e.message])
         end
-
 
         cleanup([true ,""])
       end
@@ -93,8 +106,8 @@ module ProjectRazor
 
       end
 
-      def image_path(image_svc_path)
-        image_svc_path + "/" + filename
+      def image_path
+        @image_svc_path + "/" + @uuid
       end
 
       def is_mounted?(src_image_path)
@@ -143,13 +156,38 @@ module ProjectRazor
 
       def cleanup(ret)
         umount
-        FileUtils.rm_r(mount_path, :force => true) if Dir.exist?(mount_path)
+        remove_dir_completely(mount_path)
+        remove_dir_completely(image_path) if !ret[0]
         logger.error "Error: #{ret[1]}" if !ret[0]
         ret
       end
 
       def mount_path
         "#{$temp_path}/#{@uuid}"
+      end
+
+      def is_image_path?
+        Dir.exist?(image_path)
+      end
+
+      def create_image_path
+        FileUtils.mkpath(image_path)
+      end
+
+      def remove_dir_completely(path)
+        if Dir.exist?(path)
+          FileUtils.rm_r(path, :force => true)
+        else
+          true
+        end
+      end
+
+      def copy_to_image_path
+        FileUtils.cp_r(mount_path, image_path)
+      end
+
+      def get_dir_hash(dir)
+        Digest::SHA2.hexdigest(Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.join("\n"))
       end
 
     end
