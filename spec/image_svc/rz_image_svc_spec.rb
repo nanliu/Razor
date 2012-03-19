@@ -18,6 +18,8 @@ describe ProjectRazor::ImageService do
       resp = new_mk.add("#{$razor_root}/rz_mk_dev-image.0.2.0.0.iso", @config.image_svc_path)
       p resp
       p new_mk
+
+      puts "Verify: #{new_mk.verify(@config.image_svc_path)}"
     end
 
   end
