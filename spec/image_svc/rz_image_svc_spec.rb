@@ -16,7 +16,8 @@ describe ProjectRazor::ImageService do
     it "should do something" do
       new_mk = ProjectRazor::ImageService::MicroKernel.new({})
       resp = new_mk.add("#{$razor_root}/rz_mk_dev-image.0.2.0.0.iso", @config.image_svc_path)
-      p  resp
+      p resp
+      p new_mk
     end
 
   end
