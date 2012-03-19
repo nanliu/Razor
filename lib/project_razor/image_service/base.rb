@@ -22,10 +22,14 @@ module ProjectRazor
       end
 
 
+      def set_image_svc_path(image_svc_path)
+        @image_svc_path = image_svc_path + "/" + @path_prefix
+      end
+
       # Used to add an image to the service
       # Within each child class the methods are overridden for that child type
       def add(src_image_path, image_svc_path)
-        @image_svc_path = image_svc_path + "/" + @path_prefix
+        set_image_svc_path(image_svc_path)
 
         begin
           # Get full path
@@ -100,8 +104,9 @@ module ProjectRazor
 
       # Used to verify an image within the filesystem (local/remote/possible Glance)
       # Within each child class the methods are overridden for that child type
-      def verify
-
+      def verify(image_svc_path)
+        set_image_svc_path(image_svc_path)
+        get_dir_hash(image_path) == @verification_hash
       end
 
       def image_path
@@ -138,14 +143,6 @@ module ProjectRazor
           logger.debug "could not unmount: #{mount_path}"
           false
         end
-      end
-
-      def copy_iso_to_image
-
-      end
-
-      def verify_copy
-
       end
 
       def mounts
