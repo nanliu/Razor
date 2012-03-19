@@ -79,10 +79,10 @@ module ProjectRazor
           # For speed/flexibility reasons we just verify all files exists and not their contents
           @verification_hash = get_dir_hash(image_path)
           mount_hash = get_dir_hash(mount_path)
-          #unless mount_hash == @verification_hash
-          #  logger.error "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"
-          #  return cleanup([false, "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"])
-          #end
+          unless mount_hash == @verification_hash
+            logger.error "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"
+            return cleanup([false, "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"])
+          end
 
         rescue => e
           logger.error e.message
