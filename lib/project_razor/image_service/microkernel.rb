@@ -47,7 +47,11 @@ module ProjectRazor
       def verify(image_svc_path)
         super(image_svc_path)
         if File.exist?("#{image_path}/iso-metadata.yaml")
-          @meta = YAML.load "#{image_path}/iso-metadata.yaml"
+          File.open("#{image_path}/iso-metadata.yaml","r") do
+            |f|
+            @meta = YAML.load(f)
+          end
+
 
           unless File.exists?("#{image_path}/boot/#{@meta['kernel']}")
             logger.error "missing kernel: #{image_path}/boot/#{@meta['kernel']}"
@@ -59,12 +63,12 @@ module ProjectRazor
             return false
           end
 
-          if @meta['iso_build_time'] != nil
+          if @meta['iso_build_time'] == nil
             logger.error "ISO build time is nil"
             return false
           end
 
-          if @meta['iso_version'] != nil
+          if @meta['iso_version'] == nil
             logger.error "ISO build time is nil"
             return false
           end
