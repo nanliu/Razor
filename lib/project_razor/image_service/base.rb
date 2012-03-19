@@ -47,7 +47,7 @@ module ProjectRazor
           # Make sure it has an .iso extension
           return cleanup([false,"File is not an ISO"]) if @filename[-4..-1] != ".iso"
 
-
+          File.open(src_image_path, "r") {|f| @size = f.size}
 
           # Confirm a mount doesn't already exist
           if is_mounted?(fullpath)
@@ -78,9 +78,10 @@ module ProjectRazor
           # Verify diff between mount / image paths
           # For speed/flexibility reasons we just verify all files exists and not their contents
           @verification_hash = get_dir_hash(image_path)
-          unless get_dir_hash(mount_path) == @verification_hash
-            logger.error "Image copy failed verification: #{image_path}"
-            return cleanup([false, "Image copy failed verification: #{image_path}"])
+          mount_hash = get_dir_hash(mount_path)
+          unless mount_hash == @verification_hash
+            logger.error "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"
+            return cleanup([false, "Image copy failed verification: #{@verification_hash} <> #{mount_hash}"])
           end
 
         rescue => e
