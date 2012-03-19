@@ -24,7 +24,7 @@ module ProjectRazor
 
       # Used to add an image to the service
       # Within each child class the methods are overridden for that child type
-      def add(src_image_path)
+      def add(src_image_path, image_svc_path)
         @image_svc_path = image_svc_path + "/" + @path_prefix
 
         begin
