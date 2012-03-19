@@ -9,6 +9,7 @@ module ProjectRazor
 
       def initialize(hash)
         super(hash)
+        @path_prefix = "mk"
         from_hash(hash) unless hash == nil
       end
 
@@ -24,8 +25,9 @@ module ProjectRazor
       end
 
       def verify(image_svc_path)
+        super(image_svc_path)
         # TODO add check for MK metadata file
-        File.exist?(image_path(image_svc_path) + "/core.gz") && File.exist?(image_path(image_svc_path) + "/vmlinuz")
+        # File.exist?(image_path(image_svc_path) + "/core.gz") && File.exist?(image_path(image_svc_path) + "/vmlinuz")
       end
 
 

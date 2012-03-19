@@ -19,7 +19,8 @@ describe ProjectRazor::ImageService do
       p resp
       p new_mk
 
-      puts "Verify: #{new_mk.verify(@config.image_svc_path)}"
+      v = new_mk.verify(@config.image_svc_path)
+      puts "Verify: #{v}"
     end
 
   end
