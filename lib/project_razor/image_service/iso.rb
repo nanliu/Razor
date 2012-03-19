@@ -3,8 +3,8 @@
 
 module ProjectRazor
   module ImageService
-    # Image construct for ISO files
-    class ISO < ProjectRazor::ImageService::Base
+    # Image construct for generic Operating System install ISOs
+    class OSInstall < ProjectRazor::ImageService::Base
       #
     end
   end
