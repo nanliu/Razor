@@ -185,6 +185,7 @@ module ProjectRazor
       end
 
       def get_dir_hash(dir)
+        logger.debug "Generating hash for path: #{dir}"
         Digest::SHA2.hexdigest(Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.join("\n"))
       end
 
