@@ -27,7 +27,7 @@ module ProjectRazor
           if resp[0]
 
             if verify(image_svc_path)
-              @iso_build_time = @meta['iso_build_time']
+              @iso_build_time = @meta['iso_build_time'].to_i
               @iso_version = @meta['iso_version']
               @kernel = @meta['kernel']
               @initrd = @meta['initrd']
