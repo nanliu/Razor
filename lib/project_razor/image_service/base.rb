@@ -186,10 +186,11 @@ module ProjectRazor
 
       def print_image_info
         print "\tType: "
-        print "#{@description}  ".green
+        print "#{@description}  \n".green
         print "Path: "
-        print "#{image_path}   ".green
-        print "\n"
+        print "#{image_path}  \n".green
+        print "Status: "
+        print "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
       end
 
     end
