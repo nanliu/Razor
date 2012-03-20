@@ -20,12 +20,74 @@ module ProjectRazor
         @slice_commands = {:add => "add_image",
                            :get => "list_images",
                            :remove => "remove_image",
-                           :default => "list_images"}
+                           :default => "list_images",
+                           :path => "get_path"}
         @slice_commands_help = {:add => "imagesvc add " + "[mk|os]".blue + " (PATH TO ISO)".yellow,
                                 :get => "imagesvc " + "[get]".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue}
         @slice_name = "Imagesvc"
+      end
+
+      #Gets the path to an image or image element
+      # /mk/kernel - gets default mk kernel
+      # /mk/initrd - gets default mk initrd
+      # /%uuid&/%path to file% - gets the file from relative path for image with %uuid%
+
+
+      def get_path
+        if @web_command
+          @arg = @command_array.shift
+          if @arg != nil
+            case @arg
+
+              when "mk"
+                get_mk_paths
+              else
+                get_path_with_uuid(@arg)
+            end
+          else
+            slice_error("MissingArgument", false)
+          end
+        else
+          slice_error("NotImplemented", false)
+        end
+      end
+
+      def get_mk_paths
+        engine = ProjectRazor::Engine.instance
+        default_mk_image = engine.default_mk
+
+        if default_mk_image != nil
+          @option = @command_array.shift
+          if @option != nil
+
+            setup_data
+
+            base_path = default_mk_image.image_path
+            puts base_path
+
+            case @option
+              when "kernel"
+                slice_success("#{base_path}/boot/#{default_mk_image.kernel}",false)
+
+              when "initrd"
+                slice_success("#{base_path}/boot/#{default_mk_image.initrd}",false)
+
+              else
+                slice_error("MissingOption", false)
+            end
+          else
+            slice_error("MissingOption", false)
+          end
+        else
+          slice_error("NoMKLoaded", false)
+        end
+      end
+
+      def get_path_with_uuid(uuid)
+
+
       end
 
       #Lists images
@@ -125,6 +187,9 @@ module ProjectRazor
               slice_error("NoImageFoundWithUUID", false)
               return
             else
+
+              # TODO - Add cross check against engine to be sure image is not actively part of a policy_rule or bound_policy within a model
+
               if image_selected.remove(@data.config.image_svc_path)
                 if @data.delete_object(image_selected)
                   slice_success("",false)

@@ -38,7 +38,7 @@ module ProjectRazor
       attr_accessor :image_svc_path
 
       attr_accessor :register_timeout
-      attr_accessor :base_mk
+      attr_accessor :force_mk_uuid
 
       # init
       def initialize
@@ -68,7 +68,7 @@ module ProjectRazor
         @image_svc_path = $img_svc_path
 
         @register_timeout = 120
-        @base_mk = "rz_mk_dev-image.0.1.5.0.iso"
+        @force_mk_uuid = ""
 
       end
 
@@ -87,6 +87,10 @@ module ProjectRazor
       def get_an_ip
         ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
         ip.ip_address
+      end
+
+      def get_mk_
+
       end
 
 

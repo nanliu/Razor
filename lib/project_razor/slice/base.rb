@@ -69,7 +69,7 @@ module ProjectRazor
         else
           print "\n\n#{@slice_name.capitalize}"
           print " #{return_hash["command"]}"
-          print "#{return_hash["result"]}"
+          print " #{return_hash["result"]}"
         end
         logger.debug "(#{return_hash["resource"]}  #{return_hash["command"]}  #{return_hash["result"]})"
       end

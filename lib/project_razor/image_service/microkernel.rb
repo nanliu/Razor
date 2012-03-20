@@ -93,6 +93,11 @@ module ProjectRazor
         print "#{Time.at(@iso_build_time)}  \n".green
       end
 
+      def version_weight
+        # Cap any subset with 999 being the maximum
+        @iso_version.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
+        @iso_version.split(".").map {|x| "%03d" % x}.join.to_i
+      end
 
     end
   end

@@ -24,6 +24,30 @@ module ProjectRazor
     end
 
 
+    #####################
+    ##### Default MK ####
+    #####################
+
+    def default_mk
+      mk_images = []
+      $data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify($data.config.image_svc_path) == true}
+
+
+
+      if mk_images.count > 0
+        mk_image = nil
+        mk_images.each do
+        |i|
+          mk_image = i if mk_image == nil
+          mk_image = i if mk_image.version_weight < i.version_weight
+        end
+
+        mk_image
+      else
+        nil
+      end
+    end
+
 
     #####################
 
@@ -113,7 +137,7 @@ module ProjectRazor
 
     def mk_check_bound_policy(node_uuid)
       bound_policy.each do
-        |bp|
+      |bp|
         if bp.node_uuid == node_uuid
           return bp
         end
@@ -204,9 +228,9 @@ module ProjectRazor
         #  bound_policy.boot_call(@node)
         #else
 
-          # There is not bound policy so we boot the MK
-          logger.debug "No active policy found - uuid: #{uuid}"
-          default_mk_boot(uuid)
+        # There is not bound policy so we boot the MK
+        logger.debug "No active policy found - uuid: #{uuid}"
+        default_mk_boot(uuid)
         #end
       else
 
