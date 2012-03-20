@@ -183,6 +183,7 @@ module ProjectRazor
         logger.debug "Generating hash for path: #{dir}"
 
         files_string = Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.sort.join("\n")
+        puts files_string
         Digest::SHA2.hexdigest(files_string)
       end
 
