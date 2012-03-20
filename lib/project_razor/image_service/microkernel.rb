@@ -90,7 +90,7 @@ module ProjectRazor
         print "\tVersion: "
         print "#{@iso_version}  \n".green
         print "\tBuild Time: "
-        print "#{@iso_build_time}  \n".green
+        print "#{Time.at(@iso_build_time)}  \n".green
       end
 
 
