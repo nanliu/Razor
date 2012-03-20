@@ -94,8 +94,10 @@ module ProjectRazor
 
       # Used to remove an image to the service
       # Within each child class the methods are overridden for that child type
-      def remove
-
+      def remove(image_svc_path)
+        set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
+        cleanup([false ,""])
+        Dir.exist?(image_path)
       end
 
       # Used to verify an image within the filesystem (local/remote/possible Glance)
@@ -187,8 +189,8 @@ module ProjectRazor
       def print_image_info(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
 
-        print "\tType: "
-        print "#{@description}  \n".green
+        print "\tUUID: "
+        print "#{@uuid}  \n".green
         print "\tType: "
         print "#{@description}  \n".green
         print "\tISO Filename: "
