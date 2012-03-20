@@ -46,7 +46,11 @@ module ProjectRazor
       end
 
       def verify(image_svc_path)
-        super(image_svc_path)
+        unless super(image_svc_path)
+          logger.error "File structure is invalid"
+          return false
+        end
+
         if File.exist?("#{image_path}/iso-metadata.yaml")
           File.open("#{image_path}/iso-metadata.yaml","r") do
             |f|

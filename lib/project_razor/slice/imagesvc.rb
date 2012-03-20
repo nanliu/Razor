@@ -117,23 +117,30 @@ module ProjectRazor
             images_array.each do
             |image|
 
-              case image.class.to_s
 
-                when "ProjectRazor::ImageService::MicroKernel"
-                  print "\tType: "
-                  print "#{image.description}  ".green
-                  print "Version: "
-                  print "#{image.iso_version}   ".green
-                  print "\n"
-                  print "#{image.iso_build_time}   ".green
-                  print "\n"
-                else
-                  print "\tType: "
-                  print "#{image.description}  ".green
-                  print "Name: "
-                  print "#{image.filename}   ".green
-                  print "\n"
-              end
+              #print "\tType: "
+              #print "#{image.description}  ".green
+              #
+              #case image.class.to_s
+              #
+              #  when "ProjectRazor::ImageService::MicroKernel"
+              #
+              #    print "Version: "
+              #    print "#{image.iso_version}   ".green
+              #    print "\n"
+              #    print "#{image.iso_build_time}   ".green
+              #    print "\n"
+              #  else
+              #    # nothing
+              #end
+              #
+              #print "Filename: "
+              #print "#{image.filename}   ".green
+              #print "\n"
+
+
+              image.set_image_svc_path(@data.config.image_svc_path)
+              image.print_image_info
 
             end
           else
