@@ -64,8 +64,8 @@ module ProjectRazor
 
             setup_data
 
-            default_mk_image(@data.config.image_svc_path)
             base_path = default_mk_image.image_path
+            puts base_path
 
             case @option
               when "kernel"
