@@ -69,7 +69,7 @@ module ProjectRazor
 
             case @option
               when "kernel"
-                slice_success("#{base_path}/boot/#{default_mk_image.kernel}"false)
+                slice_success("#{base_path}/boot/#{default_mk_image.kernel}",false)
 
               when "initrd"
                 slice_success("#{base_path}/boot/#{default_mk_image.initrd}",false)
