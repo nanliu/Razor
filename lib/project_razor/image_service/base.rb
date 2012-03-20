@@ -186,9 +186,9 @@ module ProjectRazor
 
       def print_image_info
         print "\tType: "
-        print "#{image.description}  ".green
+        print "#{@description}  ".green
         print "Path: "
-        print "#{image.image_path}   ".green
+        print "#{image_path}   ".green
         print "\n"
       end
 
