@@ -138,9 +138,7 @@ module ProjectRazor
               #print "#{image.filename}   ".green
               #print "\n"
 
-
-              image.set_image_svc_path(@data.config.image_svc_path)
-              image.print_image_info
+              image.print_image_info(@data.config.image_svc_path)
 
             end
           else
