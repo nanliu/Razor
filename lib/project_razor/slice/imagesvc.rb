@@ -65,8 +65,6 @@ module ProjectRazor
             setup_data
 
             base_path = default_mk_image.image_path
-            puts base_path
-
             case @option
               when "kernel"
                 slice_success("#{base_path}/boot/#{default_mk_image.kernel}",false)
