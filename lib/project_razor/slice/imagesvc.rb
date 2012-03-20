@@ -127,7 +127,8 @@ module ProjectRazor
             else
               if image_selected.remove(@data.config.image_svc_path)
                 if @data.delete_object(image_selected)
-                  slice_success("Image Removed",false)
+                  slice_success("",false)
+                  puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
                   return
                 else
                   slice_error("CannotRemoveImageFromDB", false)
