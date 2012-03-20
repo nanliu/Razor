@@ -16,6 +16,7 @@ module ProjectRazor
 
       def initialize(hash)
         super(hash)
+        @description = "MicroKernel Image"
         @path_prefix = "mk"
         from_hash(hash) unless hash == nil
       end
@@ -27,10 +28,10 @@ module ProjectRazor
           if resp[0]
 
             if verify(image_svc_path)
-              @iso_build_time = @meta['iso_build_time'].to_i
-              @iso_version = @meta['iso_version']
-              @kernel = @meta['kernel']
-              @initrd = @meta['initrd']
+              @iso_build_time = @_meta['iso_build_time'].to_i
+              @iso_version = @_meta['iso_version']
+              @kernel = @_meta['kernel']
+              @initrd = @_meta['initrd']
             else
               logger.error "Missing metadata"
               return [false, "Missing metadata"]
@@ -49,26 +50,26 @@ module ProjectRazor
         if File.exist?("#{image_path}/iso-metadata.yaml")
           File.open("#{image_path}/iso-metadata.yaml","r") do
             |f|
-            @meta = YAML.load(f)
+            @_meta = YAML.load(f)
           end
 
 
-          unless File.exists?("#{image_path}/boot/#{@meta['kernel']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@meta['kernel']}"
+          unless File.exists?("#{image_path}/boot/#{@_meta['kernel']}")
+            logger.error "missing kernel: #{image_path}/boot/#{@_meta['kernel']}"
             return false
           end
 
-          unless File.exists?("#{image_path}/boot/#{@meta['initrd']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@meta['initrd']}"
+          unless File.exists?("#{image_path}/boot/#{@_meta['initrd']}")
+            logger.error "missing kernel: #{image_path}/boot/#{@_meta['initrd']}"
             return false
           end
 
-          if @meta['iso_build_time'] == nil
+          if @_meta['iso_build_time'] == nil
             logger.error "ISO build time is nil"
             return false
           end
 
-          if @meta['iso_version'] == nil
+          if @_meta['iso_version'] == nil
             logger.error "ISO build time is nil"
             return false
           end

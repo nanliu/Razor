@@ -24,7 +24,7 @@ module ProjectRazor
 
 
       def set_image_svc_path(image_svc_path)
-        @image_svc_path = image_svc_path + "/" + @path_prefix
+        @_image_svc_path = image_svc_path + "/" + @path_prefix
       end
 
       # Used to add an image to the service
@@ -111,7 +111,7 @@ module ProjectRazor
       end
 
       def image_path
-        @image_svc_path + "/" + @uuid
+        @_image_svc_path + "/" + @uuid
       end
 
       def is_mounted?(src_image_path)
