@@ -89,7 +89,7 @@ module ProjectRazor
       def print_types(types)
         puts "\nPlease select a valid image type.\nValid types are:".red
         types.each_key do
-          |k|
+        |k|
           print "\t[#{k}]".yellow
           print " - "
           print "#{types[k][:desc]}".yellow
@@ -99,7 +99,7 @@ module ProjectRazor
 
       def check_against_types(type,types)
         types.each_key do
-          |k|
+        |k|
           return true if type == k.to_s
         end
         false
@@ -116,12 +116,25 @@ module ProjectRazor
           unless @verbose
             images_array.each do
             |image|
-              p image
-              #print "\tmac: "
-              #print "#{bmc.mac}  ".green
-              #print "ip: "
-              #print "#{bmc.ip}   ".green
-              #print "\n"
+
+              case image.class.to_s
+
+                when "ProjectRazor::ImageService::MicroKernel"
+                  print "\tType: "
+                  print "#{image.description}  ".green
+                  print "Version: "
+                  print "#{image.iso_version}   ".green
+                  print "\n"
+                  print "#{image.iso_build_time}   ".green
+                  print "\n"
+                else
+                  print "\tType: "
+                  print "#{image.description}  ".green
+                  print "Name: "
+                  print "#{image.filename}   ".green
+                  print "\n"
+              end
+
             end
           else
             images_array.each do
