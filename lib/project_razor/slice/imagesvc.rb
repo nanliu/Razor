@@ -19,10 +19,12 @@ module ProjectRazor
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:add => "add_image",
                            :get => "list_images",
+                           :remove => "remove_image",
                            :default => "list_images"}
         @slice_commands_help = {:add => "imagesvc add " + "[mk|os]".blue + " (PATH TO ISO)".yellow,
-                                :get => "imagesvc [get]",
-                                :default => "imagesvc [get]"}
+                                :get => "imagesvc " + "[get]".blue,
+                                :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
+                                :default => "imagesvc " + "[get]".blue}
         @slice_name = "Imagesvc"
       end
 
@@ -106,9 +108,40 @@ module ProjectRazor
       end
 
 
+      def remove_image
+        if @web_command
+          slice_error("CLIOnlySlice", false)
+        else
+          image_uuid = @command_array.shift
+          if image_uuid == nil
+            slice_error("NoUUIDProvided", false)
+            return
+          else
+            image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
+            if image_selected == nil
+              slice_error("NoImageFoundWithUUID", false)
+              return
+            else
+              if image_selected.remove(@data.config.image_svc_path)
+                if @data.delete_object(image_selected)
+                  slice_success("Image Removed",false)
+                  return
+                else
+                  slice_error("CannotRemoveImageFromDB", false)
+                  return
+                end
+              else
+                slice_error("CannotRemoveImagePath", false)
+                return
+              end
+            end
+          end
+        end
+      end
 
-      # Handles printing of bmc details to CLI or REST
-      # @param [Hash] bmc_array
+
+      # Handles printing of image details to CLI
+      # @param [Array] images_array
       def print_images(images_array)
         unless @web_command
           puts "Images:"
