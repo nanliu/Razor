@@ -109,6 +109,7 @@ module ProjectRazor
 
 
       def remove_image
+        @command = :remove
         if @web_command
           slice_error("CLIOnlySlice", false)
         else
