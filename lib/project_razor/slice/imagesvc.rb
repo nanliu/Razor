@@ -118,30 +118,29 @@ module ProjectRazor
             |image|
 
 
-              print "\tType: "
-              print "#{image.description}  ".green
-              print "Version: "
-              case image.class.to_s
-
-                when "ProjectRazor::ImageService::MicroKernel"
-
-                  print "#{image.iso_version}   ".green
-                  print "\n"
-                  print "#{image.iso_build_time}   ".green
-                  print "\n"
-                else
-                  # nothing
-              end
-
-              print "Filename: "
-              print "#{image.filename}   ".green
-              print "\n"
+              #print "\tType: "
+              #print "#{image.description}  ".green
+              #
+              #case image.class.to_s
+              #
+              #  when "ProjectRazor::ImageService::MicroKernel"
+              #
+              #    print "Version: "
+              #    print "#{image.iso_version}   ".green
+              #    print "\n"
+              #    print "#{image.iso_build_time}   ".green
+              #    print "\n"
+              #  else
+              #    # nothing
+              #end
+              #
+              #print "Filename: "
+              #print "#{image.filename}   ".green
+              #print "\n"
 
 
               image.set_image_svc_path(@data.config.image_svc_path)
-              print "Path: "
-              print "#{image.image_path}   ".green
-              print "\n"
+              image.print_image_info
 
             end
           else

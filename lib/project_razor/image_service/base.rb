@@ -19,6 +19,7 @@ module ProjectRazor
         super()
         @path_prefix = "base"
         @_collection = :images
+        @description = "Image Base"
         from_hash(hash) unless hash == nil
       end
 
@@ -38,11 +39,8 @@ module ProjectRazor
           # Get filename
           @filename = File.basename(fullpath)
 
-          #puts "fullpath: #{fullpath}".red
           logger.debug "fullpath: #{fullpath}"
-          #puts "filename: #{@filename}".red
           logger.debug "filename: #{@filename}"
-          #puts "mount path: #{mount_path}".red
           logger.debug "mount path: #{mount_path}"
 
 
@@ -55,10 +53,7 @@ module ProjectRazor
           File.open(src_image_path, "r") {|f| @size = f.size}
 
           # Confirm a mount doesn't already exist
-          if is_mounted?(fullpath)
-            #puts "already mounted"
-          else
-            #puts "not mounted already"
+          unless is_mounted?(fullpath)
             unless mount(fullpath)
               logger.error "Could not mount #{fullpath} on #{mount_path}"
               return cleanup([false,"Could not mount"])
@@ -187,6 +182,14 @@ module ProjectRazor
 
         files_string = Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.sort.join("\n")
         Digest::SHA2.hexdigest(files_string)
+      end
+
+      def print_image_info
+        print "\tType: "
+        print "#{image.description}  ".green
+        print "Path: "
+        print "#{image.image_path}   ".green
+        print "\n"
       end
 
     end
