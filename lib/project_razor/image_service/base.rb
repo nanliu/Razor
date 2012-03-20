@@ -189,6 +189,8 @@ module ProjectRazor
 
         print "\tType: "
         print "#{@description}  \n".green
+        print "\tISO Filename: "
+        print "#{@filename}  \n".green
         print "\tPath: "
         print "#{image_path}  \n".green
         print "\tStatus: "

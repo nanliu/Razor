@@ -116,30 +116,8 @@ module ProjectRazor
           unless @verbose
             images_array.each do
             |image|
-
-
-              #print "\tType: "
-              #print "#{image.description}  ".green
-              #
-              #case image.class.to_s
-              #
-              #  when "ProjectRazor::ImageService::MicroKernel"
-              #
-              #    print "Version: "
-              #    print "#{image.iso_version}   ".green
-              #    print "\n"
-              #    print "#{image.iso_build_time}   ".green
-              #    print "\n"
-              #  else
-              #    # nothing
-              #end
-              #
-              #print "Filename: "
-              #print "#{image.filename}   ".green
-              #print "\n"
-
               image.print_image_info(@data.config.image_svc_path)
-
+              print "\n"
             end
           else
             images_array.each do

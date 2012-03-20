@@ -85,6 +85,14 @@ module ProjectRazor
         end
       end
 
+      def print_image_info(image_svc_path)
+        super(image_svc_path)
+        print "\tVersion: "
+        print "#{@description}  \n".green
+        print "\tBuild Time: "
+        print "#{image_path}  \n".green
+      end
+
 
     end
   end
