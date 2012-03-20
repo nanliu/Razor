@@ -97,7 +97,7 @@ module ProjectRazor
       def remove(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         cleanup([false ,""])
-        Dir.exist?(image_path)
+        !Dir.exist?(image_path)
       end
 
       # Used to verify an image within the filesystem (local/remote/possible Glance)
