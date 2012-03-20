@@ -102,10 +102,6 @@ module ProjectRazor
       # Within each child class the methods are overridden for that child type
       def verify(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
-        puts image_path
-        puts get_dir_hash(image_path)
-
-        puts @verification_hash
         get_dir_hash(image_path) == @verification_hash
       end
 
@@ -185,7 +181,6 @@ module ProjectRazor
         logger.debug "Generating hash for path: #{dir}"
 
         files_string = Dir.glob("#{dir}/**/*").map {|x| x.sub("#{dir}/","")}.sort.join("\n")
-        puts files_string
         Digest::SHA2.hexdigest(files_string)
       end
 
