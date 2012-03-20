@@ -34,6 +34,7 @@ end
 
 # Call the slice
 def call_razor_slice
+  begin
   if is_slice?
     razor_module = Object.full_const_get(SLICE_PREFIX + @namespace.capitalize).new(@args)
     razor_module.web_command = @web_command
@@ -46,6 +47,11 @@ def call_razor_slice
       print "\n [#{@namespace.capitalize}] ".red
       print "<-Invalid Slice \n".yellow
     end
+  end
+  rescue => e
+    print_header
+    print "\n [#{@namespace.capitalize}] ".red
+    print "<-#{e.message} \n".yellow
   end
 end
 
