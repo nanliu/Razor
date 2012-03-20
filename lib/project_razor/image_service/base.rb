@@ -101,7 +101,7 @@ module ProjectRazor
       # Used to verify an image within the filesystem (local/remote/possible Glance)
       # Within each child class the methods are overridden for that child type
       def verify(image_svc_path)
-        set_image_svc_path(image_svc_path) if @_image_svc_path == nil
+        set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         puts image_path
         puts get_dir_hash(image_path)
 
