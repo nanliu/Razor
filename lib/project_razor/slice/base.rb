@@ -108,7 +108,7 @@ module ProjectRazor
           print "[#{@slice_name.capitalize}] "
           print "[#{return_hash["command"]}] ".red
           print "<-#{return_hash["result"]}\n".yellow
-          puts "\nCommand syntax: #{@slice_commands_help[@command]}".red unless @slice_commands_help[@command] == nil
+          puts "\nCommand syntax:" + " #{@slice_commands_help[@command]}".red + "\n" unless @slice_commands_help[@command] == nil
         end
       end
 

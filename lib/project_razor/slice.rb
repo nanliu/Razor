@@ -9,6 +9,7 @@ require "project_razor/slice/model"
 require "project_razor/slice/node"
 require "project_razor/slice/tag"
 require "project_razor/slice/bmc"
+require "project_razor/slice/imagesvc"
 
 
 module Slice

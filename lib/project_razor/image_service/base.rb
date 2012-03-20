@@ -18,6 +18,7 @@ module ProjectRazor
       def initialize(hash)
         super()
         @path_prefix = "base"
+        @_collection = :images
         from_hash(hash) unless hash == nil
       end
 
@@ -37,11 +38,11 @@ module ProjectRazor
           # Get filename
           @filename = File.basename(fullpath)
 
-          puts "fullpath: #{fullpath}".red
+          #puts "fullpath: #{fullpath}".red
           logger.debug "fullpath: #{fullpath}"
-          puts "filename: #{@filename}".red
+          #puts "filename: #{@filename}".red
           logger.debug "filename: #{@filename}"
-          puts "mount path: #{mount_path}".red
+          #puts "mount path: #{mount_path}".red
           logger.debug "mount path: #{mount_path}"
 
 
@@ -55,9 +56,9 @@ module ProjectRazor
 
           # Confirm a mount doesn't already exist
           if is_mounted?(fullpath)
-            puts "already mounted"
+            #puts "already mounted"
           else
-            puts "not mounted already"
+            #puts "not mounted already"
             unless mount(fullpath)
               logger.error "Could not mount #{fullpath} on #{mount_path}"
               return cleanup([false,"Could not mount"])
