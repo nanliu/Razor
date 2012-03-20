@@ -101,7 +101,7 @@ module ProjectRazor
       # Used to verify an image within the filesystem (local/remote/possible Glance)
       # Within each child class the methods are overridden for that child type
       def verify(image_svc_path)
-        set_image_svc_path(image_svc_path)
+        set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         get_dir_hash(image_path) == @verification_hash
       end
 
@@ -184,13 +184,17 @@ module ProjectRazor
         Digest::SHA2.hexdigest(files_string)
       end
 
-      def print_image_info
+      def print_image_info(image_svc_path)
+        set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
+
         print "\tType: "
         print "#{@description}  \n".green
-        print "Path: "
+        print "\tISO Filename: "
+        print "#{@filename}  \n".green
+        print "\tPath: "
         print "#{image_path}  \n".green
-        print "Status: "
-        print "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
+        print "\tStatus: "
+        print "#{verify(image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
       end
 
     end
