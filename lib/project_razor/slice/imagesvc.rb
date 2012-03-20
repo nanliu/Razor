@@ -110,6 +110,7 @@ module ProjectRazor
 
       def remove_image
         @command = :remove
+
         if @web_command
           slice_error("CLIOnlySlice", false)
         else
@@ -118,6 +119,7 @@ module ProjectRazor
             slice_error("NoUUIDProvided", false)
             return
           else
+            setup_data
             image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
             if image_selected == nil
               slice_error("NoImageFoundWithUUID", false)
