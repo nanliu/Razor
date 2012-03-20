@@ -30,7 +30,7 @@ module ProjectRazor
 
     def default_mk
       mk_images = []
-      $data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify == true}
+      $data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify($data.config.image_svc_path) == true}
 
 
 
