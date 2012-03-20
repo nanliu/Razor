@@ -102,6 +102,8 @@ module ProjectRazor
       # Within each child class the methods are overridden for that child type
       def verify(image_svc_path)
         set_image_svc_path(image_svc_path)
+        puts get_dir_hash(image_path)
+        puts @verification_hash
         get_dir_hash(image_path) == @verification_hash
       end
 
@@ -187,9 +189,9 @@ module ProjectRazor
       def print_image_info
         print "\tType: "
         print "#{@description}  \n".green
-        print "Path: "
+        print "\tPath: "
         print "#{image_path}  \n".green
-        print "Status: "
+        print "\tStatus: "
         print "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
       end
 
