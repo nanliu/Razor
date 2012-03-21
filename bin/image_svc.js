@@ -29,10 +29,20 @@ app.get('/razor/image/mk*',
             path = getPath(stdout);
         });
 
+
+
         if (path != null) {
+            var filename = path.split("/")[path.split("/").length - 1];
             res.writeHead(200, {'Content-Type': 'application/octet-stream'});
             var fileStream = fs.createReadStream(path);
-            fileStream.pipe(res);
+            res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+            fileStream.on('data', function(chunk) {
+                res.write(chunk);
+            });
+            fileStream.on('end', function() {
+                res.end();
+            });
+//            fileStream.pipe(res);
         } else {
             res.send("Error", 404, {"Content-Type": "application/octet-stream"});
         }
