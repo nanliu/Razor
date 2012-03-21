@@ -29,9 +29,10 @@ app.get('/razor/image/mk*',
             path = getPath(stdout);
         });
 
-        var filename = path.split("/")[path.split("/").length - 1];
+
 
         if (path != null) {
+            var filename = path.split("/")[path.split("/").length - 1];
             res.writeHead(200, {'Content-Type': 'application/octet-stream'});
             var fileStream = fs.createReadStream(path);
             res.setHeader('Content-disposition', 'attachment; filename=' + filename);
