@@ -3,8 +3,7 @@
 //
 // Node.js Endpoint for ProjectRazor Image Service
 
-var path;
-var mk_iso;
+
 
 var razor_bin = __dirname+ "/razor -w"; // Set project_razor.rb path
 console.log(razor_bin);
@@ -27,27 +26,27 @@ app.get('/razor/image/mk*',
         exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
             console.log(stdout);
             path = getPath(stdout);
+            respondWithFile(path, res)
         });
-
-
-
-        if (path != null) {
-            var filename = path.split("/")[path.split("/").length - 1];
-            res.writeHead(200, {'Content-Type': 'application/octet-stream'});
-            var fileStream = fs.createReadStream(path);
-            res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-            fileStream.on('data', function(chunk) {
-                res.write(chunk);
-            });
-            fileStream.on('end', function() {
-                res.end();
-            });
-//            fileStream.pipe(res);
-        } else {
-            res.send("Error", 404, {"Content-Type": "application/octet-stream"});
-        }
-
     });
+
+function respondWithFile(path, res) {
+    if (path != null) {
+        var filename = path.split("/")[path.split("/").length - 1];
+        res.writeHead(200, {'Content-Type': 'application/octet-stream'});
+        var fileStream = fs.createReadStream(path);
+        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        fileStream.on('data', function(chunk) {
+            res.write(chunk);
+        });
+        fileStream.on('end', function() {
+            res.end();
+        });
+//            fileStream.pipe(res);
+    } else {
+        res.send("Error", 404, {"Content-Type": "application/octet-stream"});
+    }
+}
 
 
 
