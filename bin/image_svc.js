@@ -44,7 +44,7 @@ app.get('/razor/image/mk*',
 function getPath(json_string) {
     var response = JSON.parse(json_string);
     if (response['errcode'] == 0) {
-        return response['result'];
+        return response['response'];
     } else {
         return null
     }
