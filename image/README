@@ -1,1 +1,2 @@
-This is the default Razor images folder. If no environment variable is set for RAZOR_IMAGES_PATH then this is used by default.
+= This is the default folder for Razor images
+== This can be overridden in the config
