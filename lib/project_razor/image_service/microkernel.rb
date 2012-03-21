@@ -2,6 +2,9 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "yaml"
+require "digest/sha2"
+require "digest/hmac"
+require "extlib"
 
 module ProjectRazor
   module ImageService
@@ -10,6 +13,10 @@ module ProjectRazor
       attr_accessor :mk_version
       attr_accessor :kernel
       attr_accessor :initrd
+      attr_accessor :kernel_hash
+      attr_accessor :initrd_hash
+      attr_accessor :hash_description
+
       attr_accessor :iso_build_time
       attr_accessor :iso_version
 
@@ -32,6 +39,9 @@ module ProjectRazor
               @iso_version = @_meta['iso_version']
               @kernel = @_meta['kernel']
               @initrd = @_meta['initrd']
+
+              set_hash_vars
+
             else
               logger.error "Missing metadata"
               return [false, "Missing metadata"]
@@ -53,7 +63,7 @@ module ProjectRazor
 
         if File.exist?("#{image_path}/iso-metadata.yaml")
           File.open("#{image_path}/iso-metadata.yaml","r") do
-            |f|
+          |f|
             @_meta = YAML.load(f)
           end
 
@@ -78,11 +88,58 @@ module ProjectRazor
             return false
           end
 
+          if @_meta['hash_description'] == nil
+            logger.error "Hash description is nil"
+            return false
+          end
+
+          if @_meta['kernel_hash'] == nil
+            logger.error "Kernel hash is nil"
+            return false
+          end
+
+          if @_meta['initrd_hash'] == nil
+            logger.error "Initrd hash is nil"
+            return false
+          end
+
+          # We need to verify the kernel/initrd hash
+          # If our instance variables are nil then this is first time and we update the instance vars
+
+          set_hash_vars
+
+          digest = Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
+          khash = File.exist?(kernel_path) ? digest.hexdigest(File.read(kernel_path)) : ""
+          ihash = File.exist?(initrd_path) ? digest.hexdigest(File.read(initrd_path)) : ""
+
+          unless @kernel_hash == khash
+            logger.error "Kernel #{@kernel} is invalid"
+            return false
+          end
+
+          unless @initrd_hash == ihash
+            logger.error "Initrd #{@initrd} is invalid"
+            return false
+          end
+
+
           true
         else
           logger.error "Missing metadata"
           false
         end
+      end
+
+      def set_hash_vars
+        if @kernel_hash == nil ||
+            @initrd_hash == nil ||
+            @hash_description == nil
+
+          @kernel_hash = @_meta['kernel_hash']
+          @initrd_hash = @_meta['initrd_hash']
+          @hash_description = @_meta['hash_description']
+        end
+
       end
 
       def print_image_info(image_svc_path)
@@ -97,6 +154,14 @@ module ProjectRazor
         # Cap any subset with 999 being the maximum
         @iso_version.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
         @iso_version.split(".").map {|x| "%03d" % x}.join.to_i
+      end
+
+      def kernel_path
+        image_path + "/" + @kernel
+      end
+
+      def initrd_path
+        image_path + "/" + @initrd
       end
 
     end

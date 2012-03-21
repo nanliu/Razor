@@ -44,7 +44,6 @@ function respondWithFile(path, res) {
         fileStream.on('end', function() {
             res.end();
         });
-//            fileStream.pipe(res);
     } else {
         res.send("Error", 404, {"Content-Type": "application/octet-stream"});
     }
@@ -82,14 +81,9 @@ function getArguments(args_array) {
 // Start our server if we can get a valid config
 function startServer(json_config) {
     var config = JSON.parse(json_config);
-//    memdisk = config['@image_svc_path']  + "/mk/memdisk";
-//    mk_iso = config['@image_svc_path']  + "/mk/" + config['@base_mk'] ;
-
     if (config['@image_svc_port'] != null) {
         app.listen(config['@image_svc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
-//        console.log('Default MK path: ' + mk_iso)
-//        console.log('Default memdisk path: ' + memdisk)
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
     }
