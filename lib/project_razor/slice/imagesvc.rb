@@ -63,8 +63,6 @@ module ProjectRazor
           if @option != nil
 
             setup_data
-
-            base_path = default_mk_image.image_path
             case @option
               when "kernel"
                 slice_success(default_mk_image.kernel_path,false)
