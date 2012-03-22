@@ -61,7 +61,7 @@ module ProjectRazor
 
       def get_model_config
         @command = :get_model_config
-        slice_errror("MissingArgument")
+        slice_error("MissingArgument")
 
       end
 
