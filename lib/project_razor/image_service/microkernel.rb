@@ -34,24 +34,16 @@ module ProjectRazor
           resp = super(src_image_path, image_svc_path)
           if resp[0]
 
-            if verify(image_svc_path)
-              @iso_build_time = @_meta['iso_build_time'].to_i
-              @iso_version = @_meta['iso_version']
-              @kernel = @_meta['kernel']
-              @initrd = @_meta['initrd']
-
-              set_hash_vars
-
-            else
+            unless verify(image_svc_path)
               logger.error "Missing metadata"
               return [false, "Missing metadata"]
             end
           else
             resp
           end
-        #rescue => e
-        #  logger.error e.message
-        #  return [false, e.message]
+          #rescue => e
+          #  logger.error e.message
+          #  return [false, e.message]
         end
       end
 
@@ -67,46 +59,44 @@ module ProjectRazor
             @_meta = YAML.load(f)
           end
 
+          set_hash_vars
 
-          unless File.exists?("#{image_path}/#{@_meta['kernel']}")
-            logger.error "missing kernel: #{image_path}/#{@_meta['kernel']}"
+
+          unless File.exists?(kernel_path)
+            logger.error "missing kernel: #{kernel_path}"
             return false
           end
 
-          unless File.exists?("#{image_path}/#{@_meta['initrd']}")
-            logger.error "missing kernel: #{image_path}/#{@_meta['initrd']}"
+          unless File.exists?(initrd_path)
+            logger.error "missing initrd: #{initrd_path}"
             return false
           end
 
-          if @_meta['iso_build_time'] == nil
+          if @iso_build_time == nil
             logger.error "ISO build time is nil"
             return false
           end
 
-          if @_meta['iso_version'] == nil
+          if @iso_version == nil
             logger.error "ISO build time is nil"
             return false
           end
 
-          if @_meta['hash_description'] == nil
+          if @hash_description == nil
             logger.error "Hash description is nil"
             return false
           end
 
-          if @_meta['kernel_hash'] == nil
+          if @kernel_hash == nil
             logger.error "Kernel hash is nil"
             return false
           end
 
-          if @_meta['initrd_hash'] == nil
+          if @initrd_hash == nil
             logger.error "Initrd hash is nil"
             return false
           end
 
-          # We need to verify the kernel/initrd hash
-          # If our instance variables are nil then this is first time and we update the instance vars
-
-          set_hash_vars
 
           digest = Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
           khash = File.exist?(kernel_path) ? digest.hexdigest(File.read(kernel_path)) : ""
@@ -131,6 +121,17 @@ module ProjectRazor
       end
 
       def set_hash_vars
+        if @iso_build_time ==nil ||
+            @iso_version == nil ||
+            @kernel == nil ||
+            @initrd == nil
+
+          @iso_build_time = @_meta['iso_build_time'].to_i
+          @iso_version = @_meta['iso_version']
+          @kernel = @_meta['kernel']
+          @initrd = @_meta['initrd']
+        end
+
         if @kernel_hash == nil ||
             @initrd_hash == nil ||
             @hash_description == nil
