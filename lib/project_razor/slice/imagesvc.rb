@@ -147,11 +147,11 @@ module ProjectRazor
       end
 
       def add_mk(new_image, iso_path, image_svc_path)
-        new_image.add(iso_path, image_svc_path)
+        new_image.add(iso_path, image_svc_path, nil)
       end
 
       def add_os(new_image, iso_path, image_svc_path)
-        new_image.add(iso_path, image_svc_path)
+        new_image.add(iso_path, image_svc_path, nil)
       end
 
       def insert_image(image_obj)
