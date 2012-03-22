@@ -128,7 +128,7 @@ module ProjectRazor
 
           new_image = Object::full_const_get(classname).new({})
           # We send the new image object to the appropriate method
-          res = self.send image_types[image_type.to_sym][:method], new_image
+          res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
 
           unless res[0]
             slice_error(res[1], false)
@@ -146,13 +146,12 @@ module ProjectRazor
         end
       end
 
-      def add_mk(new_image)
-        new_image.add(iso_path, @data.config.image_svc_path)
-
+      def add_mk(new_image, iso_path, image_svc_path)
+        new_image.add(iso_path, image_svc_path)
       end
 
-      def add_os(new_image)
-        new_image.add(iso_path, @data.config.image_svc_path)
+      def add_os(new_image, iso_path, image_svc_path)
+        new_image.add(iso_path, image_svc_path)
       end
 
       def insert_image(image_obj)

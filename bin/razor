@@ -117,6 +117,8 @@ if $0 == __FILE__
           @debug = true
         when "--verbose"
           @verbose = true
+        else
+          #
       end
     end
 
