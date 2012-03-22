@@ -26,7 +26,7 @@ module ProjectRazor
                            :list => "query_model"}
         @slice_commands_help = {:list => "model list",
                                 :default => "model"}
-        @slice_name = "Node"
+        @slice_name = "Model"
       end
 
 
