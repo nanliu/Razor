@@ -8,7 +8,7 @@ module ProjectRazor
     class BootMK< ProjectRazor::Policy::Base
 
       # @param hash [Hash]
-      def initialize
+      def initialize(hash)
         super(nil)
 
         @hidden = :true
