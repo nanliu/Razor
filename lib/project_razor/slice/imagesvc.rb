@@ -166,7 +166,7 @@ module ProjectRazor
           return [false, "MissingOSVersion"]
         end
 
-        #new_image.add(iso_path, image_svc_path, nil)
+        new_image.add(iso_path, image_svc_path, {:os_version => os_version, :os_name => os_name})
       end
 
       def insert_image(image_obj)
