@@ -22,7 +22,7 @@ module ProjectRazor
                            :default => "get_policy",
                            :remove => "remove_policy"}
         @slice_commands_help = {:add => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
-                                :get => "imagesvc policy ".red + " {get [rule|type]}".blue,
+                                :get => "imagesvc policy ".red + "{get [rule|type]}".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue}
         @slice_name = "Policy"
@@ -38,8 +38,10 @@ module ProjectRazor
             get_policy_rules
           when "type"
             get_policy_types
+          when "model_config"
+            get_model_config
           when "help"
-            slice_error("", false)
+            slice_error("Help", false)
           else
             get_policy_rules
         end
@@ -55,6 +57,12 @@ module ProjectRazor
         policy_rules = ProjectRazor::PolicyRules.instance
 
         print_policy_types policy_rules.get_types
+      end
+
+      def get_model_config
+        @command = :get_model_config
+        slice_errror("MissingArgument")
+
       end
 
 

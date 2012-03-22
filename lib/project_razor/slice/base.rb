@@ -59,7 +59,7 @@ module ProjectRazor
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
       # @param [Hash] response
-      def slice_success(response, mk_response)
+      def slice_success(response, mk_response = false)
         return_hash = {}
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
@@ -81,7 +81,7 @@ module ProjectRazor
       # Called when a slice action triggers an error
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
-      def slice_error(error, mk_response)
+      def slice_error(error, mk_response = false)
         @command = "null" if @command == nil
 
         return_hash = {}
