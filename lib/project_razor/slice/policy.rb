@@ -17,12 +17,10 @@ module ProjectRazor
       def initialize(args)
         super(args)
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:add_rule => "add_policy_rule",
-                           :get_rules => "get_policy_rule",
-                           :default => "get_policy_rule",
-                           :remove_rule => "remove_policy_rule",
-                           :get_types => "get_policy_types",
-                           :get_model_configs => "get_model_configs"}
+        @slice_commands = {:add => "add_policy",
+                           :get => "get_policy",
+                           :default => "get_policy",
+                           :remove => "remove_policy"}
         @slice_commands_help = {:add_rule => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
                                 :get_rules => "imagesvc {get_rules}" + "[get]".blue,
                                 :remove_rule => "imagesvc remove " + "(IMAGE UUID)".yellow,
@@ -31,7 +29,22 @@ module ProjectRazor
       end
 
 
-      def get_policy_rule
+      def get_policy
+        @arg01 =  @command_array.shift
+
+        case @arg01
+          when "rule"
+            get_policy_rules
+          when "type"
+            get_policy_types
+          else
+            get_policy_rules
+        end
+
+
+      end
+
+      def get_policy_rules
         print_policy_rules get_object("policy_rules", :policy_rule)
       end
 
@@ -66,7 +79,7 @@ module ProjectRazor
         unless @web_command
           puts "Policy Types:"
           unless @verbose
-            types_array.each { |type| puts "#{type.policy_type} ".yellow + " :  #{type.description}" }
+            types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
           else
             types_array.each { |type| print_object_details_cli(type) }
           end
