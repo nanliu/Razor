@@ -28,7 +28,7 @@ module ProjectRazor
         end
       end
       policy_type_array = {}
-      temp_hash.each_value {|x| @slice_array[x] = x}
+      temp_hash.each_value {|x| policy_type_array[x] = x}
       policy_type_array.each_value.collect {|x| x}
 
       policy_type_array.each do
