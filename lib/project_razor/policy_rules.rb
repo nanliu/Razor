@@ -70,6 +70,14 @@ module ProjectRazor
       valid_types
     end
 
+    def is_policy_type?(policy_type)
+      get_types.each do
+        |type|
+        return true if type.policy_type.to_s == policy_type
+      end
+      false
+    end
+
 
     def get
       # Get all the policy rules

@@ -98,6 +98,28 @@ module ProjectRazor
         end
       end
 
+      def get_model_types
+        @command = :get_model_type
+        policy_type_name =  @command_array.shift
+
+        if policy_type_name == nil
+          slice_error("MissingArgument")
+        else
+          policy_rules = ProjectRazor::PolicyRules.instance
+
+          if policy_rules.is_policy_type?(policy_type_name)
+            valid_model_types = []
+            policy_rules.get_model_types.each do
+            |type|
+              valid_model_types << type if policy_type_name == type.model_type.to_s
+            end
+            print_model_types valid_model_types
+          else
+            slice_error("PolicyTypeNotFound")
+          end
+        end
+      end
+
 
 
 
