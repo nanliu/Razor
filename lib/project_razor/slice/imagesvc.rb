@@ -8,6 +8,9 @@ require "yaml"
 # @author Nicholas Weaver
 module ProjectRazor
   module Slice
+
+    # TODO - add inspection to prevent duplicate MK's with identical version to be added
+
     # ProjectRazor Slice ImageSvc
     # Used for image management
     # @author Nicholas Weaver
@@ -151,7 +154,9 @@ module ProjectRazor
       end
 
       def add_os(new_image, iso_path, image_svc_path)
-        new_image.add(iso_path, image_svc_path, nil)
+        @slice_commands_help[:add] = "imagesvc add " + "os".blue + " (PATH TO ISO) ".yellow + "(OS Name) (OS Version)".yellow
+        slice_error("MissingOSName",false)
+        #new_image.add(iso_path, image_svc_path, nil)
       end
 
       def insert_image(image_obj)
