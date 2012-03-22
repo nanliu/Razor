@@ -15,6 +15,7 @@ module ProjectRazor
         super(hash)
         @hidden = false
         @model_type = :linux_deploy
+        @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
       end
 
