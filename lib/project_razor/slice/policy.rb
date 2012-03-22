@@ -25,7 +25,7 @@ module ProjectRazor
                                 :get => "imagesvc policy ".red + "{get [rule|type]}".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue,
-                                :get_model_config => "imagesvc get model_config ".red + "(policy type)".blue}
+                                :get_model_config => "imagesvc policy get model_config ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
