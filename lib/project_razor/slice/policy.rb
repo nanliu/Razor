@@ -74,7 +74,7 @@ module ProjectRazor
             policy_type = type if policy_type_name == type.policy_type
           end
 
-          if policy_type == nil
+          if policy_type != nil
             puts policy_type.inspect
           else
             slice_error("InvalidPolicyType")
