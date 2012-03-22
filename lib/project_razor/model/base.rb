@@ -18,8 +18,8 @@ module ProjectRazor
       # init
       # @param hash [Hash]
       def initialize(hash)
-        @name = nil
-        @model_type = :linux_deploy
+        @name = "Base Model(hidden)"
+        @model_type = :base
         @model_description = "Base model type"
         @values_hash = {}
         super()

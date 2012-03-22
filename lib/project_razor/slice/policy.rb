@@ -71,13 +71,13 @@ module ProjectRazor
           policy_type = nil
           policy_rules.get_types.each do
           |type|
-            policy_type = type if policy_type_name == type.policy_type.to_s
+            policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
           end
 
           if policy_type != nil
-            puts policy_type.inspect
+            print_model_configs policy_rules.get_model_configs(policy_type)
           else
-            slice_error("InvalidPolicyType")
+            slice_error("PolicyTypeNotFound")
           end
         end
       end
@@ -105,19 +105,6 @@ module ProjectRazor
         end
       end
 
-      def print_policy_types(types_array)
-        unless @web_command
-          puts "Policy Types:"
-          unless @verbose
-            types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
-          else
-            types_array.each { |type| print_object_details_cli(type) }
-          end
-        else
-          types_array = types_array.collect { |type| type.to_hash }
-          slice_success(types_array, false)
-        end
-      end
 
 
 

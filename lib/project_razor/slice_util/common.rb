@@ -70,6 +70,37 @@ module ProjectRazor
 
 
 
+      ########### Common Slice Printing ###########
+
+      def print_policy_types(types_array)
+        unless @web_command
+          puts "Policy Types:"
+          unless @verbose
+            types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
+          else
+            types_array.each { |type| print_object_details_cli(type) }
+          end
+        else
+          types_array = types_array.collect { |type| type.to_hash }
+          slice_success(types_array, false)
+        end
+      end
+
+      def print_model_configs(model_array)
+        unless @web_command
+          puts "Model Config:"
+          unless @verbose
+            model_array.each { |model| puts "\t#{model.name} ".yellow + " :  #{model.description}" }
+          else
+            model_array.each { |model| print_object_details_cli(model) }
+          end
+        else
+          model_array = model_array.collect { |model| model.to_hash }
+          slice_success(model_array, false)
+        end
+      end
+
+
     end
   end
 end

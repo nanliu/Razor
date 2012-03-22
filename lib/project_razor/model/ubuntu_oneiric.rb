@@ -13,7 +13,7 @@ module ProjectRazor
 
       def initialize(hash)
         super(hash)
-        @model_type = :ubuntu_oneiric_minimal
+        @model_type = :linux_deploy
         @model_description = "Ubuntu Oneiric 11.10 Minimal"
       end
 
