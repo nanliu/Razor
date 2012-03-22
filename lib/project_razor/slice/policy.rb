@@ -87,16 +87,7 @@ module ProjectRazor
           #else
           types_array.each do
           |type|
-            type.instance_variables.each do
-            |iv|
-              unless iv.to_s.start_with?("@_")
-                key = iv.to_s.sub("@", "")
-                print "#{key}: "
-                print "#{type.instance_variable_get(iv)}  ".green
-              end
-            end
-            print "\n"
-            #end
+            print_object_details_cli(type)
           end
         else
           types_array = types_array.collect { |type| type.to_hash }
