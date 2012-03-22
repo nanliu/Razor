@@ -71,7 +71,7 @@ module ProjectRazor
           policy_type = nil
           policy_rules.get_types.each do
           |type|
-            policy_type = type if policy_type_name == type.policy_type
+            policy_type = type if policy_type_name == type.policy_type.to_s
           end
 
           if policy_type != nil
