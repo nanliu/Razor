@@ -47,7 +47,7 @@ module ProjectRazor
         print_model_configs get_object("model_config", :model)
       end
 
-      def get_model_type
+      def get_model_types
         policy_rules = ProjectRazor::PolicyRules.instance
         print_model_types policy_rules.get_model_types
       end
