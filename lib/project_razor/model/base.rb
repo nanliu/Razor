@@ -12,7 +12,7 @@ module ProjectRazor
     class Base < ProjectRazor::Object
       attr_accessor :name
       attr_accessor :model_type
-      attr_accessor :model_description
+      attr_accessor :description
       attr_accessor :values_hash
       attr_accessor :hidden
 
@@ -22,7 +22,7 @@ module ProjectRazor
         @name = "Base Model(hidden)"
         @hidden = true
         @model_type = :base
-        @model_description = "Base model type"
+        @description = "Base model type"
         @values_hash = {}
         super()
         @_collection = :model
