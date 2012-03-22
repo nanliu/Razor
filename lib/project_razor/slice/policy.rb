@@ -38,7 +38,7 @@ module ProjectRazor
       def get_policy_types
         policy_rules = ProjectRazor::PolicyRules.instance
 
-        print_policy_rules policy_rules.get_types
+        print_policy_types policy_rules.get_types
       end
 
 
@@ -55,19 +55,7 @@ module ProjectRazor
           #    print "\n"
           #  end
           #else
-          rules_array.each do
-          |rule|
-            rule.instance_variables.each do
-            |iv|
-              unless iv.to_s.start_with?("@_")
-                key = iv.to_s.sub("@", "")
-                print "#{key}: "
-                print "#{rule.instance_variable_get(iv)}  ".green
-              end
-            end
-            print "\n"
-            #end
-          end
+          rules_array.each { |rule| print_object_details_cli(rule) }
         else
           rules_array = rules_array.collect { |rule| rule.to_hash }
           slice_success(rules_array, false)
@@ -85,10 +73,7 @@ module ProjectRazor
           #    print "\n"
           #  end
           #else
-          types_array.each do
-          |type|
-            print_object_details_cli(type)
-          end
+          types_array.each { |type| print_object_details_cli(type) }
         else
           types_array = types_array.collect { |type| type.to_hash }
           slice_success(types_array, false)
