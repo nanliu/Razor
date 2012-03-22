@@ -38,12 +38,13 @@ module ProjectRazor
               logger.error "Missing metadata"
               return [false, "Missing metadata"]
             end
+            return resp
           else
             resp
           end
-          #rescue => e
-          #  logger.error e.message
-          #  return [false, e.message]
+          rescue => e
+            logger.error e.message
+            return [false, e.message]
         end
       end
 
