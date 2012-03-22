@@ -68,13 +68,13 @@ module ProjectRazor
           end
 
 
-          unless File.exists?("#{image_path}/boot/#{@_meta['kernel']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@_meta['kernel']}"
+          unless File.exists?("#{image_path}/#{@_meta['kernel']}")
+            logger.error "missing kernel: #{image_path}/#{@_meta['kernel']}"
             return false
           end
 
-          unless File.exists?("#{image_path}/boot/#{@_meta['initrd']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@_meta['initrd']}"
+          unless File.exists?("#{image_path}/#{@_meta['initrd']}")
+            logger.error "missing kernel: #{image_path}/#{@_meta['initrd']}"
             return false
           end
 
