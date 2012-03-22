@@ -11,9 +11,7 @@ require 'singleton'
 
 module ProjectRazor
   module PowerControl
-    #class IpmiController < ProjectRazor::Object
-    class IpmiController
-
+    class IpmiController < ProjectRazor::Object
 
       include Singleton
 
