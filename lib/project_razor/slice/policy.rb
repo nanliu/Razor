@@ -22,10 +22,12 @@ module ProjectRazor
                            :default => "get_policy",
                            :remove => "remove_policy"}
         @slice_commands_help = {:add => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
-                                :get => "imagesvc policy ".red + "{get [rule|type]}".blue,
+                                :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue,
-                                :get_model_config => "imagesvc policy get model_config ".white + "(policy type)".red}
+                                :get_model => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
+                                :get_model_config => "imagesvc policy get model config ".white + "(policy type)".red,
+                                :get_model_type => "imagesvc policy get model type ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
@@ -39,15 +41,13 @@ module ProjectRazor
             get_policy_rules
           when "type"
             get_policy_types
-          when "model_config"
-            get_model_config
+          when "model"
+            get_model
           when "help"
             slice_error("Help", false)
           else
             get_policy_rules
         end
-
-
       end
 
       def get_policy_rules
@@ -58,6 +58,22 @@ module ProjectRazor
         policy_rules = ProjectRazor::PolicyRules.instance
 
         print_policy_types policy_rules.get_types
+      end
+
+      def get_model
+        @command = :get_model
+        @arg02 =  @command_array.shift
+
+        case @arg02
+          when "config"
+            get_model_config
+          when "type"
+            get_model_types
+          when "help"
+            slice_error("Help", false)
+          else
+            get_model_config
+        end
       end
 
       def get_model_config
