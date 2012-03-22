@@ -16,8 +16,6 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
-        load_model_types # load our model types
-
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:default => "get_model",
                            :get => "get_model",
