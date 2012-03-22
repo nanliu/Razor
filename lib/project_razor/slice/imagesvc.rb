@@ -155,7 +155,7 @@ module ProjectRazor
 
       def add_os(new_image, iso_path, image_svc_path)
         @slice_commands_help[:add] = "imagesvc add " + "os".blue + " (PATH TO ISO) ".yellow + "(OS Name) (OS Version)".yellow
-        slice_error("MissingOSName",false)
+        [false, "MissingOSName"]
         #new_image.add(iso_path, image_svc_path, nil)
       end
 
