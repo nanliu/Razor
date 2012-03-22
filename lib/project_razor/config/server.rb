@@ -40,6 +40,10 @@ module ProjectRazor
       attr_accessor :register_timeout
       attr_accessor :force_mk_uuid
 
+      attr_accessor :default_ipmi_power_state
+      attr_accessor :default_ipmi_username
+      attr_accessor :default_ipmi_password
+
       # init
       def initialize
         use_defaults
