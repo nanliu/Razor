@@ -150,6 +150,7 @@ module ProjectRazor
       end
 
       def add_mk(new_image, iso_path, image_svc_path)
+        puts "Attempting to add, please wait...".green
         new_image.add(iso_path, image_svc_path, nil)
       end
 
@@ -166,7 +167,8 @@ module ProjectRazor
           return [false, "MissingOSVersion"]
         end
 
-        #new_image.add(iso_path, image_svc_path, nil)
+        puts "Attempting to add, please wait...".green
+        new_image.add(iso_path, image_svc_path, {:os_version => os_version, :os_name => os_name})
       end
 
       def insert_image(image_obj)
