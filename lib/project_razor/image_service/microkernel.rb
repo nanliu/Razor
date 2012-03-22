@@ -49,9 +49,9 @@ module ProjectRazor
           else
             resp
           end
-        rescue => e
-          logger.error e.message
-          return [false, e.message]
+        #rescue => e
+        #  logger.error e.message
+        #  return [false, e.message]
         end
       end
 
