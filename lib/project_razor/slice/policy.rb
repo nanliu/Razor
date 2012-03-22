@@ -62,9 +62,27 @@ module ProjectRazor
 
       def get_model_config
         @command = :get_model_config
-        slice_error("MissingArgument")
+        policy_type_name =  @command_array.shift
 
+        if policy_type_name == nil
+          slice_error("MissingArgument")
+        else
+          policy_rules = ProjectRazor::PolicyRules.instance
+          policy_type = nil
+          policy_rules.get_types.each do
+          |type|
+            policy_type = type if policy_type_name == type.policy_type
+          end
+
+          if policy_type == nil
+
+          else
+            slice_error("InvalidPolicyType")
+          end
+        end
       end
+
+
 
 
       # Handles printing of image details to CLI
