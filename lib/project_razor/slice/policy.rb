@@ -37,6 +37,8 @@ module ProjectRazor
             get_policy_rules
           when "type"
             get_policy_types
+          when "help"
+            slice_error("", false)
           else
             get_policy_rules
         end
