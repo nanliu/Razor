@@ -38,10 +38,7 @@ module ProjectRazor
         valid_types << policy_type_obj if !policy_type_obj.hidden
       end
 
-      valid_types.each do
-        |p|
-        puts "#{p.policy_type.to_s}  :  #{p.description}"
-      end
+      valid_types
     end
 
 

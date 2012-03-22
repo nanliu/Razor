@@ -38,7 +38,7 @@ module ProjectRazor
       def get_policy_types
         policy_rules = ProjectRazor::PolicyRules.instance
 
-        policy_rules.get_types
+        print_policy_rules policy_rules.get_types
       end
 
 
@@ -71,6 +71,36 @@ module ProjectRazor
         else
           rules_array = rules_array.collect { |rule| rule.to_hash }
           slice_success(rules_array, false)
+        end
+      end
+
+      def print_policy_types(types_array)
+        unless @web_command
+          puts "Policy Types:"
+
+          #unless @verbose
+          #  rules_array.each do
+          #  |rule|
+          #    rule.print_image_info(@data.config.image_svc_path)
+          #    print "\n"
+          #  end
+          #else
+          types_array.each do
+          |type|
+            type.instance_variables.each do
+            |iv|
+              unless iv.to_s.start_with?("@_")
+                key = iv.to_s.sub("@", "")
+                print "#{key}: "
+                print "#{type.instance_variable_get(iv)}  ".green
+              end
+            end
+            print "\n"
+            #end
+          end
+        else
+          types_array = types_array.collect { |type| type.to_hash }
+          slice_success(types_array, false)
         end
       end
 
