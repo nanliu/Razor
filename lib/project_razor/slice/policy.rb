@@ -32,13 +32,13 @@ module ProjectRazor
 
 
       def get_policy_rule
-        print_images get_object("policy_rules", :policy_rule)
+        print_policy_rules get_object("policy_rules", :policy_rule)
       end
 
 
       # Handles printing of image details to CLI
       # @param [Array] images_array
-      def print_rules(rules_array)
+      def print_policy_rules(rules_array)
         unless @web_command
           puts "Images:"
 
