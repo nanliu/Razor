@@ -17,6 +17,8 @@ module ProjectRazor
 
       # Bool for indicating whether this was driven from Node.js
       attr_accessor :web_command
+      attr_accessor :verbose
+      attr_accessor :debug
 
       # Initializes the Slice Base
       # @param [Array] args

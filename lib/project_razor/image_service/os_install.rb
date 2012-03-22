@@ -19,7 +19,7 @@ module ProjectRazor
 
       def add(src_image_path, image_svc_path, extra)
         begin
-          resp = super(src_image_path, image_svc_path)
+          resp = super(src_image_path, image_svc_path, extra)
           if resp[0]
             @os_name = extra[:os_name]
             @os_version = extra[:os_version]

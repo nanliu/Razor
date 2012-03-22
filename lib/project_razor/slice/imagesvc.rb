@@ -8,6 +8,9 @@ require "yaml"
 # @author Nicholas Weaver
 module ProjectRazor
   module Slice
+
+    # TODO - add inspection to prevent duplicate MK's with identical version to be added
+
     # ProjectRazor Slice ImageSvc
     # Used for image management
     # @author Nicholas Weaver
@@ -128,7 +131,7 @@ module ProjectRazor
 
           new_image = Object::full_const_get(classname).new({})
           # We send the new image object to the appropriate method
-          res = self.send image_types[image_type.to_sym][:method], new_image
+          res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
 
           unless res[0]
             slice_error(res[1], false)
@@ -146,13 +149,24 @@ module ProjectRazor
         end
       end
 
-      def add_mk(new_image)
-        new_image.add(iso_path, @data.config.image_svc_path)
-
+      def add_mk(new_image, iso_path, image_svc_path)
+        new_image.add(iso_path, image_svc_path, nil)
       end
 
-      def add_os(new_image)
-        new_image.add(iso_path, @data.config.image_svc_path)
+      def add_os(new_image, iso_path, image_svc_path)
+        os_name = @command_array.shift
+        if os_name == nil
+          @slice_commands_help[:add] = "imagesvc add " + "os".blue + " #{iso_path} ".blue + "(OS Name) (OS Version)".yellow
+          return [false, "MissingOSName"]
+        end
+
+        os_version = @command_array.shift
+        if os_version == nil
+          @slice_commands_help[:add] = "imagesvc add " + "os".blue + " #{iso_path} ".blue + "#{os_name} ".blue + "(OS Version)".yellow
+          return [false, "MissingOSVersion"]
+        end
+
+        #new_image.add(iso_path, image_svc_path, nil)
       end
 
       def insert_image(image_obj)
