@@ -4,6 +4,8 @@
 require "json"
 require "colored"
 
+# TODO - change help printing to multi-line with header and description
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
