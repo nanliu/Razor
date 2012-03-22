@@ -59,7 +59,7 @@ module ProjectRazor
         obj.instance_variables.each do
         |iv|
           unless iv.to_s.start_with?("@_")
-            key = iv.to_s#.sub("@", "")
+            key = iv.to_s.sub("@", "")
             print "#{key}: "
             print "#{obj.instance_variable_get(iv)}  ".green
           end

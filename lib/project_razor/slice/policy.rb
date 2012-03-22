@@ -66,13 +66,12 @@ module ProjectRazor
         unless @web_command
           puts "Policy Types:"
 
-          #unless @verbose
-          #  rules_array.each do
-          #  |rule|
-          #    rule.print_image_info(@data.config.image_svc_path)
-          #    print "\n"
-          #  end
-          #else
+          unless @verbose
+            types_array.each do
+            |type|
+              puts "#{type.policy_type} ".yellow + " :  #{type.description}"
+            end
+          else
           types_array.each { |type| print_object_details_cli(type) }
         else
           types_array = types_array.collect { |type| type.to_hash }
