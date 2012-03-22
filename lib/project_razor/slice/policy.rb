@@ -70,9 +70,9 @@ module ProjectRazor
           when "type"
             get_model_types
           when "help"
-            slice_error("Help", false)
+            slice_error("Help")
           else
-            get_model_config
+            slice_error("Help")
         end
       end
 
