@@ -31,6 +31,11 @@ module ProjectRazor
         bmc_hash = impi_output_to_hash(bmc_output, ':')
       end
 
+      def bmc_guid(host_ip, username, passwd)
+        bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'guid')
+        bmc_hash = impi_output_to_hash(bmc_output, ':')
+      end
+
       def chassis_status(host_ip, username, passwd)
         chassis_output = run_ipmi_command(host_ip, username, passwd, 'chassis', 'status')
         chassis_hash = impi_output_to_hash(chassis_output, ':')
@@ -39,6 +44,11 @@ module ProjectRazor
       def lan_print(host_ip, username, passwd)
         lan_output = run_ipmi_command(host_ip, username, passwd, 'lan', 'print')
         lan_hash = impi_output_to_hash(lan_output, ':')
+      end
+
+      def fru_print(host_ip, username, passwd)
+        fru_output = run_ipmi_command(host_ip, username, passwd, 'fru', 'print')
+        fru_hash = impi_output_to_hash(fru_output, ':')
       end
 
       private
@@ -57,10 +67,11 @@ module ProjectRazor
         begin
           # grab the next entry
           entry = array[index]
+          (index += 1; next) if entry.strip.length == 0
           # parse that entry to obtain the key, first by splitting on the delimiter, then
-          # by replacing characters that could be problematic in a symbol with other characters,
-          # and finally by converting the key into a symbol
-          key_str = entry.split(/\s*#{delimiter}\s?/)[0].gsub(/\s+/," ").gsub(' ','_').gsub('.','').gsub(/^#/,"number")
+          # by replacing characters that could be problematic in a symbol with other
+          # characters, and finally by converting the key into a symbol
+          key_str = entry.split(/\s*#{delimiter}\s?/)[0].strip.gsub(/\s+/," ").gsub(' ','_').gsub('.','').gsub(/^#/,"number")
           # if the key value parsed above is an empty string, then this line contains a value for a
           # key that was parsed earlier
           if key_str.length == 0 && prev_key
