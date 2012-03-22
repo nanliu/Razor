@@ -63,7 +63,7 @@ module ProjectRazor
     # When adding a rule
     # Line number is preserved for updates, line_number is last for new
 
-    def add(new_policy_rule, model_config)
+    def add(new_policy_rule)
       existing_policy = policy_exists?(new_policy_rule)
       if existing_policy
         new_policy_rule.line_number = existing_policy.line_number
