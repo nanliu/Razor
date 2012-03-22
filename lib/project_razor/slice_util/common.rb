@@ -74,7 +74,7 @@ module ProjectRazor
 
       def print_policy_types(types_array)
         unless @web_command
-          puts "Policy Types:"
+          puts "Valid Policy Types:"
           unless @verbose
             types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
           else
@@ -102,7 +102,7 @@ module ProjectRazor
 
       def print_model_types(types_array)
         unless @web_command
-          puts "Model Types:"
+          puts "Valid Model Types:"
           unless @verbose
             types_array.each { |type| puts "\t#{type.name} ".yellow + " :  #{type.description}" }
           else
