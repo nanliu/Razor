@@ -67,10 +67,10 @@ module ProjectRazor
             base_path = default_mk_image.image_path
             case @option
               when "kernel"
-                slice_success("#{base_path}/boot/#{default_mk_image.kernel}",false)
+                slice_success(default_mk_image.kernel_path,false)
 
               when "initrd"
-                slice_success("#{base_path}/boot/#{default_mk_image.initrd}",false)
+                slice_success(default_mk_image.initrd_path,false)
 
               else
                 slice_error("MissingOption", false)
