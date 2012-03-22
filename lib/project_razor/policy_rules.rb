@@ -9,6 +9,16 @@ module ProjectRazor
     include(Singleton)
 
 
+    # Get Array of Policy Rule available
+    def get_types
+
+    end
+
+    # Get Array of Model Configs that are compatible with a Policy Rule Type
+    def get_model_configs
+
+    end
+
 
     def get
       # Get all the policy rules
@@ -26,7 +36,7 @@ module ProjectRazor
     # When adding a rule
     # Line number is preserved for updates, line_number is last for new
 
-    def add(new_policy_rule)
+    def add(new_policy_rule, model_config)
       existing_policy = policy_exists?(new_policy_rule)
       if existing_policy
         new_policy_rule.line_number = existing_policy.line_number

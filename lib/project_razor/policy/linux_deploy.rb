@@ -13,6 +13,7 @@ module ProjectRazor
       def initialize(hash)
         super(hash)
         @policy_type = :standard
+        @model_type = :linux_deploy
 
         from_hash(hash) unless hash == nil
       end
@@ -23,6 +24,25 @@ module ProjectRazor
         logger.debug "Telling our node to reboot (placeholder)"
         [:reboot, {}]
       end
+
+      # Called from a node bound to this policy does a boot and requires a script
+      def boot_call(node)
+
+
+
+
+
+      end
+
+
+      def kernel_line
+        @model.kernel_line
+      end
+
+      def module_line
+        @model.module_line
+      end
+
     end
   end
 end

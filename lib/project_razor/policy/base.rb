@@ -19,6 +19,7 @@ module ProjectRazor
 
         @tags = []
         @policy_type = :hidden
+        @model_type = :hidden
 
         @_collection = :policy_rule
         from_hash(hash) unless hash == nil
@@ -48,6 +49,7 @@ module ProjectRazor
       def system_call(node, new_state)
 
       end
+
 
     end
   end

@@ -4,20 +4,19 @@
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
-module ProjectRazor::Model
-  # Root Model object
-  # @author Nicholas Weaver
-  # @abstract
-  class UbuntuOneiric < ProjectRazor::Model::Base
+module ProjectRazor
+  module Model
+    # Root Model object
+    # @author Nicholas Weaver
+    # @abstract
+    class UbuntuOneiricMinimal < ProjectRazor::Model::Base
 
-    def initialize(hash)
-      super(hash)
-      @model_type = :ubuntu_oneiric
-      @model_description = "Ubuntu Oneiric 11.10"
-    end
+      def initialize(hash)
+        super(hash)
+        @model_type = :ubuntu_oneiric_minimal
+        @model_description = "Ubuntu Oneiric 11.10 Minimal"
+      end
 
-    def define_values_hash
-      @values_hash
     end
   end
 end

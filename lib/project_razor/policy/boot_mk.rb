@@ -12,6 +12,7 @@ module ProjectRazor
         super(nil)
 
         @policy_type = :hidden
+        @model_type = :hidden
 
         @data = ProjectRazor::Data.new
         @config = @data.config
