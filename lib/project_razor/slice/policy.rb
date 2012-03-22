@@ -65,20 +65,20 @@ module ProjectRazor
       def print_policy_types(types_array)
         unless @web_command
           puts "Policy Types:"
-
           unless @verbose
-            types_array.each do
-            |type|
-              puts "#{type.policy_type} ".yellow + " :  #{type.description}"
-            end
+            types_array.each { |type| puts "#{type.policy_type} ".yellow + " :  #{type.description}" }
           else
-          types_array.each { |type| print_object_details_cli(type) }
+            types_array.each { |type| print_object_details_cli(type) }
+          end
         else
           types_array = types_array.collect { |type| type.to_hash }
           slice_success(types_array, false)
         end
       end
 
+
+
     end
   end
 end
+
