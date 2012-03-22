@@ -31,7 +31,14 @@ module ProjectRazor
       temp_hash.each_value {|x| policy_type_array[x] = x}
       policy_type_array.each_value.collect {|x| x}
 
+      valid_types = []
       policy_type_array.each do
+        |policy_type|
+        policy_type_obj = Object.full_const_get(POLICY_PREFIX + policy_type[0]).new({})
+        valid_types << policy_type_obj if !policy_type_obj.hidden
+      end
+
+      valid_types.each do
         |p|
         puts p.inspect
       end

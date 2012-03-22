@@ -12,8 +12,8 @@ module ProjectRazor
       # @param hash [Hash]
       def initialize(hash)
         super(hash)
-        @policy_type = :standard
-        @model_type = :linux_deploy
+        @hidden = false
+        @policy_type = :linux_deploy
 
         from_hash(hash) unless hash == nil
       end
