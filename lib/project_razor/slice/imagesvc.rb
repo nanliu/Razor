@@ -256,7 +256,7 @@ module ProjectRazor
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
-                  print "#{bmc.instance_variable_get(iv)}  ".green
+                  print "#{image.instance_variable_get(iv)}  ".green
                 end
               end
               print "\n"
