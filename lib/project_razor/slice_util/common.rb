@@ -88,7 +88,7 @@ module ProjectRazor
 
       def print_model_configs(model_array)
         unless @web_command
-          puts "Model Config:"
+          puts "Model Configs:"
           unless @verbose
             model_array.each { |model| puts "\t#{model.name} ".yellow + " :  #{model.description}" }
           else

@@ -25,9 +25,9 @@ module ProjectRazor
                                 :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue,
-                                :get_model => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
-                                :get_model_config => "imagesvc policy get model config ".white + "(policy type)".red,
-                                :get_model_type => "imagesvc policy get model type ".white + "(policy type)".red}
+                                "get model" => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
+                                "get model config" => "imagesvc policy get model config ".white + "(policy type)".red,
+                                "get model type" => "imagesvc policy get model type ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
@@ -61,7 +61,7 @@ module ProjectRazor
       end
 
       def get_model
-        @command = :get_model
+        @command = "get model"
         @arg02 =  @command_array.shift
 
         case @arg02
@@ -77,7 +77,7 @@ module ProjectRazor
       end
 
       def get_model_config
-        @command = :get_model_config
+        @command = "get model config"
         policy_type_name =  @command_array.shift
 
         if policy_type_name == nil
@@ -99,7 +99,7 @@ module ProjectRazor
       end
 
       def get_model_types
-        @command = :get_model_type
+        @command = "get model type"
         policy_type_name =  @command_array.shift
 
         if policy_type_name == nil
