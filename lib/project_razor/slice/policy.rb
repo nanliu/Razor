@@ -30,6 +30,7 @@ module ProjectRazor
 
 
       def get_policy
+        @command = :get
         @arg01 =  @command_array.shift
 
         case @arg01
