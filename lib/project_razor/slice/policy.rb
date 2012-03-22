@@ -24,7 +24,8 @@ module ProjectRazor
         @slice_commands_help = {:add => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
                                 :get => "imagesvc policy ".red + "{get [rule|type]}".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
-                                :default => "imagesvc " + "[get]".blue}
+                                :default => "imagesvc " + "[get]".blue,
+                                :get_model_config => "imagesvc get model_config ".red + "(policy type)".blue}
         @slice_name = "Policy"
       end
 
