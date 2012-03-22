@@ -61,7 +61,7 @@ module ProjectRazor
           unless iv.to_s.start_with?("@_") && iv.to_s == "logger"
             key = iv.to_s.sub("@", "")
             print "#{key}: "
-            print "#{type.instance_variable_get(iv)}  ".green
+            print "#{obj.instance_variable_get(iv)}  ".green
           end
         end
         print "\n"
