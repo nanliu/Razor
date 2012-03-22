@@ -75,7 +75,7 @@ module ProjectRazor
           end
 
           if policy_type == nil
-
+            puts policy_type.inspect
           else
             slice_error("InvalidPolicyType")
           end
