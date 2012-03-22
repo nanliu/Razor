@@ -12,6 +12,7 @@ module ProjectRazor
       attr_accessor :tags
       attr_reader :hidden
       attr_reader :policy_type
+      attr_reader :description
 
       # @param hash [Hash]
       def initialize(hash)
@@ -20,6 +21,7 @@ module ProjectRazor
         @tags = []
         @hidden = :true
         @policy_type = :hidden
+        @description = "Base policy rule object. Hidden"
 
         @_collection = :policy_rule
         from_hash(hash) unless hash == nil
