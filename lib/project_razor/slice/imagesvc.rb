@@ -128,7 +128,7 @@ module ProjectRazor
 
           new_image = Object::full_const_get(classname).new({})
           # We send the new image object to the appropriate method
-          res = self.send(image_types[image_type.to_sym][:method])
+          res = self.send image_types[image_type.to_sym][:method], new_image
 
           unless res[0]
             slice_error(res[1], false)
