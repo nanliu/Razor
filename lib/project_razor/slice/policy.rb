@@ -31,7 +31,6 @@ module ProjectRazor
       end
 
 
-      get_policy_rule
       def get_policy_rule
         print_images get_object("policy_rules", :policy_rule)
       end
