@@ -40,7 +40,7 @@ module ProjectRazor
 
       valid_types.each do
         |p|
-        puts p.inspect
+        puts p.policy_type.to_s
       end
     end
 
