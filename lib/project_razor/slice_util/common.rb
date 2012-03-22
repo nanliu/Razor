@@ -100,6 +100,20 @@ module ProjectRazor
         end
       end
 
+      def print_model_types(types_array)
+        unless @web_command
+          puts "Model Types:"
+          unless @verbose
+            types_array.each { |type| puts "\t#{type.model_type} ".yellow + " :  #{type.description}" }
+          else
+            types_array.each { |type| print_object_details_cli(type) }
+          end
+        else
+          types_array = types_array.collect { |type| type.to_hash }
+          slice_success(types_array, false)
+        end
+      end
+
 
     end
   end

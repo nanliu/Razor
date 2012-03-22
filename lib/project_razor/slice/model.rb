@@ -19,44 +19,44 @@ module ProjectRazor
         load_model_types # load our model types
 
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:default => "query_models",
-                           :type => "query_model_types",
-                           :create => "create_model",
-                           :remove => "remove_node",
-                           :list => "query_model"}
-        @slice_commands_help = {:list => "model list",
-                                :default => "model"}
+        @slice_commands = {:default => "get_model",
+                           :get => "get_model",
+                           :add => "add_model",
+                           :remove => "remove_model"}
+        @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
+                                :default => "imagesvc model ".red + "{get [config|type]}".blue,}
         @slice_name = "Model"
       end
 
+      def get_model
+        @command = :get
+        @arg01 =  @command_array.shift
 
-      def query_model_types
-        temp_hash = {}
-        ObjectSpace.each_object do
-        |object_class|
-
-          if object_class.to_s.start_with?(MODEL_PREFIX) && object_class.to_s != MODEL_PREFIX
-            temp_hash[object_class.to_s] = object_class.to_s.sub(MODEL_PREFIX,"").strip
-          end
-        end
-        @slice_array = {}
-        temp_hash.each_value {|x| @slice_array[x] = x}
-        @slice_array = @slice_array.each_value.collect {|x| x}
-
-        @slice_array.each do
-        |x|
-          #puts MODEL_PREFIX + x
-          o = Object.full_const_get(MODEL_PREFIX + x).new(nil)
-          puts o.model_description
+        case @arg01
+          when "config"
+            get_model_config
+          when "type"
+            get_model_types
+          when "help"
+            slice_error("Help", false)
+          else
+            get_model_config
         end
       end
 
 
-      def load_model_types
-        Dir.glob("#{MODEL_TYPE_PATH}/*.{rb}") do |file|
-          require "#{file}"
-        end
+      def get_model_config
+        print_model_configs get_object("model_config", :model)
       end
+
+      def get_model_type
+        policy_rules = ProjectRazor::PolicyRules.instance
+        print_model_types policy_rules.get_model_types
+      end
+
+
+
+
     end
   end
 end

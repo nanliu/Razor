@@ -9,6 +9,7 @@ module ProjectRazor
     include(Singleton)
 
     POLICY_PREFIX = "ProjectRazor::Policy::"
+    MODEL_PREFIX = "ProjectRazor::Model::"
 
 
 
@@ -41,6 +42,29 @@ module ProjectRazor
         |policy_type|
         policy_type_obj = Object.full_const_get(POLICY_PREFIX + policy_type[0]).new({})
         valid_types << policy_type_obj if !policy_type_obj.hidden
+      end
+
+      valid_types
+    end
+
+    def get_model_types
+      temp_hash = {}
+      ObjectSpace.each_object do
+      |object_class|
+
+        if object_class.to_s.start_with?(MODEL_PREFIX) && object_class.to_s != MODEL_PREFIX
+          temp_hash[object_class.to_s] = object_class.to_s.sub(MODEL_PREFIX,"").strip
+        end
+      end
+      model_type_array = {}
+      temp_hash.each_value {|x| model_type_array[x] = x}
+      model_type_array.each_value.collect {|x| x}
+
+      valid_types = []
+      model_type_array.each do
+      |model_type|
+        model_type_obj = Object.full_const_get(MODEL_PREFIX + model_type[0]).new({})
+        valid_types << model_type_obj if !model_type_obj.hidden
       end
 
       valid_types

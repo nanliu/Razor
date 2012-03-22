@@ -14,11 +14,13 @@ module ProjectRazor
       attr_accessor :model_type
       attr_accessor :model_description
       attr_accessor :values_hash
+      attr_accessor :hidden
 
       # init
       # @param hash [Hash]
       def initialize(hash)
         @name = "Base Model(hidden)"
+        @hidden = true
         @model_type = :base
         @model_description = "Base model type"
         @values_hash = {}
