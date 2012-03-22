@@ -16,47 +16,80 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
-        load_model_types # load our model types
-
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:default => "query_models",
-                           :type => "query_model_types",
-                           :create => "create_model",
-                           :remove => "remove_node",
-                           :list => "query_model"}
-        @slice_commands_help = {:list => "model list",
-                                :default => "model"}
-        @slice_name = "Node"
+        @slice_commands = {:default => "get_model",
+                           :get => "get_model",
+                           :add => "add_model",
+                           :remove => "remove_model"}
+        @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
+                                :default => "imagesvc model ".red + "{get [config|type]}".blue,
+                                :add_cli => "imagesvc model add".red + " (model_type)".blue,
+                                :add_web => "imagesvc model add".red + " (model_type) (values_hash)".blue}
+        @slice_name = "Model"
       end
 
+      def get_model
+        @command = :get
+        @arg01 =  @command_array.shift
 
-      def query_model_types
-        temp_hash = {}
-        ObjectSpace.each_object do
-        |object_class|
-
-          if object_class.to_s.start_with?(MODEL_PREFIX) && object_class.to_s != MODEL_PREFIX
-            temp_hash[object_class.to_s] = object_class.to_s.sub(MODEL_PREFIX,"").strip
-          end
-        end
-        @slice_array = {}
-        temp_hash.each_value {|x| @slice_array[x] = x}
-        @slice_array = @slice_array.each_value.collect {|x| x}
-
-        @slice_array.each do
-        |x|
-          #puts MODEL_PREFIX + x
-          o = Object.full_const_get(MODEL_PREFIX + x).new(nil)
-          puts o.model_description
+        case @arg01
+          when "config"
+            get_model_config
+          when "type"
+            get_model_types
+          when "help"
+            slice_error("Help", false)
+          else
+            get_model_config
         end
       end
 
 
-      def load_model_types
-        Dir.glob("#{MODEL_TYPE_PATH}/*.{rb}") do |file|
-          require "#{file}"
+      def get_model_config
+        print_model_configs get_object("model_config", :model)
+      end
+
+      def get_model_types
+        policy_rules = ProjectRazor::PolicyRules.instance
+        print_model_types policy_rules.get_model_types
+      end
+
+      def add_model
+        if @web_command
+          # REST call
+          add_model_web
+        else
+          # CLI call
+          add_model_cli
         end
       end
+
+      def add_model_cli
+        @command = :add_cli
+        @model_name =  @command_array.shift
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+        unless @model_name != nil
+          slice_error("ModelTypeMissing")
+          return
+        end
+
+        unless policy_rules.is_model_type?(@model_name)
+          slice_error("ModelTypeNotFound")
+          return
+        end
+      end
+
+      def add_model_web
+        @command = :add_web
+        @model_type =  @command_array.shift
+        @values_json_string =  @command_array.shift
+        slice_error("NotImplemented")
+      end
+
+
+
+
     end
   end
 end
