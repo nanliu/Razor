@@ -8,15 +8,33 @@ module ProjectRazor
     include(ProjectRazor::Logging)
     include(Singleton)
 
+    POLICY_PREFIX = "ProjectRazor::Policy::"
 
-    # Get Array of Policy Rule available
-    def get_types
 
-    end
 
     # Get Array of Model Configs that are compatible with a Policy Rule Type
     def get_model_configs
 
+    end
+
+    # Get Array of Policy Rule available
+    def get_types
+      temp_hash = {}
+      ObjectSpace.each_object do
+      |object_class|
+
+        if object_class.to_s.start_with?(POLICY_PREFIX) && object_class.to_s != POLICY_PREFIX
+          temp_hash[object_class.to_s] = object_class.to_s.sub(POLICY_PREFIX,"").strip
+        end
+      end
+      policy_type_array = {}
+      temp_hash.each_value {|x| @slice_array[x] = x}
+      policy_type_array.each_value.collect {|x| x}
+
+      policy_type_array.each do
+        |p|
+        puts p.inspect
+      end
     end
 
 

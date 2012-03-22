@@ -35,12 +35,18 @@ module ProjectRazor
         print_policy_rules get_object("policy_rules", :policy_rule)
       end
 
+      def get_policy_types
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+        policy_rules.get_types
+      end
+
 
       # Handles printing of image details to CLI
       # @param [Array] images_array
       def print_policy_rules(rules_array)
         unless @web_command
-          puts "Images:"
+          puts "Policy Rules:"
 
           #unless @verbose
           #  rules_array.each do
