@@ -22,7 +22,7 @@ module ProjectRazor
                            :default => "get_policy",
                            :remove => "remove_policy"}
         @slice_commands_help = {:add => "imagesvc policy add " + "(type)".blue +
-                                        "(name)".blue + "(model config uuid)".blue + "(tag;tag;tag)".blue,
+                                        " (name)".blue + " (model config uuid)".blue + " (tag{;tag;tag})".blue,
                                 :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
                                 :remove => "imagesvc policy " + "(policy rule UUID)".yellow,
                                 :default => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
