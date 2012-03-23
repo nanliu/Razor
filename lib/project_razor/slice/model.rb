@@ -110,7 +110,7 @@ module ProjectRazor
 
           while !flag
 
-            print "\nPlease enter " + "#{req_metadata_hash[md][:description]}".yellow
+            print "\nPlease enter " + "#{req_metadata_hash[md][:description]}".yellow.bold
             print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
             if req_metadata_hash[md][:default] != ""
               puts "default: " + "#{req_metadata_hash[md][:default]}".yellow
@@ -158,7 +158,8 @@ module ProjectRazor
 
       def set_metadata_value(new_model, md, value)
         puts value
-
+        new_model.instance_variable_set(md.to_sym, value)
+        p new_model
       end
 
       def skip_quit_option
