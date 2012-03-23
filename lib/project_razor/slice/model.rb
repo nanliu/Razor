@@ -159,7 +159,7 @@ module ProjectRazor
       def set_metadata_value(new_model, md, value)
         puts value
         new_model.instance_variable_set(md.to_sym, value)
-        p new_model
+        puts new_model.inspect
       end
 
       def skip_quit_option
