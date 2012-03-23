@@ -41,7 +41,7 @@ module ProjectRazor
 
 
         @policy_type_name = @command_array.shift
-        unless policy_rules.is_policy_type?(policy_type_name)
+        unless policy_rules.is_policy_type?(@policy_type_name)
           slice_error("InvalidPolicyTypeProvided")
           return
         end
