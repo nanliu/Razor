@@ -102,7 +102,7 @@ module ProjectRazor
         setup_data
         new_model = @data.persist_object(new_model)
         if new_model.refresh_self
-          print_model_config [new_model]
+          print_model_configs [new_model]
         else
           slice_error("CouldNotSaveModelConfig")
         end
