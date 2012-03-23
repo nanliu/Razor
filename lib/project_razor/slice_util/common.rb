@@ -120,6 +120,12 @@ module ProjectRazor
       end
 
 
+      # Checks to make sure an arg is a format that supports a noun (uuid, etc))
+      def validate_arg(arg)
+        arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
+      end
+
+
     end
   end
 end
