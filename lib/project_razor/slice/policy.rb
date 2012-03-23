@@ -84,7 +84,7 @@ module ProjectRazor
         end
 
 
-        policy_rules.get_rules.each do
+        policy_rules.get_types.each do
           |types|
           p types
         end
