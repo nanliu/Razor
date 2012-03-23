@@ -91,10 +91,10 @@ module ProjectRazor
           puts "Model Configs:"
           unless @verbose
             model_array.each do |model|
-              print "\t Label: " + "#{model.label}".yellow
+              print "   Label: " + "#{model.label}".yellow
               print "  Type: " + "#{model.name}".yellow
               print "  Description: " + "#{model.name}".yellow
-              print "  UUID:  " + "#{model.uuid}".yellow
+              print "  UUID:  " + "#{model.uuid}\n".yellow
             end
           else
             model_array.each { |model| print_object_details_cli(model) }
