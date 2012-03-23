@@ -25,7 +25,7 @@ module ProjectRazor
             "@hostname" => {:default => "hostname.example.org",
                             :example => "hostname.example.org",
                             :validation => '\S',
-                            :required => false,
+                            :required => true,
                             :description => "node hostname"}
         }
 

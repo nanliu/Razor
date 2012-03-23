@@ -88,7 +88,7 @@ module ProjectRazor
         end
 
         if new_model.req_metadata_hash != {}
-          new_model = cli_interactive_metadata(new_model.req_metadata_hash)
+          cli_interactive_metadata(new_model)
         else
 
         end
@@ -98,8 +98,8 @@ module ProjectRazor
       end
 
 
-      def cli_interactive_metadata(req_metadata_hash)
-        p req_metadata_hash
+      def cli_interactive_metadata(new_model)
+        req_metadata_hash = new_model.req_metadata_hash
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
@@ -127,7 +127,9 @@ module ProjectRazor
             case response.strip
 
               when "SKIP"
-                unless req_metadata_hash[md][:required]
+                if req_metadata_hash[md][:required]
+                  puts "Cannot skip, value required".red
+                else
                   flag = true
                 end
 
@@ -136,7 +138,11 @@ module ProjectRazor
                 return
 
               when ""
-                puts "nothing"
+                if req_metadata_hash[md][:default] != ""
+                  set_metadata_value(new_model, md, req_metadata_hash[md][:default])
+                else
+                  puts "no default value, must enter something".red
+                end
 
               else
                 puts response
@@ -150,6 +156,9 @@ module ProjectRazor
 
       end
 
+      def set_metadata_value(new_model, md, value)
+
+      end
 
       def skip_quit_option
         "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)"
