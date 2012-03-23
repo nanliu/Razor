@@ -99,6 +99,7 @@ module ProjectRazor
 
 
       def cli_interactive_metadata(req_metadata_hash)
+        p req_metadata_hash
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
