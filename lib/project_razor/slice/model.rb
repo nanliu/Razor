@@ -89,25 +89,29 @@ module ProjectRazor
 
         if new_model.req_metadata_hash != {}
           if cli_interactive_metadata(new_model) != nil
-            p new_model
+            insert_model_config(new_model)
           else
             return
           end
-
         else
-
+          insert_model_config(new_model)
         end
+      end
 
-
-
+      def insert_model_config(new_model)
+        setup_data
+        new_model = @data.persist_object(new_model)
+        if new_model.refresh_self
+          print_model_config [new_model]
+        else
+          slice_error("CouldNotSaveModelConfig")
+        end
       end
 
 
       def cli_interactive_metadata(new_model)
         req_metadata_hash = new_model.req_metadata_hash
-        #@req_metadata_hash = {
-        #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
-        #}
+
         puts "\n--- Building Model Config(#{@model_name}): #{@model_config_name}\n".yellow
         req_metadata_hash.each_key do
         |md|
@@ -170,7 +174,7 @@ module ProjectRazor
           new_model.instance_variable_set(key.to_sym, value)
           true
         else
-          puts "Value (" + "#{value}".yellow + ") is invalid".red
+          puts "Value (".red + "#{value}".yellow + ") is invalid".red
           false
         end
       end
