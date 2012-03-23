@@ -106,8 +106,8 @@ module ProjectRazor
         puts "\n--- Building Model Config : #{@model_config_name}\n\n"
         req_metadata_hash.each_key do
         |md|
-          puts "Please enter #{req_metadata_hash[md][:description]}"
-          puts "Example: #{req_metadata_hash[md][:example]}"
+          print "Please enter #{req_metadata_hash[md][:description]}"
+          print " (example: #{req_metadata_hash[md][:example]} \n"
           if req_metadata_hash[md][:default] != ""
             print "(default: #{req_metadata_hash[md][:default]})>"
           else
