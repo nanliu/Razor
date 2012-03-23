@@ -82,7 +82,7 @@ module ProjectRazor
         end
 
         @model_config_name =  @command_array.shift
-        unless @model_name != nil
+        unless @model_config_name != nil
           slice_error("ModelNameMissing")
           return
         end
@@ -103,7 +103,7 @@ module ProjectRazor
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
-        puts "\n--Building Model Config--\n\n"
+        puts "\n--- Building Model Config : #{@model_config_name}\n\n"
         req_metadata_hash.each_key do
         |md|
           puts "Please enter #{req_metadata_hash[md][:description]}"
