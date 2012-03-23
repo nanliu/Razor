@@ -18,7 +18,7 @@ module ProjectRazor
       model_configs = []
       $data.fetch_all_objects(:model).each do
         |mc|
-        model_configs < mc if mc.model_type == policy_type
+        model_configs << mc if mc.model_type == policy_type
       end
       model_configs
     end
@@ -81,7 +81,7 @@ module ProjectRazor
     def is_model_type?(model_name)
       get_model_types.each do
       |type|
-        return true if type.name == model_name
+        return type if type.name == model_name
       end
       false
     end
