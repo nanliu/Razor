@@ -49,9 +49,9 @@ module ProjectRazor
 
 
 
-        @policy_name = @command_array.shift
+        @policy_label = @command_array.shift
         unless /^[\w ]+$/ =~ @policy_name
-          slice_error("InvalidPolicyName")
+          slice_error("InvalidPolicyLabel")
           return
         end
 
@@ -86,7 +86,7 @@ module ProjectRazor
 
         new_policy_rule = policy_rules.new_policy_from_type_name(@policy_type_name)
 
-        new_policy_rule.name = @policy_name
+        new_policy_rule.label = @policy_label
         new_policy_rule.model = @model_config
         new_policy_rule.tags = @tags_array
 
