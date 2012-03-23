@@ -103,11 +103,11 @@ module ProjectRazor
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
-        puts "\n--- Building Model Config : #{@model_config_name}\n\n"
+        puts "\n--- Building Model Config : #{@model_config_name}\n\n".yellow
         req_metadata_hash.each_key do
         |md|
-          print "Please enter #{req_metadata_hash[md][:description]}"
-          print " (example: #{req_metadata_hash[md][:example]} \n"
+          print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow
+          print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
           if req_metadata_hash[md][:default] != ""
             print "(default: #{req_metadata_hash[md][:default]})>"
           else
