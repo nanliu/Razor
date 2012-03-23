@@ -55,6 +55,116 @@ module ProjectRazor
       end
 
 
+      def print_object_details_cli(obj)
+        obj.instance_variables.each do
+        |iv|
+          unless iv.to_s.start_with?("@_")
+            key = iv.to_s.sub("@", "")
+            print "#{key}: "
+            print "#{obj.instance_variable_get(iv)}  ".green
+          end
+        end
+        print "\n"
+      end
+
+
+
+
+      ########### Common Slice Printing ###########
+
+      # Handles printing of image details to CLI
+      # @param [Array] images_array
+      #def print_policy_rules(rules_array)
+      #  unless @web_command
+      #    puts "Policy Rules:"
+      #
+      #    #unless @verbose
+      #    #  rules_array.each do
+      #    #  |rule|
+      #    #    rule.print_image_info(@data.config.image_svc_path)
+      #    #    print "\n"
+      #    #  end
+      #    #else
+      #    rules_array.each { |rule| print_object_details_cli(rule) }
+      #  else
+      #    rules_array = rules_array.collect { |rule| rule.to_hash }
+      #    slice_success(rules_array, false)
+      #  end
+      #end
+
+      def print_policy_rules(rules_array)
+        unless @web_command
+          puts "Policy Rules:"
+          unless @verbose
+            rules_array.each do |rule|
+              print "   Label: " + "#{rule.label}".yellow
+              print "  Type: " + "#{rule.policy_type}".yellow
+              print "  Model label: " + "#{rule.model.label}".yellow
+              print "  Model type: " + "#{rule.model.model_type}".yellow
+              print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
+              print "  UUID: " + "#{rule.uuid}\n\n".yellow
+            end
+          else
+            rules_array.each { |rule| print_object_details_cli(rule) }
+          end
+        else
+          rules_array = rules_array.collect { |rule| rule.to_hash }
+          slice_success(rules_array, false)
+        end
+      end
+
+      def print_policy_types(types_array)
+        unless @web_command
+          puts "Valid Policy Types:"
+          unless @verbose
+            types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
+          else
+            types_array.each { |type| print_object_details_cli(type) }
+          end
+        else
+          types_array = types_array.collect { |type| type.to_hash }
+          slice_success(types_array, false)
+        end
+      end
+
+      def print_model_configs(model_array)
+        unless @web_command
+          puts "Model Configs:"
+          unless @verbose
+            model_array.each do |model|
+              print "   Label: " + "#{model.label}".yellow
+              print "  Type: " + "#{model.name}".yellow
+              print "  Description: " + "#{model.description}".yellow
+              print "  UUID: " + "#{model.uuid}\n".yellow
+            end
+          else
+            model_array.each { |model| print_object_details_cli(model) }
+          end
+        else
+          model_array = model_array.collect { |model| model.to_hash }
+          slice_success(model_array, false)
+        end
+      end
+
+      def print_model_types(types_array)
+        if @web_command
+          types_array = types_array.collect { |type| type.to_hash }
+          slice_success(types_array, false)
+        else
+          puts "Valid Model Types:"
+          if @verbose
+            types_array.each { |type| print_object_details_cli(type) }
+          else
+            types_array.each { |type| puts "\t#{type.name} ".yellow + " :  #{type.description}" }
+          end
+        end
+      end
+
+
+      # Checks to make sure an arg is a format that supports a noun (uuid, etc))
+      def validate_arg(arg)
+        arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
+      end
 
 
     end
