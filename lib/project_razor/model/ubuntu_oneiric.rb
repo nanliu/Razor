@@ -30,7 +30,7 @@ module ProjectRazor
         }
 
 
-        @_callback = {:preseed => :generate_preseed}
+        @callback = {:preseed => :generate_preseed}
 
 
         from_hash(hash) unless hash == nil
