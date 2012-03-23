@@ -66,15 +66,15 @@ module ProjectRazor
 
       def add_model_cli
         @command = :add_cli
-        @model_type =  @command_array.shift
+        @model_name =  @command_array.shift
         policy_rules = ProjectRazor::PolicyRules.instance
 
-        unless @model_type != nil
+        unless @model_name != nil
           slice_error("ModelTypeMissing")
           return
         end
 
-        unless policy_rules.is_model_type?(@model_type)
+        unless policy_rules.is_model_type?(@model_name)
           slice_error("ModelTypeNotFound")
           return
         end
