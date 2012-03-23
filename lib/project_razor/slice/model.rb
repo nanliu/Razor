@@ -124,7 +124,7 @@ module ProjectRazor
             response = gets
 
 
-            case response
+            case response.strip
 
               when "SKIP"
                 puts "skip"
