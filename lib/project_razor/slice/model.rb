@@ -71,10 +71,12 @@ module ProjectRazor
 
         unless @model_type != nil
           slice_error("ModelTypeMissing")
+          return
         end
 
         unless policy_rules.is_model_type?(@model_type)
           slice_error("ModelTypeNotFound")
+          return
         end
       end
 
