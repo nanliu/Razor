@@ -93,7 +93,7 @@ module ProjectRazor
             model_array.each do |model|
               print "   Label: " + "#{model.label}".yellow
               print "  Type: " + "#{model.name}".yellow
-              print "  Description: " + "#{model.name}".yellow
+              print "  Description: " + "#{model.description}".yellow
               print "  UUID:  " + "#{model.uuid}\n".yellow
             end
           else
