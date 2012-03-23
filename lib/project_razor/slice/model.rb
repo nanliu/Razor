@@ -88,8 +88,12 @@ module ProjectRazor
         end
 
         if new_model.req_metadata_hash != {}
-          cli_interactive_metadata(new_model)
-          p new_model
+          if cli_interactive_metadata(new_model) != nil
+            p new_model
+          else
+            return
+          end
+
         else
 
         end
@@ -139,7 +143,7 @@ module ProjectRazor
 
               when "QUIT"
                 slice_error("AddCanceled")
-                return
+                return nil
 
               when ""
                 if default != ""
