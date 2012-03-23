@@ -1,4 +1,4 @@
----
+--- 
 :Receive_Message_Queue_Interrupt: enabled
 :Event_Message_Buffer_Full_Interrupt: disabled
 :Event_Message_Buffer: disabled
