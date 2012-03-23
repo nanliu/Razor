@@ -120,7 +120,7 @@ module ProjectRazor
             else
               puts skip_quit_option
             end
-
+            print " > "
             response = gets
 
 
@@ -133,11 +133,11 @@ module ProjectRazor
 
 
       def skip_quit_option
-        "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)> "
+        "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)"
       end
 
       def quit_option
-        "(" + "QUIT".red + " to cancel)> "
+        "(" + "QUIT".red + " to cancel)"
       end
 
       def add_model_web
