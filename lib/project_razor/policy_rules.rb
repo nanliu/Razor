@@ -70,10 +70,18 @@ module ProjectRazor
       valid_types
     end
 
-    def is_policy_type?(policy_type)
+    def new_policy_from_type_name(policy_type_name)
+      get_types.each do
+      |type|
+        return type if type.policy_type.to_s == policy_type_name
+      end
+      nil
+    end
+
+    def is_policy_type?(policy_type_name)
       get_types.each do
         |type|
-        return true if type.policy_type.to_s == policy_type
+        return true if type.policy_type.to_s == policy_type_name
       end
       false
     end
