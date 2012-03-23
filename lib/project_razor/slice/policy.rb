@@ -86,6 +86,9 @@ module ProjectRazor
 
         new_policy_rule = policy_rules.new_policy_from_type_name(@policy_type_name)
 
+        new_policy_rule.name = @policy_name
+        new_policy_rule.model = @model_config
+        new_policy_rule.tags = @tags_array
         p new_policy_rule.to_hash
 
 
