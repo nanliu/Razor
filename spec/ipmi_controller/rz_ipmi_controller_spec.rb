@@ -13,39 +13,34 @@ describe ProjectRazor::PowerControl::IpmiController do
 
   before (:all) do
     @ipmi = ProjectRazor::PowerControl::IpmiController.instance
+    @mock_data_dir = File.expand_path(File.dirname(__FILE__)) + File::SEPARATOR + 'ipmitool-mock-files'
     data = ProjectRazor::Data.new
     config = data.config
-    #@localdir = $razor_root  + File::SEPARATOR + "spec" + File::SEPARATOR + "ipmi_controller" +
-    #    File::SEPARATOR + 'ipmitool-mock-files'
-    @mock_data_dir = File.dirname(__FILE__) + File::SEPARATOR + 'ipmitool-mock-files'
     @ipmi_username = config.default_ipmi_username
     @ipmi_password = config.default_ipmi_password
     @ipmi_hostname = '192.168.2.51'
     # Clean stuff out
-    #@data.delete_all_objects(:node)
-    #@data.delete_all_objects(:policy_rule)
-    #@data.delete_all_objects(:bound_policy)
-    #@data.delete_all_objects(:tag)
   end
 
   after (:all) do
     # Clean out what we did
-    #@data.delete_all_objects(:node)
-    #@data.delete_all_objects(:policy_rule)
-    #@data.delete_all_objects(:bound_policy)
-    #@data.delete_all_objects(:tag)
   end
 
   def test_ipmi_power_status_mock
     filename = @mock_data_dir + File::SEPARATOR + 'power-status.out'
-    @ipmi.expects(:system).with(/ipmitool.*power status/).returns(File.read(filename))
+    puts filename
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'status').
+        returns(File.read(filename))
     @ipmi.power_status(@ipmi_hostname, @ipmi_username, @ipmi_password)
   end
 
   def test_ipmi_lan_print_mock
     filename = @mock_data_dir + File::SEPARATOR + 'lan-print.out'
-    @ipmi.expects(:system).with(/ipmitool.*lan print/).returns(File.read(filename))
-    @ipmi.power_status(@ipmi_hostname, @ipmi_username, @ipmi_password)
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password,'lan', 'print').
+        returns(File.read(filename))
+    @ipmi.lan_print(@ipmi_hostname, @ipmi_username, @ipmi_password)
   end
 
   describe ".IPMI" do
