@@ -89,6 +89,7 @@ module ProjectRazor
 
         if new_model.req_metadata_hash != {}
           cli_interactive_metadata(new_model)
+          p new_model
         else
 
         end
@@ -155,10 +156,8 @@ module ProjectRazor
           end
 
         end
-        puts new_model.inspect
 
-        nil
-
+        new_model
       end
 
       def set_metadata_value(new_model, key, value, validation)
@@ -167,7 +166,7 @@ module ProjectRazor
           new_model.instance_variable_set(key.to_sym, value)
           true
         else
-          puts "Value (#{value}) is invalid".red
+          puts "Value (" + "#{value}".yellow + ") is invalid".red
           false
         end
       end
