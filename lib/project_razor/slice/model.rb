@@ -124,6 +124,22 @@ module ProjectRazor
             response = gets
 
 
+            case response
+
+              when "SKIP"
+                puts "skip"
+
+              when "QUIT"
+                puts "quit"
+
+              when ""
+                puts "nothing"
+
+              else
+                puts response
+
+            end
+
           end
 
         end
