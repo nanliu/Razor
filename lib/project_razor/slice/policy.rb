@@ -21,14 +21,14 @@ module ProjectRazor
                            :get => "get_policy",
                            :default => "get_policy",
                            :remove => "remove_policy"}
-        @slice_commands_help = {:add => "imagesvc policy add " + "(type)".blue +
-                                        " (name)".blue + " (model config uuid)".blue + " (tag{;tag;tag})".blue,
-                                :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
-                                :remove => "imagesvc policy " + "(policy rule UUID)".yellow,
-                                :default => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
-                                "get model" => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
-                                "get model config" => "imagesvc policy get model config ".white + "(policy type)".red,
-                                "get model type" => "imagesvc policy get model type ".white + "(policy type)".red}
+        @slice_commands_help = {:add => "policy add " + "(type)".blue +
+                                        " (name)".blue + " (model config uuid)".blue + " (tag{,tag,tag})".blue,
+                                :get => "policy ".red + "{get [rule|type|model [config|type]}".blue,
+                                :remove => "policy " + "(policy rule UUID)".yellow,
+                                :default => "policy ".red + "{get [rule|type|model [config|type]}".blue,
+                                "get model" => "policy get model [config|type] ".white + "(policy type)".red,
+                                "get model config" => "policy get model config ".white + "(policy type)".red,
+                                "get model type" => "policy get model type ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
@@ -76,7 +76,7 @@ module ProjectRazor
           return
         end
 
-        @tags_array = @tags.split(";")
+        @tags_array = @tags.split(",")
 
         unless @tags_array.count > 0
           slice_error("MustProvideAtLeastOneTag")
