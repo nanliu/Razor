@@ -83,7 +83,7 @@ module ProjectRazor
         if callback != nil
           puts policy.model.send(callback)
         else
-          slice("NoCallbackFound")
+          slice_error("NoCallbackFound")
         end
       end
 
