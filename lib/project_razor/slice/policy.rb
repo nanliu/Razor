@@ -37,7 +37,55 @@ module ProjectRazor
 
       def add_policy
         @command = :add
-        slice_error("")
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+
+        @policy_type_name = @command_array.shift
+        unless policy_rules.is_policy_type?(policy_type_name)
+          slice_error("InvalidPolicyTypeProvided")
+          return
+        end
+
+
+
+
+        @policy_name = @command_array.shift
+        unless /^\w+$/ =~ @policy_name
+          slice_error("InvalidPolicyName")
+          return
+        end
+
+
+
+        @model_config_uuid = @command_array.shift
+        unless @model_config_uuid != nil
+          slice_error("MustProvideModelConfigUUID")
+          return
+        end
+        setup_data
+        @model_config = @data.fetch_object_by_uuid(:model, @model_config_uuid)
+        unless @model_config != nil
+          slice_error("MustProvideModelConfigUUID")
+          return
+        end
+
+
+        @tags = @command_array.shift
+        unless @tags != nil
+          slice_error("MustProvideAtLeastOneTag")
+          return
+        end
+
+        @tags_array = @tags.split(";")
+
+        unless @tags_array.count > 0
+          slice_error("MustProvideAtLeastOneTag")
+          return
+        end
+
+
+
+
 
 
       end
