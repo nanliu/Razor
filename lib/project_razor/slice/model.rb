@@ -132,7 +132,7 @@ module ProjectRazor
                 end
 
               when "QUIT"
-                slice_error["AddCanceled"]
+                slice_error("AddCanceled")
                 return
 
               when ""
