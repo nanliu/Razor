@@ -121,10 +121,10 @@ module ProjectRazor
               puts skip_quit_option
             end
             print " > "
-            response = gets
+            response = gets.strip
 
 
-            case response.strip
+            case response
 
               when "SKIP"
                 if req_metadata_hash[md][:required]
