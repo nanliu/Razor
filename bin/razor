@@ -89,7 +89,7 @@ def print_header
   @slice_array.each do |slice|
     x += 1
     print "[#{slice.downcase}] ".yellow unless slice.downcase == "base" || slice.downcase == "template"
-    if x > 3
+    if x > 5
       print "\n"
       x = 1
     end
