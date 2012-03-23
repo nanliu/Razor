@@ -29,7 +29,9 @@ module ProjectRazor
       ObjectSpace.each_object do
       |object_class|
 
-        if object_class.to_s.start_with?(POLICY_PREFIX) && object_class.to_s != POLICY_PREFIX
+        if object_class.to_s.start_with?(POLICY_PREFIX) &&
+            object_class.to_s != POLICY_PREFIX &&
+            (/#/ =~ object_class.to_s) == nil
           temp_hash[object_class.to_s] = object_class.to_s.sub(POLICY_PREFIX,"").strip
         end
       end
