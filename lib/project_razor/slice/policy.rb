@@ -66,8 +66,8 @@ module ProjectRazor
           return
         end
 
-          # Then we search for a policy rule with the uuid
-          policy = @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
+        # Then we search for a policy rule with the uuid
+        policy = @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
 
         if policy != nil
           make_callback(policy, callback_namespace)
@@ -79,7 +79,12 @@ module ProjectRazor
       end
 
       def make_callback(policy, callback_namespace)
-
+        callback = policy.model._callback[callback_namespace.to_sym]
+        if callback != nil
+          puts policy.model.send(callback)
+        else
+          slice("NoCallbackFound")
+        end
       end
 
       ###
