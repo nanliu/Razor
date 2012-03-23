@@ -83,7 +83,7 @@ module ProjectRazor
           return
         end
 
-
+        p policy_rules.is_policy_type?(@policy_type_name)
         #policy_rules.get_types.each do
         #  |types|
         #  p types
