@@ -36,6 +36,9 @@ module ProjectRazor
       #### Add
 
       def add_policy
+        @command = :add
+        slice_error("")
+
 
       end
 
