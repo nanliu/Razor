@@ -113,9 +113,13 @@ module ProjectRazor
             print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow
             print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
             if req_metadata_hash[md][:default] != ""
-              puts "(default: " + "#{req_metadata_hash[md][:default]}".yellow + ")"
+              puts "default: " + "#{req_metadata_hash[md][:default]}".yellow
             end
-            puts "(" + "QUIT".red + " to cancel)> "
+            if req_metadata_hash[md][:required]
+              puts quit_option
+            else
+              puts skip_quit_option
+            end
 
             response = gets
 
@@ -125,6 +129,15 @@ module ProjectRazor
         end
         nil
 
+      end
+
+
+      def skip_quit_option
+        "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)> "
+      end
+
+      def quit_option
+        "(" + "QUIT".red + " to cancel)> "
       end
 
       def add_model_web
