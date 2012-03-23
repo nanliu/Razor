@@ -70,7 +70,7 @@ module ProjectRazor
 
         unless model_config
           slice_error("CannotFindModelConfig")
-          return
+          get_model_config
         end
 
         if @data.delete_object(model_config)
