@@ -106,16 +106,21 @@ module ProjectRazor
         puts "\n--- Building Model Config : #{@model_config_name}\n\n".yellow
         req_metadata_hash.each_key do
         |md|
-          print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow
-          print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
-          if req_metadata_hash[md][:default] != ""
-            print "(default: " + "#{req_metadata_hash[md][:default]}".yellow + ")> "
-          else
-            print "> "
-          end
-          response = gets
+          flag = false
 
-          puts response
+          while !flag
+
+            print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow
+            print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
+            if req_metadata_hash[md][:default] != ""
+              print "(default: " + "#{req_metadata_hash[md][:default]}".yellow + ")> "
+            else
+              print "> "
+            end
+            response = gets
+            puts response
+          end
+
         end
         nil
 
