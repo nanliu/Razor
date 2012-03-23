@@ -22,7 +22,9 @@ module ProjectRazor
                            :add => "add_model",
                            :remove => "remove_model"}
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
-                                :default => "imagesvc model ".red + "{get [config|type]}".blue,}
+                                :default => "imagesvc model ".red + "{get [config|type]}".blue,
+                                :add_cli => "imagesvc model add".red + " (model_type)".blue,
+                                :add_web => "imagesvc model add".red + " (model_type) (values_hash)".blue}
         @slice_name = "Model"
       end
 
@@ -50,6 +52,37 @@ module ProjectRazor
       def get_model_types
         policy_rules = ProjectRazor::PolicyRules.instance
         print_model_types policy_rules.get_model_types
+      end
+
+      def add_model
+        if @web_command
+          # REST call
+          add_model_web
+        else
+          # CLI call
+          add_model_cli
+        end
+      end
+
+      def add_model_cli
+        @command = :add_cli
+        @model_type =  @command_array.shift
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+        unless @model_type != nil
+          slice_error("ModelTypeMissing")
+        end
+
+        unless policy_rules.is_model_type?(@model_type)
+          slice_error("ModelTypeNotFound")
+        end
+      end
+
+      def add_model_web
+        @command = :add_web
+        @model_type =  @command_array.shift
+        @values_json_string =  @command_array.shift
+        slice_error("NotImplemented")
       end
 
 

@@ -78,6 +78,14 @@ module ProjectRazor
       false
     end
 
+    def is_model_type?(model_type)
+      get_model_types.each do
+      |type|
+        return true if type.model_type.to_s == model_type
+      end
+      false
+    end
+
 
     def get
       # Get all the policy rules
