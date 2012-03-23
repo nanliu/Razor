@@ -72,6 +72,26 @@ module ProjectRazor
 
       ########### Common Slice Printing ###########
 
+      # Handles printing of image details to CLI
+      # @param [Array] images_array
+      def print_policy_rules(rules_array)
+        unless @web_command
+          puts "Policy Rules:"
+
+          #unless @verbose
+          #  rules_array.each do
+          #  |rule|
+          #    rule.print_image_info(@data.config.image_svc_path)
+          #    print "\n"
+          #  end
+          #else
+          rules_array.each { |rule| print_object_details_cli(rule) }
+        else
+          rules_array = rules_array.collect { |rule| rule.to_hash }
+          slice_success(rules_array, false)
+        end
+      end
+
       def print_policy_types(types_array)
         unless @web_command
           puts "Valid Policy Types:"

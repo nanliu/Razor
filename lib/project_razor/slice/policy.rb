@@ -21,16 +21,37 @@ module ProjectRazor
                            :get => "get_policy",
                            :default => "get_policy",
                            :remove => "remove_policy"}
-        @slice_commands_help = {:add => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
+        @slice_commands_help = {:add => "imagesvc policy add " + "(type)".blue +
+                                        "(name)".blue + "(model config uuid)".blue + "(tag;tag;tag)".blue,
                                 :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
-                                :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
-                                :default => "imagesvc " + "[get]".blue,
+                                :remove => "imagesvc policy " + "(policy rule UUID)".yellow,
+                                :default => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
                                 "get model" => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
                                 "get model config" => "imagesvc policy get model config ".white + "(policy type)".red,
                                 "get model type" => "imagesvc policy get model type ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
+
+      #### Add
+
+      def add_policy
+
+      end
+
+
+
+      ####
+
+
+      #### Remove
+
+
+      ####
+
+
+
+      #### Get
 
       def get_policy
         @command = :get
@@ -120,28 +141,11 @@ module ProjectRazor
         end
       end
 
+      ####
 
 
 
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      def print_policy_rules(rules_array)
-        unless @web_command
-          puts "Policy Rules:"
 
-          #unless @verbose
-          #  rules_array.each do
-          #  |rule|
-          #    rule.print_image_info(@data.config.image_svc_path)
-          #    print "\n"
-          #  end
-          #else
-          rules_array.each { |rule| print_object_details_cli(rule) }
-        else
-          rules_array = rules_array.collect { |rule| rule.to_hash }
-          slice_success(rules_array, false)
-        end
-      end
 
 
 
