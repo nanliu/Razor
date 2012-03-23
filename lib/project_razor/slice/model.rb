@@ -155,6 +155,8 @@ module ProjectRazor
           end
 
         end
+        puts new_model.inspect
+
         nil
 
       end
@@ -169,8 +171,6 @@ module ProjectRazor
           puts "Value (#{value}) is invalid".red
           false
         end
-
-        puts new_model.inspect
       end
 
       def skip_quit_option
