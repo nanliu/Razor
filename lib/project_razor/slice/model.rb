@@ -24,7 +24,8 @@ module ProjectRazor
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :default => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
-                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue}
+                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue,
+                                :remove => "imagesvc model remove".red + " (model config uuid)".blue}
         @slice_name = "Model"
       end
 
@@ -54,6 +55,32 @@ module ProjectRazor
         print_model_types policy_rules.get_model_types
       end
 
+
+      def remove_model
+        @command = :remove
+        model_uuid = @command_array.shift
+
+        unless validate_arg(model_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        setup_data
+        model_config = @data.fetch_object_by_uuid(:model, model_uuid)
+
+        unless model_config
+          slice_error("CannotFindModelConfig")
+          get_model_config
+          return
+        end
+
+        if @data.delete_object(model_config)
+          slice_success("ModelConfigRemoved")
+        else
+          slice_error("ModelConfigNotRemoved")
+        end
+      end
+
       def add_model
         if @web_command
           # REST call
@@ -63,6 +90,8 @@ module ProjectRazor
           add_model_cli
         end
       end
+
+      ##### CLI Add Model
 
       def add_model_cli
         @command = :add_cli
@@ -188,6 +217,10 @@ module ProjectRazor
         @values_json_string =  @command_array.shift
         slice_error("NotImplemented")
       end
+
+      ####################
+
+
     end
   end
 end
