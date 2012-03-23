@@ -85,7 +85,8 @@ module ProjectRazor
 
 
         new_policy_rule = policy_rules.new_policy_from_type_name(@policy_type_name)
-        p new_policy_rule
+
+        p new_policy_rule.to_hash
 
 
       end
