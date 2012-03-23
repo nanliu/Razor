@@ -50,7 +50,7 @@ module ProjectRazor
 
 
         @policy_label = @command_array.shift
-        unless /^[\w ]+$/ =~ @policy_name
+        unless /^[\w ]+$/ =~ @policy_label
           slice_error("InvalidPolicyLabel")
           return
         end
