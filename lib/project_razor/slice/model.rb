@@ -127,10 +127,13 @@ module ProjectRazor
             case response.strip
 
               when "SKIP"
-                puts "skip"
+                unless req_metadata_hash[md][:required]
+                  flag = true
+                end
 
               when "QUIT"
-                puts "quit"
+                slice_error["AddCanceled"]
+                return
 
               when ""
                 puts "nothing"
