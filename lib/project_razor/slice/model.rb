@@ -107,15 +107,20 @@ module ProjectRazor
         req_metadata_hash.each_key do
         |md|
           flag = false
+          default = req_metadata_hash[md][:default]
+          validation = req_metadata_hash[md][:validation]
+          required = req_metadata_hash[md][:required]
+          description = req_metadata_hash[md][:description]
+          example = req_metadata_hash[md][:example]
 
-          while !flag
+          until flag
 
-            print "\nPlease enter " + "#{req_metadata_hash[md][:description]}".yellow.bold
-            print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
-            if req_metadata_hash[md][:default] != ""
-              puts "default: " + "#{req_metadata_hash[md][:default]}".yellow
+            print "\nPlease enter " + "#{description}".yellow.bold
+            print " (example: " + "#{example}}".yellow + ") \n"
+            if default != ""
+              puts "default: " + "#{default}".yellow
             end
-            if req_metadata_hash[md][:required]
+            if required
               puts quit_option
             else
               puts skip_quit_option
@@ -123,11 +128,9 @@ module ProjectRazor
             print " > "
             response = gets.strip
 
-
             case response
-
               when "SKIP"
-                if req_metadata_hash[md][:required]
+                if required
                   puts "Cannot skip, value required".red
                 else
                   flag = true
@@ -138,14 +141,14 @@ module ProjectRazor
                 return
 
               when ""
-                if req_metadata_hash[md][:default] != ""
-                  set_metadata_value(new_model, md, req_metadata_hash[md][:default])
+                if default != ""
+                  set_metadata_value(new_model, md, default, validation)
                 else
                   puts "no default value, must enter something".red
                 end
 
               else
-                set_metadata_value(new_model, md, response)
+                set_metadata_value(new_model, md, response, validation)
 
             end
 
@@ -156,9 +159,17 @@ module ProjectRazor
 
       end
 
-      def set_metadata_value(new_model, md, value)
+      def set_metadata_value(new_model, key, value, validation)
+        regex = Regexp.new(validation)
         puts value
-        new_model.instance_variable_set(md.to_sym, value)
+        if regex =~ value
+          new_model.instance_variable_set(key.to_sym, value)
+          true
+        else
+          puts "Value (#{value}) is invalid".red
+          false
+        end
+
         puts new_model.inspect
       end
 
