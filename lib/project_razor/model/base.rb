@@ -13,26 +13,31 @@ module ProjectRazor
       attr_accessor :name
       attr_accessor :model_type
       attr_accessor :description
-      attr_accessor :values_hash
+      attr_accessor :req_metadata_hash
       attr_accessor :hidden
 
       # init
       # @param hash [Hash]
       def initialize(hash)
-        @name = "Base Model(hidden)"
+        super()
+
+        @name = "model_base"
         @hidden = true
         @model_type = :base
         @description = "Base model type"
-        @values_hash = {}
-        super()
+
+
+        @req_metadata_hash = {}
+
+
+
         @_collection = :model
         from_hash(hash) unless hash == nil
       end
 
 
-      def define_values_hash
-        @values_hash = {} #
-      end
+
+
     end
   end
 end

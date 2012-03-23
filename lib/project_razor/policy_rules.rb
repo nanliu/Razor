@@ -81,7 +81,7 @@ module ProjectRazor
     def is_model_type?(model_name)
       get_model_types.each do
       |type|
-        return true if type.name == model_name
+        return type if type.name == model_name
       end
       false
     end

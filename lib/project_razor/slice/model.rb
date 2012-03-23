@@ -23,8 +23,8 @@ module ProjectRazor
                            :remove => "remove_model"}
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :default => "imagesvc model ".red + "{get [config|type]}".blue,
-                                :add_cli => "imagesvc model add".red + " (model_type)".blue,
-                                :add_web => "imagesvc model add".red + " (model_type) (values_hash)".blue}
+                                :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
+                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue}
         @slice_name = "Model"
       end
 
@@ -74,10 +74,46 @@ module ProjectRazor
           return
         end
 
-        unless policy_rules.is_model_type?(@model_name)
+
+        new_model = policy_rules.is_model_type?(@model_name)
+        unless new_model
           slice_error("ModelTypeNotFound")
           return
         end
+
+        @model_config_name =  @command_array.shift
+        unless @model_name != nil
+          slice_error("ModelNameMissing")
+          return
+        end
+
+        if new_model.req_metadata_hash != {}
+           new_model = cli_interactive_metadata(new_model.req_metadata_hash)
+        else
+
+        end
+
+
+
+      end
+
+
+      def cli_interactive_metadata(req_metadata_hash)
+        #@req_metadata_hash = {
+        #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
+        #}
+        puts "\n\t Building Model Config:"
+        req_metadata_hash.each_key do
+          |md|
+          puts "\tPlease enter #{md[:description]}"
+          puts "\t\t example: #{md[:example]}"
+          puts "\t\t default: #{md[:default]}" if md[:default] != ""
+          response = gets
+
+          puts response
+        end
+        nil
+
       end
 
       def add_model_web
