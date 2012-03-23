@@ -103,7 +103,7 @@ module ProjectRazor
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
-        puts "\n--- Building Model Config : #{@model_config_name}\n\n".yellow
+        puts "\n--- Building Model Config(#{@model_name}): #{@model_config_name}\n\n".yellow
         req_metadata_hash.each_key do
         |md|
           flag = false
