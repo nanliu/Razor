@@ -23,6 +23,7 @@ module ProjectRazor
 
         @req_metadata_hash = {
             "@hostname" => {:default => "hostname.example.org",
+                            :example => "hostname.example.org",
                             :validation => '\S',
                             :required => true,
                             :description => "node hostname"}

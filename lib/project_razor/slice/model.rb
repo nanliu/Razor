@@ -88,7 +88,7 @@ module ProjectRazor
         end
 
         if new_model.req_metadata_hash != {}
-           new_model = cli_interactive_metadata(new_model.req_metadata_hash)
+          new_model = cli_interactive_metadata(new_model.req_metadata_hash)
         else
 
         end
@@ -103,12 +103,16 @@ module ProjectRazor
         #@req_metadata_hash = {
         #    "@hostname" => {:default => "hostname.example.org", :validation => '\S', :required => true}
         #}
-        puts "\n\t Building Model Config:"
+        puts "\n--Building Model Config--\n"
         req_metadata_hash.each_key do
-          |md|
+        |md|
           puts "\tPlease enter #{req_metadata_hash[md][:description]}"
-          puts "\t\t example: #{req_metadata_hash[md][:example]}"
-          puts "\t\t default: #{req_metadata_hash[md][:default]}" if req_metadata_hash[md][:default] != ""
+          puts "\tExample: #{req_metadata_hash[md][:example]}"
+          if req_metadata_hash[md][:default] != ""
+            print "\t\t(default: #{req_metadata_hash[md][:default]})>"
+          else
+            print "\t\t>"
+          end
           response = gets
 
           puts response
