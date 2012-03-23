@@ -106,6 +106,31 @@ module ProjectRazor
 
       #### Remove
 
+      def remove_policy
+        @command = :remove
+        policy_uuid = @command_array.shift
+
+        unless validate_arg(policy_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        setup_data
+        policy_rule= @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
+
+        unless policy_rule
+          slice_error("CannotFindPolicyRule")
+          get_policy
+          return
+        end
+
+        if @data.delete_object(policy_rule)
+          slice_success("PolicyRuleRemoved")
+        else
+          slice_error("PolicyRuleNotRemoved")
+        end
+      end
+
 
       ####
 

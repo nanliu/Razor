@@ -126,10 +126,6 @@ module ProjectRazor
     alias :update :add
 
 
-    def remove
-
-    end
-
     # Down is up in numbers (++)
     def move_lines_down
 
