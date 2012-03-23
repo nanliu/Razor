@@ -94,7 +94,7 @@ module ProjectRazor
               print "   Label: " + "#{model.label}".yellow
               print "  Type: " + "#{model.name}".yellow
               print "  Description: " + "#{model.description}".yellow
-              print "  UUID:  " + "#{model.uuid}\n".yellow
+              print "  UUID: " + "#{model.uuid}\n".yellow
             end
           else
             model_array.each { |model| print_object_details_cli(model) }
@@ -106,16 +106,16 @@ module ProjectRazor
       end
 
       def print_model_types(types_array)
-        unless @web_command
-          puts "Valid Model Types:"
-          unless @verbose
-            types_array.each { |type| puts "\t#{type.name} ".yellow + " :  #{type.description}" }
-          else
-            types_array.each { |type| print_object_details_cli(type) }
-          end
-        else
+        if @web_command
           types_array = types_array.collect { |type| type.to_hash }
           slice_success(types_array, false)
+        else
+          puts "Valid Model Types:"
+          if @verbose
+            types_array.each { |type| print_object_details_cli(type) }
+          else
+            types_array.each { |type| puts "\t#{type.name} ".yellow + " :  #{type.description}" }
+          end
         end
       end
 
