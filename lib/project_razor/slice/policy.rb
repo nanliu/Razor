@@ -84,7 +84,7 @@ module ProjectRazor
         end
 
 
-        new_policy_rule = new_policy_from_type_name(@policy_type_name)
+        new_policy_rule = policy_rules.new_policy_from_type_name(@policy_type_name)
         p new_policy_rule
 
 
