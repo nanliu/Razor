@@ -30,11 +30,15 @@ module ProjectRazor
 
         @req_metadata_hash = {}
 
+        @_callback = {}
 
 
         @_collection = :model
         from_hash(hash) unless hash == nil
       end
+
+
+
 
 
 

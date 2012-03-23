@@ -20,7 +20,8 @@ module ProjectRazor
         @slice_commands = {:add => "add_policy",
                            :get => "get_policy",
                            :default => "get_policy",
-                           :remove => "remove_policy"}
+                           :remove => "remove_policy",
+                           :callback => "get_callback" }
         @slice_commands_help = {:add => "policy add " + "(type)".blue +
                                         " (name)".blue + " (model config uuid)".blue + " (tag{,tag,tag})".blue,
                                 :get => "policy ".red + "{get [rule|type|model [config|type]}".blue,
@@ -33,8 +34,35 @@ module ProjectRazor
       end
 
 
-      #### Add
+      ### Script
 
+      # Used to get a callback for a Policy/Model
+      def get_callback
+        @command = :callback
+        policy_uuid = @command_array.shift
+
+        unless validate_arg(policy_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        callback_namespace = @command_array.shift
+
+        unless validate_arg(callback_namespace)
+          slice_error("MissingCallbackNamespace")
+          return
+        end
+
+        puts policy_uuid
+        puts callback_namespace
+
+      end
+
+      ###
+
+
+
+      #### Add
       def add_policy
         @command = :add
         policy_rules = ProjectRazor::PolicyRules.instance
@@ -98,14 +126,9 @@ module ProjectRazor
 
         print_policy_rules [new_policy_rule]
       end
-
-
-
       ####
 
-
       #### Remove
-
       def remove_policy
         @command = :remove
         policy_uuid = @command_array.shift
@@ -130,14 +153,9 @@ module ProjectRazor
           slice_error("PolicyRuleNotRemoved")
         end
       end
-
-
       ####
 
-
-
       #### Get
-
       def get_policy
         @command = :get
         @arg01 =  @command_array.shift
