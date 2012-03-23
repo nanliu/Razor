@@ -89,9 +89,14 @@ module ProjectRazor
         new_policy_rule.name = @policy_name
         new_policy_rule.model = @model_config
         new_policy_rule.tags = @tags_array
-        p new_policy_rule.to_hash
 
+        new_policy_rule = policy_rules.add(new_policy_rule)
+        unless new_policy_rule != nil
+          slice_error("ErrorCreatingPolicyRule")
+          return
+        end
 
+        print_policy_rules [new_policy_rule]
       end
 
 
