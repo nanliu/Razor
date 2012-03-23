@@ -109,9 +109,9 @@ module ProjectRazor
           print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow
           print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
           if req_metadata_hash[md][:default] != ""
-            print "(default: #{req_metadata_hash[md][:default]})>"
+            print "(default: " + "#{req_metadata_hash[md][:default]}".yellow + ")>"
           else
-            print "\t\t>"
+            print ">"
           end
           response = gets
 
