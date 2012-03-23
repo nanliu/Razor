@@ -85,7 +85,7 @@ def print_header
   puts "EMC Corporation".green
   puts "\nLoaded slices:"
 
-  x = 0
+  x = 1
   @slice_array.each do |slice|
     x += 1
     print "[#{slice.downcase}] ".yellow unless slice.downcase == "base" || slice.downcase == "template"
