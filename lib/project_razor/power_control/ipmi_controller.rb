@@ -15,6 +15,8 @@ module ProjectRazor
 
       include Singleton
 
+      # First, define a set of 'query-style' actions that will invoke corresponding
+      # commands from the ipmitool command set
       def power_status(host_ip, username, passwd)
         power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         power_output = power_output.split("\n")
@@ -49,6 +51,57 @@ module ProjectRazor
       def fru_print(host_ip, username, passwd)
         fru_output = run_ipmi_command(host_ip, username, passwd, 'fru', 'print')
         fru_hash = impi_output_to_hash(fru_output, ':')
+      end
+
+      # Then, define a set of 'command-style' actions that will invoke corresponding
+      # actions from the ipmitool command set (power on, power off, power cycle, )
+
+      def power_on(host_ip, username, passwd)
+        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        power_output = power_output.split("\n")
+        power_status = /.*(on|off)$/.match(power_output[0])[1]
+        if power_status == 'off'
+          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'on')
+          power_output = power_output.split("\n")
+          return /.*(Up\/On)$/.match(power_output[0])[1]
+        end
+        'Up/On'
+      end
+
+      def power_off(host_ip, username, passwd)
+        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        power_output = power_output.split("\n")
+        power_status = /.*(on|off)$/.match(power_output[0])[1]
+        if power_status == 'on'
+          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'off')
+          power_output = power_output.split("\n")
+          return /.*(Down\/Off)$/.match(power_output[0])[1]
+        end
+        'Down/Off'
+      end
+
+      def power_cycle(host_ip, username, passwd)
+        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        power_output = power_output.split("\n")
+        power_status = /.*(on|off)$/.match(power_output[0])[1]
+        if power_status == 'on'
+          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'cycle')
+          power_output = power_output.split("\n")
+          return /.*(Cycle)$/.match(power_output[0])[1]
+        end
+        return 'Cycle'
+      end
+
+      def power_reset(host_ip, username, passwd)
+        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        power_output = power_output.split("\n")
+        power_status = /.*(on|off)$/.match(power_output[0])[1]
+        if power_status == 'on'
+          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'reset')
+          power_output = power_output.split("\n")
+          return /.*(Reset)$/.match(power_output[0])[1]
+        end
+        return 'Reset'
       end
 
       private
