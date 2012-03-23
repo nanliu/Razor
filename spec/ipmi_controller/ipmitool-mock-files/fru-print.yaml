@@ -1,9 +1,9 @@
----
+--- 
 :FRU_Device_Description: Pwr Supply 1 FRU (ID 2)
 :Chassis_Type: Rack Mount Chassis
-:Chassis_Part_Number: ! '..................'
-:Chassis_Serial: ! '..................'
-:Chassis_Extra: ! '...............................'
+:Chassis_Part_Number: ..................
+:Chassis_Serial: ..................
+:Chassis_Extra: ...............................
 :Board_Mfg_Date: Tue Oct 12 21:54:00 2010
 :Board_Mfg: Intel Corporation
 :Board_Product: S5520UR
@@ -14,4 +14,4 @@
 :Product_Part_Number: E33446-007
 :Product_Version: 02F
 :Product_Serial: E33446D1033007009
-:Product_Asset_Tag: ! '....................'
+:Product_Asset_Tag: ....................
