@@ -82,7 +82,7 @@ module ProjectRazor
         p  policy.model.callback
         callback = policy.model.callback[callback_namespace]
         if callback != nil
-          puts policy.model.send callback @command_array
+          puts policy.model.send(callback, @command_array)
         else
           slice_error("NoCallbackFound")
         end
