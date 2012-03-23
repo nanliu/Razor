@@ -37,6 +37,7 @@ module ProjectRazor
       temp_hash.each_value {|x| policy_type_array[x] = x}
       policy_type_array.each_value.collect {|x| x}
 
+      policy_type_obj = nil
       valid_types = []
       policy_type_array.each do
         |policy_type|
