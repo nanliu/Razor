@@ -16,6 +16,7 @@ module ProjectRazor
       attr_accessor :description
       attr_accessor :req_metadata_hash
       attr_accessor :hidden
+      attr_accessor :callback
 
       # init
       # @param hash [Hash]
@@ -30,11 +31,15 @@ module ProjectRazor
 
         @req_metadata_hash = {}
 
+        @callback = {}
 
 
         @_collection = :model
         from_hash(hash) unless hash == nil
       end
+
+
+
 
 
 

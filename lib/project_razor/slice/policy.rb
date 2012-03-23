@@ -20,9 +20,10 @@ module ProjectRazor
         @slice_commands = {:add => "add_policy",
                            :get => "get_policy",
                            :default => "get_policy",
-                           :remove => "remove_policy"}
+                           :remove => "remove_policy",
+                           :callback => "get_callback" }
         @slice_commands_help = {:add => "policy add " + "(type)".blue +
-                                        " (name)".blue + " (model config uuid)".blue + " (tag{,tag,tag})".blue,
+            " (name)".blue + " (model config uuid)".blue + " (tag{,tag,tag})".blue,
                                 :get => "policy ".red + "{get [rule|type|model [config|type]}".blue,
                                 :remove => "policy " + "(policy rule UUID)".yellow,
                                 :default => "policy ".red + "{get [rule|type|model [config|type]}".blue,
@@ -33,8 +34,65 @@ module ProjectRazor
       end
 
 
-      #### Add
+      ### Script
 
+      # Used to get a callback for a Policy/Model
+      def get_callback
+        @command = :callback
+        policy_uuid = @command_array.shift
+
+        unless validate_arg(policy_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        callback_namespace = @command_array.shift
+
+        unless validate_arg(callback_namespace)
+          slice_error("MissingCallbackNamespace")
+          return
+        end
+
+        # Logically this should only be called by node bound policies
+        # However we will search Policy_Rules also for testing reasons
+        # And because some policies may not bind down the road
+
+        setup_data
+        # First we check for a bound policy with a matching uuid
+        policy = @data.fetch_object_by_uuid(:bound_policy, policy_uuid)
+
+        if policy != nil
+          make_callback(policy, callback_namespace)
+          return
+        end
+
+        # Then we search for a policy rule with the uuid
+        policy = @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
+
+        if policy != nil
+          make_callback(policy, callback_namespace)
+          return
+        end
+
+        slice_error("InvalidPolicyID")
+
+      end
+
+      def make_callback(policy, callback_namespace)
+        p  policy.model.callback
+        callback = policy.model.callback[callback_namespace]
+        if callback != nil
+          puts policy.model.send(callback, @command_array)
+        else
+          slice_error("NoCallbackFound")
+        end
+      end
+
+      ###
+
+
+
+      #### Add
       def add_policy
         @command = :add
         policy_rules = ProjectRazor::PolicyRules.instance
@@ -98,14 +156,9 @@ module ProjectRazor
 
         print_policy_rules [new_policy_rule]
       end
-
-
-
       ####
 
-
       #### Remove
-
       def remove_policy
         @command = :remove
         policy_uuid = @command_array.shift
@@ -130,14 +183,9 @@ module ProjectRazor
           slice_error("PolicyRuleNotRemoved")
         end
       end
-
-
       ####
 
-
-
       #### Get
-
       def get_policy
         @command = :get
         @arg01 =  @command_array.shift
