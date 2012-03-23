@@ -81,12 +81,13 @@ module ProjectRazor
           return
         end
 
-        @model_config_name =  @command_array.shift
-        unless @model_config_name != nil
+        @model_label =  @command_array.shift
+        unless @model_label != nil
           slice_error("ModelNameMissing")
           return
         end
 
+        new_model.label = @model_label
         if new_model.req_metadata_hash != {}
           if cli_interactive_metadata(new_model) != nil
             insert_model_config(new_model)

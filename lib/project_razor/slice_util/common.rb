@@ -90,7 +90,12 @@ module ProjectRazor
         unless @web_command
           puts "Model Configs:"
           unless @verbose
-            model_array.each { |model| puts "\t#{model.name} ".yellow + " :  #{model.description}" }
+            model_array.each do |model|
+              print "\t Label: " + "#{model.label}".yellow
+              print "  Type: " + "#{model.name}".yellow
+              print "  Description: " + "#{model.name}".yellow
+              print "  UUID:  " + "#{model.uuid}".yellow
+            end
           else
             model_array.each { |model| print_object_details_cli(model) }
           end

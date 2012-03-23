@@ -11,6 +11,7 @@ module ProjectRazor
     # @abstract
     class Base < ProjectRazor::Object
       attr_accessor :name
+      attr_accessor :label
       attr_accessor :model_type
       attr_accessor :description
       attr_accessor :req_metadata_hash
