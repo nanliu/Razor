@@ -79,7 +79,7 @@ module ProjectRazor
       end
 
       def make_callback(policy, callback_namespace)
-        p  policy.model.callback[callback_namespace.to_sym]
+        p  policy.model.callback
         callback = policy.model.callback[callback_namespace.to_sym]
         if callback != nil
           puts policy.model.send(callback)
