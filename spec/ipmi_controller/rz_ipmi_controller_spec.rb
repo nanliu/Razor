@@ -26,6 +26,7 @@ describe ProjectRazor::PowerControl::IpmiController do
     # Clean out what we did
   end
 
+  # Mocks for the IpmiController's 'query-style' methods
   def test_ipmi_power_status_mock
     filename = @mock_data_dir + File::SEPARATOR + 'power-status.out'
     @ipmi.expects(:run_ipmi_command).
@@ -82,6 +83,51 @@ describe ProjectRazor::PowerControl::IpmiController do
     @ipmi.fru_print(@ipmi_hostname, @ipmi_username, @ipmi_password)
   end
 
+  # and mocks for the IpmiController's 'action-style' methods
+  def test_ipmi_power_on_mock
+    filename = @mock_data_dir + File::SEPARATOR + 'power-on.out'
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'status').
+        returns('off')
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'on').
+        returns(File.read(filename))
+    @ipmi.power_on(@ipmi_hostname, @ipmi_username, @ipmi_password)
+  end
+
+  def test_ipmi_power_cycle_mock
+    filename = @mock_data_dir + File::SEPARATOR + 'power-cycle.out'
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'status').
+        returns('on')
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'cycle').
+        returns(File.read(filename))
+    @ipmi.power_cycle(@ipmi_hostname, @ipmi_username, @ipmi_password)
+  end
+
+  def test_ipmi_power_reset_mock
+    filename = @mock_data_dir + File::SEPARATOR + 'power-reset.out'
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'status').
+        returns('on')
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'reset').
+        returns(File.read(filename))
+    @ipmi.power_reset(@ipmi_hostname, @ipmi_username, @ipmi_password)
+  end
+
+  def test_ipmi_power_off_mock
+    filename = @mock_data_dir + File::SEPARATOR + 'power-off.out'
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'status').
+        returns('on')
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'power', 'off').
+        returns(File.read(filename))
+    @ipmi.power_off(@ipmi_hostname, @ipmi_username, @ipmi_password)
+  end
+
   describe ".IPMI" do
 
     it "should return the impitool power status as a hash (using the IpmiController)" do
@@ -122,6 +168,22 @@ describe ProjectRazor::PowerControl::IpmiController do
       yaml_filename = @mock_data_dir + File::SEPARATOR + 'fru-print.yaml'
       test_hash = YAML::load(File.open(yaml_filename))
       test_ipmi_fru_print_mock.should == test_hash
+    end
+
+    it "should power on a node that is off (using the IpmiController)" do
+      test_ipmi_power_on_mock.should == 'Up/On'
+    end
+
+    it "should power cycle a node that is on (using the IpmiController)" do
+      test_ipmi_power_cycle_mock.should == 'Cycle'
+    end
+
+    it "should (hard) reset on a node that is on (using the IpmiController)" do
+      test_ipmi_power_reset_mock.should == 'Reset'
+    end
+
+    it "should power off a node that is on (using the IpmiController)" do
+      test_ipmi_power_off_mock.should == 'Down/Off'
     end
 
   end
