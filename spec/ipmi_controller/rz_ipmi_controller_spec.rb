@@ -45,12 +45,12 @@ describe ProjectRazor::PowerControl::IpmiController do
 
   describe ".IPMI" do
 
-    it "should return the power status for a node using via the IpmiController" do
+    it "should return the impitool power status as a hash (using the IpmiController)" do
       #test_str = YAML::load(File.open('ipmitool-mock-files/power-status.yaml')
       test_ipmi_power_status_mock.should == 'on'
     end
 
-    it "should return the lan print information for a node via the IpmiController" do
+    it "should return the impitool lan print as a hash (using the IpmiController)" do
       yaml_filename = @mock_data_dir + File::SEPARATOR + 'lan-print.yaml'
       test_hash = YAML::load(File.open(yaml_filename))
       test_ipmi_lan_print_mock.should == test_hash
