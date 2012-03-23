@@ -24,7 +24,8 @@ module ProjectRazor
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :default => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
-                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue}
+                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue,
+                                :remove => "imagesvc model remove".red + " (model config uuid)".blue}
         @slice_name = "Model"
       end
 
