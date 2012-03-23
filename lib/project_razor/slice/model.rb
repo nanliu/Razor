@@ -142,13 +142,13 @@ module ProjectRazor
 
               when ""
                 if default != ""
-                  set_metadata_value(new_model, md, default, validation)
+                  flag = set_metadata_value(new_model, md, default, validation)
                 else
                   puts "no default value, must enter something".red
                 end
 
               else
-                set_metadata_value(new_model, md, response, validation)
+                flag = set_metadata_value(new_model, md, response, validation)
 
             end
 
@@ -163,7 +163,6 @@ module ProjectRazor
 
       def set_metadata_value(new_model, key, value, validation)
         regex = Regexp.new(validation)
-        puts value
         if regex =~ value
           new_model.instance_variable_set(key.to_sym, value)
           true
