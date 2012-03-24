@@ -101,7 +101,18 @@ module ProjectRazor
         end
 
         @image.set_image_svc_path(@data.config.image_svc_path)
-        slice_success(@image.image_path)
+
+        @command_array.each do
+          |a|
+          unless validate_arg(a)
+            slice_error("InvalidPathItem", false)
+            return
+          end
+        end
+        file_path = @image.image_path + "/" + @command_array.join("/")
+
+
+        slice_success(file_path)
 
       end
 
