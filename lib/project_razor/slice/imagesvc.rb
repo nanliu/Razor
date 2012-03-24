@@ -87,21 +87,37 @@ module ProjectRazor
       def get_path_with_uuid(uuid)
         @image_uuid = uuid
 
-        unless validate_args(@image_uuid)
+        unless validate_arg(@image_uuid)
           slice_error("InvalidImageUUID", false)
           return
         end
 
         setup_data
-        @image = @data.fetch_object_by_uuid(@image_uuid)
+        @image = @data.fetch_object_by_uuid(:images, @image_uuid)
 
         unless @image != nil
           slice_error("CannotFindImage", false)
           return
         end
 
-        set_image_svc_path(@data.config.image_svc_path)
-        slice_success(@image.image_path)
+        @image.set_image_svc_path(@data.config.image_svc_path)
+
+        @command_array.each do
+        |a|
+          unless /^[^ \/\\]+$/ =~ a
+            slice_error("InvalidPathItem", false)
+            return
+          end
+        end
+        file_path = @image.image_path + "/" + @command_array.join("/")
+
+
+        if File.exists?(file_path) || Dir.exist?(file_path)
+          slice_success(file_path)
+        else
+          slice_success("FilePathDoesNotExistInImage")
+        end
+
 
       end
 
