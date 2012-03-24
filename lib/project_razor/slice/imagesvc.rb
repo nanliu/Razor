@@ -85,7 +85,23 @@ module ProjectRazor
       end
 
       def get_path_with_uuid(uuid)
+        @image_uuid = uuid
 
+        unless validate_args(@image_uuid)
+          slice_error("InvalidImageUUID", false)
+          return
+        end
+
+        setup_data
+        @image = @data.fetch_object_by_uuid(@image_uuid)
+
+        unless @image != nil
+          slice_error("CannotFindImage", false)
+          return
+        end
+
+        set_image_svc_path(@data.config.image_svc_path)
+        slice_success(@image.image_path)
 
       end
 
