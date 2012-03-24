@@ -52,14 +52,19 @@ module ProjectRazor
 
 
       def fsm_action(action)
-        old_state = @current_state
-        if fsm[@current_state][action] != nil
-          @current_state = fsm[@current_state][action]
+        # We only change state if we have a node bound
+        if node_bound
+          old_state = @current_state
+          if fsm[@current_state][action] != nil
+            @current_state = fsm[@current_state][action]
+          else
+            @current_state = fsm[@current_state][:else]
+          end
+          self.update_self
+          logger.debug "state update: #{old_state} => #{@current_state} on #{action} for #{node_bound.uuid}"
         else
-          @current_state = fsm[@current_state][:else]
+          logger.debug "Action #{action} called with state #{@current_state} but no Node bound"
         end
-        self.update_self
-        logger.debug "state update: #{old_state} => #{@current_state} on #{action} for #{node_bound.uuid}"
 
       end
 
