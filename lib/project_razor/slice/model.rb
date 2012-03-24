@@ -164,6 +164,8 @@ module ProjectRazor
             end
             return
           end
+
+          new_model.image_uuid = @image_requested.uuid
         end
 
 
