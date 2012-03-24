@@ -135,7 +135,9 @@ module ProjectRazor
               print "   Label: " + "#{model.label}".yellow
               print "  Type: " + "#{model.name}".yellow
               print "  Description: " + "#{model.description}".yellow
-              print "  UUID: " + "#{model.uuid}\n".yellow
+              print "  Model UUID: " + "#{model.uuid}".yellow
+              print "  Image UUID: " + "#{model.image_uuid}".yellow if model.instance_variable_get):image_uuid != nil
+              print "\n\n"
             end
           else
             model_array.each { |model| print_object_details_cli(model) }
