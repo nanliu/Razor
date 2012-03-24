@@ -100,7 +100,7 @@ module ProjectRazor
           return
         end
 
-        set_image_svc_path(@data.config.image_svc_path)
+        @image.set_image_svc_path(@data.config.image_svc_path)
         slice_success(@image.image_path)
 
       end
