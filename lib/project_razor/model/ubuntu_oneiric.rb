@@ -186,7 +186,10 @@ module ProjectRazor
       def boot_call(node)
         @node_bound = node
         ip = "#!ipxe\n"
-        ip << "echo Reached #{label} model boot_call\n"
+        ip << "echo Reached #{@label} model boot_call\n"
+        ip << "Our image UUID is: #{@image_uuid}\n"
+        ip << "Our state is: #{@current_state}\n"
+        ip << "Our node UUID: #{@node_bound.uuid}\n"
         ip << "shell\n"
         ip
       end
