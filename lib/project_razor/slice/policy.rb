@@ -120,7 +120,7 @@ module ProjectRazor
 
           slice_error("MustProvideModelConfigUUID")
           @command_array.unshift(@policy_type_name)
-          print_model_configs get_model_config
+          get_model_config
           return
         end
         setup_data
@@ -129,7 +129,7 @@ module ProjectRazor
 
           slice_error("CannotFindModelConfig")
           @command_array.unshift(@policy_type_name)
-          print_model_configs get_model_config
+          get_model_config
           return
         end
 
