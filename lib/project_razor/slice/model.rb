@@ -147,9 +147,6 @@ module ProjectRazor
             print_images valid_images
             return
           end
-
-        else
-
         end
 
 
