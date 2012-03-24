@@ -136,7 +136,7 @@ module ProjectRazor
               print "  Type: " + "#{model.name}".yellow
               print "  Description: " + "#{model.description}".yellow
               print "  Model UUID: " + "#{model.uuid}".yellow
-              print "  Image UUID: " + "#{model.image_uuid}".yellow if model.instance_variable_get):image_uuid != nil
+              print "  Image UUID: " + "#{model.image_uuid}".yellow if model.instance_variable_get(:image_uuid) != nil
               print "\n\n"
             end
           else
