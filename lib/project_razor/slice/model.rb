@@ -138,7 +138,7 @@ module ProjectRazor
           end
 
           setup_data
-          @image_requested = @data.fetch_object_by_uuid(:image, @model_image_uuid)
+          @image_requested = @data.fetch_object_by_uuid(:images, @model_image_uuid)
           unless @image_requested != nil
             slice_error("ImageDoesNotExist")
             valid_images = get_object("images", :images).map! do |i|
@@ -152,7 +152,7 @@ module ProjectRazor
             return
           end
 
-          unless @image_requested.image_prefix == new_model.path_prefix
+          unless @image_requested.path_prefix == new_model.image_prefix
             slice_error("ImageIsNotCorrectType")
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
@@ -164,6 +164,8 @@ module ProjectRazor
             end
             return
           end
+
+          new_model.image_uuid = @image_requested.uuid
         end
 
 
