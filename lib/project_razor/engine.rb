@@ -258,6 +258,7 @@ module ProjectRazor
 
     def find_bound_policy(node)
       bound_policies = $data.fetch_all_objects(:bound_policy)
+      puts bound_policies.inspect
       bound_policies.each do
       |bp|
         # If we find a bound policy we return it
