@@ -185,6 +185,7 @@ module ProjectRazor
 
       def boot_call(node)
         @node_bound = node
+        p @node_bound
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "Our image UUID is: #{@image_uuid}\n"
