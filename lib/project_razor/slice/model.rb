@@ -152,7 +152,7 @@ module ProjectRazor
             return
           end
 
-          unless @image_requested.image_prefix == new_model.path_prefix
+          unless @image_requested.path_prefix == new_model.image_prefix
             slice_error("ImageIsNotCorrectType")
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
