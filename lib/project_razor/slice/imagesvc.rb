@@ -87,7 +87,7 @@ module ProjectRazor
       def get_path_with_uuid(uuid)
         @image_uuid = uuid
 
-        unless validate_args(@image_uuid)
+        unless validate_arg(@image_uuid)
           slice_error("InvalidImageUUID", false)
           return
         end
