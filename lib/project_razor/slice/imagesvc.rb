@@ -93,7 +93,7 @@ module ProjectRazor
         end
 
         setup_data
-        @image = @data.fetch_object_by_uuid(@image_uuid)
+        @image = @data.fetch_object_by_uuid(:images, @image_uuid)
 
         unless @image != nil
           slice_error("CannotFindImage", false)
