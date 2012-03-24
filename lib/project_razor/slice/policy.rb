@@ -118,7 +118,7 @@ module ProjectRazor
         @model_config_uuid = @command_array.shift
         unless @model_config_uuid != nil
           @command_array.unshift(@policy_type_name)
-          print_model_config get_model_config
+          print_model_configs get_model_config
           slice_error("MustProvideModelConfigUUID")
           return
         end
@@ -126,7 +126,7 @@ module ProjectRazor
         @model_config = @data.fetch_object_by_uuid(:model, @model_config_uuid)
         unless @model_config != nil
           @command_array.unshift(@policy_type_name)
-          print_model_config get_model_config
+          print_model_configs get_model_config
           slice_error("MustProvideModelConfigUUID")
           return
         end
