@@ -182,8 +182,8 @@ module ProjectRazor
       def boot_call(node)
         @node_bound = node
         ip = ""
-        ip << 'echo Reached #{label} model boot_call'
-        ip << 'shel'
+        ip << "echo Reached #{label} model boot_call"
+        ip << "shell"
         ip
       end
 
