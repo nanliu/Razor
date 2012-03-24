@@ -236,37 +236,7 @@ module ProjectRazor
       end
 
 
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      def print_images(images_array)
-        unless @web_command
-          puts "Images:"
 
-          unless @verbose
-            images_array.each do
-            |image|
-              image.print_image_info(@data.config.image_svc_path)
-              print "\n"
-            end
-          else
-            images_array.each do
-            |image|
-              image.instance_variables.each do
-              |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{image.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          images_array = images_array.collect { |image| image.to_hash }
-          slice_success(images_array, false)
-        end
-      end
 
     end
   end

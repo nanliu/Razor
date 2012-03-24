@@ -11,15 +11,37 @@ module ProjectRazor
     # @abstract
     class UbuntuOneiricMinimal < ProjectRazor::Model::Base
 
+      # Assigned image
+      attr_accessor :image_uuid
+
+      # Metadata
       attr_accessor :hostname
+
+      # Compatible Image Prefix
+      attr_accessor :image_prefix
+
 
       def initialize(hash)
         super(hash)
+
+        # Static config
         @hidden = false
         @model_type = :linux_deploy
         @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
+
+        # Metadata vars
         @hostname = nil
+
+        # State / must have a starting state
+        @current_state = :init
+
+        # Image UUID
+        @image_uuid = true
+
+        # Image prefix we can attach
+        @image_prefix = "os"
+
 
         @req_metadata_hash = {
             "@hostname" => {:default => "",
@@ -30,7 +52,7 @@ module ProjectRazor
         }
 
 
-        @callback = {"preseed" => :generate_preseed}
+        @callback = {"preseed" => :preseed_call}
 
 
         from_hash(hash) unless hash == nil
@@ -38,8 +60,31 @@ module ProjectRazor
 
 
 
-      def generate_preseed (args_array)
-        puts args_array.inspect
+      def preseed_call (args_array)
+        @arg = args_array.shift
+
+        case @arg
+
+          when  "start"
+            fsm_action(:preseed_start)
+            return "ok"
+
+          when "end"
+            fsm_action(:preseed_end)
+            return "ok
+"
+          when "file"
+            fsm_action(:preseed_action)
+            return generate_preseed
+
+          else
+            return "error"
+        end
+
+      end
+
+
+      def generate_preseed
         ps = ""
         ps << '# Suggest LVM by default.'
         ps << 'd-i	partman-auto/init_automatically_partition	string some_device_lvm'
@@ -63,6 +108,69 @@ module ProjectRazor
         ps << 'oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks'
         ps
       end
+
+
+      # Defines our FSM for this model
+      #  For state => {action => state, ..}
+      def fsm
+        {
+         :init => {:mk_call => :init,
+                   :boot_call => :init,
+                   :preseed_start => :preinstall,
+                   :preseed_file => :init,
+                   :preseed_end => :postinstall,
+                   :timeout => :timeout_error,
+                   :error => :error_catch,
+                   :else => :init},
+         :preinstall => {:mk_call => :preinstall,
+                         :boot_call => :preinstall,
+                         :preseed_start => :preinstall,
+                         :preseed_file => :init,
+                         :preseed_end => :postinstall,
+                         :preseed_timeout => :timeout_error,
+                         :error => :error_catch,
+                         :else => :preinstall},
+         :postinstall => {:mk_call => :postinstall,
+                          :boot_call => :postinstall,
+                          :post_ok => :postinstall,
+                          :post_error => :error_catch,
+                          :post_timeout => :timeout_error,
+                          :error => :error_catch,
+                          :else => :error_catch},
+         :os_validate => {:mk_call => :os_validate,
+                         :boot_call => :os_validate,
+                         :os_ok => :os_complete,
+                         :os_error => :os_error,
+                         :os_timeout => :timeout_error,
+                         :error => :error_catch,
+                         :else => :error_catch},
+         :os_complete => {:mk_call => :os_complete,
+                          :boot_call => :os_complete,
+                          :else => :os_complete,
+                          :reset => :init},
+         :timeout_error => {:mk_call => :timeout_error,
+                          :boot_call => :timeout_error,
+                          :else => :timeout_error,
+                          :reset => :init},
+         :error_catch => {:mk_call => :error_catch,
+                          :boot_call => :error_catch,
+                          :else => :error_catch,
+                          :reset => :init},
+        }
+      end
+
+
+      def mk_call(node)
+        @node_bound = node
+
+      end
+
+      def boot_call(node)
+        @node_bound = node
+
+      end
+
+
     end
   end
 end
