@@ -153,7 +153,7 @@ module ProjectRazor
 
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
-
+      begin
       # Loop through each rule checking node's tags to see if that match
       policy_rules.get.each do
       |pl|
@@ -171,6 +171,10 @@ module ProjectRazor
         end
         logger.debug "No matching rules"
       end
+      rescue => e
+        logger.error e.message
+      end
+
     end
 
 
