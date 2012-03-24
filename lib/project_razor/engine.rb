@@ -268,7 +268,7 @@ module ProjectRazor
 
     def default_mk_boot(uuid)
       logger.debug "Responding with MK Boot - uuid: #{uuid}"
-      default = ProjectRazor::Policy::BootMK.new
+      default = ProjectRazor::Policy::BootMK.new({})
       default.get_boot_script
     end
 

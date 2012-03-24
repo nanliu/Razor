@@ -195,6 +195,42 @@ module ProjectRazor
         end
       end
 
+      # Handles printing of node details to CLI or REST
+      # @param [Hash] node_array
+      def print_node(node_array)
+        unless @web_command
+          puts "Nodes:"
+
+          unless @verbose
+            node_array.each do
+            |node|
+              print "\tuuid: "
+              print "#{node.uuid}  ".green
+              print "last state: "
+              print "#{node.last_state}  ".green
+              print "name: " unless node.name == nil
+              print "#{node.name}  ".green unless node.name == nil
+              print "\n"
+            end
+          else
+            node_array.each do
+            |node|
+              node.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{node.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          node_array = node_array.collect { |node| node.to_hash }
+          slice_success(node_array,false)
+        end
+      end
 
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(arg)
