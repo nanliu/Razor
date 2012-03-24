@@ -79,7 +79,6 @@ module ProjectRazor
       end
 
       def make_callback(policy, callback_namespace)
-        p  policy.model.callback
         callback = policy.model.callback[callback_namespace]
         if callback != nil
           puts policy.model.send(callback, @command_array)
