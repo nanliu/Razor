@@ -125,17 +125,30 @@ module ProjectRazor
           @model_image_uuid = @command_array.shift
           unless @model_image_uuid
             slice_error("ImageUUIDToBindMissing")
+            valid_images = get_object("images", :images).map! do |i|
+              i.path_prefix == new_model.image_prefix ? i : nil
+            end.compact!
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
+
             return
           end
 
           setup_data
           @image_requested = @data.fetch_object_by_uuid(:image, @model_image_uuid)
-          unless @image_requested
+          unless @image_requested != nil
             slice_error("ImageDoesNotExist")
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
             end.compact!
-            print_images valid_images
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
             return
           end
 
@@ -144,7 +157,11 @@ module ProjectRazor
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
             end.compact!
-            print_images valid_images
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
             return
           end
         end
