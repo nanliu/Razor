@@ -153,29 +153,33 @@ module ProjectRazor
 
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
-
+      begin
       # Loop through each rule checking node's tags to see if that match
       policy_rules.get.each do
       |pl|
         # Make sure there is at least one tag
         if pl.tags.count > 0
           if check_tags(node.tags, pl.tags)
-            logger.debug "Matching policy rule (#{pl.name}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
+            logger.debug "Matching policy rule (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
             # We found a policy that matches
             # we call the policy binding and exit loop
             mk_bind_policy(node, pl)
             return
           end
         else
-          logger.error "Policy (#{pl.name}) has no tags configured"
+          logger.error "Policy (#{pl.label}) has no tags configured"
         end
         logger.debug "No matching rules"
       end
+      rescue => e
+        logger.error e.message
+      end
+
     end
 
 
     def mk_bind_policy(node, policy_rule)
-      logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.name})"
+      logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.label})"
       policy_binding = ProjectRazor::PolicyBinding.new({})
       policy_binding.node_uuid = node.uuid
       policy_binding.policy = policy_rule
@@ -229,7 +233,7 @@ module ProjectRazor
         method call from a boot
         if bound_policy
           # Call the bound policy boot_call
-          logger.debug "Active policy found (#{bound_policy.name}) for Node uuid: #{node.uuid}"
+          logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
           bound_policy.boot_call(@node)
         else
         #There is not bound policy so we boot the MK
