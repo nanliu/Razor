@@ -17,6 +17,8 @@ module ProjectRazor
       attr_accessor :req_metadata_hash
       attr_accessor :hidden
       attr_accessor :callback
+      attr_accessor :current_state
+      attr_accessor :node_bound
 
       # init
       # @param hash [Hash]
@@ -33,6 +35,10 @@ module ProjectRazor
 
         @callback = {}
 
+        @current_state = :init
+
+        @node_bound = nil
+
 
         @_collection = :model
         from_hash(hash) unless hash == nil
@@ -40,8 +46,22 @@ module ProjectRazor
 
 
 
+      def fsm
+        {}
+      end
 
 
+      def fsm_action(action)
+        old_state = @current_state
+        if fsm[@current_state][action] != nil
+          @current_state = fsm[@current_state][action]
+        else
+          @current_state = fsm[@current_state][:else]
+        end
+        self.update_self
+        logger.debug "state update: #{old_state} => #{@current_state} on #{action} for #{node_bound.uuid}"
+
+      end
 
 
     end
