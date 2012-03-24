@@ -139,7 +139,7 @@ module ProjectRazor
 
           setup_data
           @image_requested = @data.fetch_object_by_uuid(:image, @model_image_uuid)
-          unless @image_requested
+          unless @image_requested != nil
             slice_error("ImageDoesNotExist")
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
