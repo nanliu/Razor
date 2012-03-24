@@ -114,48 +114,48 @@ module ProjectRazor
       #  For state => {action => state, ..}
       def fsm
         {
-         :init => {:mk_call => :init,
-                   :boot_call => :init,
-                   :preseed_start => :preinstall,
-                   :preseed_file => :init,
-                   :preseed_end => :postinstall,
-                   :timeout => :timeout_error,
-                   :error => :error_catch,
-                   :else => :init},
-         :preinstall => {:mk_call => :preinstall,
-                         :boot_call => :preinstall,
-                         :preseed_start => :preinstall,
-                         :preseed_file => :init,
-                         :preseed_end => :postinstall,
-                         :preseed_timeout => :timeout_error,
-                         :error => :error_catch,
-                         :else => :preinstall},
-         :postinstall => {:mk_call => :postinstall,
-                          :boot_call => :postinstall,
-                          :post_ok => :postinstall,
-                          :post_error => :error_catch,
-                          :post_timeout => :timeout_error,
-                          :error => :error_catch,
-                          :else => :error_catch},
-         :os_validate => {:mk_call => :os_validate,
-                         :boot_call => :os_validate,
-                         :os_ok => :os_complete,
-                         :os_error => :os_error,
-                         :os_timeout => :timeout_error,
-                         :error => :error_catch,
-                         :else => :error_catch},
-         :os_complete => {:mk_call => :os_complete,
-                          :boot_call => :os_complete,
-                          :else => :os_complete,
-                          :reset => :init},
-         :timeout_error => {:mk_call => :timeout_error,
-                          :boot_call => :timeout_error,
-                          :else => :timeout_error,
-                          :reset => :init},
-         :error_catch => {:mk_call => :error_catch,
-                          :boot_call => :error_catch,
-                          :else => :error_catch,
-                          :reset => :init},
+            :init => {:mk_call => :init,
+                      :boot_call => :init,
+                      :preseed_start => :preinstall,
+                      :preseed_file => :init,
+                      :preseed_end => :postinstall,
+                      :timeout => :timeout_error,
+                      :error => :error_catch,
+                      :else => :init},
+            :preinstall => {:mk_call => :preinstall,
+                            :boot_call => :preinstall,
+                            :preseed_start => :preinstall,
+                            :preseed_file => :init,
+                            :preseed_end => :postinstall,
+                            :preseed_timeout => :timeout_error,
+                            :error => :error_catch,
+                            :else => :preinstall},
+            :postinstall => {:mk_call => :postinstall,
+                             :boot_call => :postinstall,
+                             :post_ok => :postinstall,
+                             :post_error => :error_catch,
+                             :post_timeout => :timeout_error,
+                             :error => :error_catch,
+                             :else => :error_catch},
+            :os_validate => {:mk_call => :os_validate,
+                             :boot_call => :os_validate,
+                             :os_ok => :os_complete,
+                             :os_error => :os_error,
+                             :os_timeout => :timeout_error,
+                             :error => :error_catch,
+                             :else => :error_catch},
+            :os_complete => {:mk_call => :os_complete,
+                             :boot_call => :os_complete,
+                             :else => :os_complete,
+                             :reset => :init},
+            :timeout_error => {:mk_call => :timeout_error,
+                               :boot_call => :timeout_error,
+                               :else => :timeout_error,
+                               :reset => :init},
+            :error_catch => {:mk_call => :error_catch,
+                             :boot_call => :error_catch,
+                             :else => :error_catch,
+                             :reset => :init},
         }
       end
 
@@ -163,11 +163,27 @@ module ProjectRazor
       def mk_call(node)
         @node_bound = node
 
+
+        case @current_state
+
+          # We need to reboot
+          when :init, :preinstall, :postinstall, :os_validate, :os_complete
+            ret = [:reboot, {}]
+          when :timeout_error, :error_catch
+            ret = [:acknowledge, {}]
+          else
+            ret = [:acknowledge, {}]
+        end
+
+        fsm_action(:mk_call)
+        ret
       end
 
       def boot_call(node)
         @node_bound = node
-
+        ip << 'echo Reached #{label} model boot_call'
+        ip << 'shel'
+        ip
       end
 
 
