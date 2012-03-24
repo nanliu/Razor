@@ -229,8 +229,8 @@ module ProjectRazor
         logger.debug "Node identified - uuid: #{node.uuid}"
         bound_policy = find_bound_policy(node)  # commented out until refactor
 
-        If there is a bound policy we pass it the node to a common
-        method call from a boot
+        #If there is a bound policy we pass it the node to a common
+        #method call from a boot
         if bound_policy
           # Call the bound policy boot_call
           logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
