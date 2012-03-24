@@ -262,7 +262,7 @@ module ProjectRazor
       bound_policies.each do
       |bp|
         # If we find a bound policy we return it
-        return bp.policy if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
+        return bp.policy if uuid_sanitize(bp.node_uuid) == uuid_sanitize(node.uuid)
       end
       # Otherwise we return false indicating we have no policy
       false
