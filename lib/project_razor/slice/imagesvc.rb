@@ -104,7 +104,7 @@ module ProjectRazor
 
         @command_array.each do
           |a|
-          unless validate_arg(a)
+          unless /^\w$/ =~ a
             slice_error("InvalidPathItem", false)
             return
           end
