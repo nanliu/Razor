@@ -229,8 +229,8 @@ module ProjectRazor
         logger.debug "Node identified - uuid: #{node.uuid}"
         bound_policy = find_bound_policy(node)  # commented out until refactor
 
-        If there is a bound policy we pass it the node to a common
-        method call from a boot
+        #If there is a bound policy we pass it the node to a common
+        #method call from a boot
         if bound_policy
           # Call the bound policy boot_call
           logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
@@ -261,7 +261,7 @@ module ProjectRazor
       bound_policies.each do
       |bp|
         # If we find a bound policy we return it
-        return bp.policy if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
+        return bp.policy if uuid_sanitize(bp.node_uuid) == uuid_sanitize(node.uuid)
       end
       # Otherwise we return false indicating we have no policy
       false
@@ -305,7 +305,7 @@ module ProjectRazor
 
     def uuid_sanitize(uuid)
       uuid = uuid.gsub(/[:;,]/,"")
-      uuid = uuid.upcase
+      uuid.upcase
     end
 
 

@@ -86,27 +86,31 @@ module ProjectRazor
 
       def generate_preseed
         ps = ""
-        ps << '# Suggest LVM by default.'
-        ps << 'd-i	partman-auto/init_automatically_partition	string some_device_lvm'
-        ps << 'd-i	partman-auto/init_automatically_partition	seen false'
-        ps << '# Always install the server kernel.'
-        ps << 'd-i	base-installer/kernel/override-image	string linux-server'
-        ps << '# Only install basic language packs. Let tasksel ask about tasks.'
-        ps << 'd-i	pkgsel/language-pack-patterns	string'
-        ps << '# No language support packages.'
-        ps << 'd-i	pkgsel/install-language-support	boolean false'
-        ps << '# Only ask the UTC question if there are other operating systems installed.'
-        ps << 'd-i	clock-setup/utc-auto	boolean true'
-        ps << '# Verbose output and no boot splash screen.'
-        ps << 'd-i	debian-installer/quiet	boolean false'
-        ps << 'd-i	debian-installer/splash	boolean false'
-        ps << '# Install the debconf oem-config frontend (if in OEM mode).'
-        ps << 'd-i	oem-config-udeb/frontend	string debconf'
-        ps << '# Wait for two seconds in grub'
-        ps << 'd-i	grub-installer/timeout	string 2'
-        ps << '# Add the network and tasks oem-config steps by default.'
-        ps << 'oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks'
+        ps << nl('# Suggest LVM by default.')
+        ps << nl('d-i	partman-auto/init_automatically_partition	string some_device_lvm')
+        ps << nl('d-i	partman-auto/init_automatically_partition	seen false')
+        ps << nl('# Always install the server kernel.')
+        ps << nl('d-i	base-installer/kernel/override-image	string linux-server')
+        ps << nl('# Only install basic language packs. Let tasksel ask about tasks.')
+        ps << nl('d-i	pkgsel/language-pack-patterns	string')
+        ps << nl('# No language support packages.')
+        ps << nl('d-i	pkgsel/install-language-support	boolean false')
+        ps << nl('# Only ask the UTC question if there are other operating systems installed.')
+        ps << nl('d-i	clock-setup/utc-auto	boolean true')
+        ps << nl('# Verbose output and no boot splash screen.')
+        ps << nl('d-i	debian-installer/quiet	boolean false')
+        ps << nl('d-i	debian-installer/splash	boolean false')
+        ps << nl('# Install the debconf oem-config frontend (if in OEM mode).')
+        ps << nl('d-i	oem-config-udeb/frontend	string debconf')
+        ps << nl('# Wait for two seconds in grub')
+        ps << nl('d-i	grub-installer/timeout	string 2')
+        ps << nl('# Add the network and tasks oem-config steps by default.')
+        ps << nl('oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks')
         ps
+      end
+
+      def nl(s)
+        s + "\n"
       end
 
 
@@ -181,8 +185,9 @@ module ProjectRazor
 
       def boot_call(node)
         @node_bound = node
-        ip << 'echo Reached #{label} model boot_call'
-        ip << 'shel'
+        ip = "#!ipxe\n"
+        ip << "echo Reached #{label} model boot_call\n"
+        ip << "shell\n"
         ip
       end
 
