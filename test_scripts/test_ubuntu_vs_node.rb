@@ -36,7 +36,7 @@ if node
   #### We create an empty tag rule with the tag: TEST_TAG
   uri = URI "http://127.0.0.1:#{config.api_port}/razor/api/tag/rule/add"
   name = "live_test_tag_rule_for_engine"
-  tag = "TEST_TAG"
+  tag = "test"
   json_hash = {}
   json_hash["@name"] = name
   json_hash["@tag"] = tag
