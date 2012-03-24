@@ -117,13 +117,19 @@ module ProjectRazor
 
         @model_config_uuid = @command_array.shift
         unless @model_config_uuid != nil
+
           slice_error("MustProvideModelConfigUUID")
+          @command_array.unshift(@policy_type_name)
+          get_model_config
           return
         end
         setup_data
         @model_config = @data.fetch_object_by_uuid(:model, @model_config_uuid)
         unless @model_config != nil
-          slice_error("MustProvideModelConfigUUID")
+
+          slice_error("CannotFindModelConfig")
+          @command_array.unshift(@policy_type_name)
+          get_model_config
           return
         end
 
