@@ -55,7 +55,7 @@ module ProjectRazor
 
       def fsm_action(action)
         # We only change state if we have a node bound
-        if node_bound
+        if @node_bound
           old_state = @current_state
           if fsm[@current_state][action] != nil
             @current_state = fsm[@current_state][action]

@@ -57,31 +57,32 @@ module ProjectRazor
         # However we will search Policy_Rules also for testing reasons
         # And because some policies may not bind down the road
 
-        setup_data
+
         # First we check for a bound policy with a matching uuid
-        policy = @data.fetch_object_by_uuid(:bound_policy, policy_uuid)
+        engine = ProjectRazor::Engine.instance
+        bound_policy = nil
+        engine.bound_policy.each do
+          |bp|
+          bound_policy = bp if bp.policy.uuid == policy_uuid
+        end
 
-        if policy != nil
-          make_callback(policy, callback_namespace)
+        if bound_policy != nil
+          make_callback(bound_policy, callback_namespace)
           return
         end
 
-        # Then we search for a policy rule with the uuid
-        policy = @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
-
-        if policy != nil
-          make_callback(policy, callback_namespace)
-          return
-        end
 
         slice_error("InvalidPolicyID")
 
       end
 
-      def make_callback(policy, callback_namespace)
-        callback = policy.model.callback[callback_namespace]
+      def make_callback(bound_policy, callback_namespace)
+        callback = bound_policy.policy.model.callback[callback_namespace]
         if callback != nil
-          puts policy.model.send(callback, @command_array)
+          setup_data
+          node = @data.fetch_object_by_uuid(:node, bound_policy.node_uuid)
+
+          bound_policy.policy.model.send(callback, @command_array, bound_policy.policy, node)
         else
           slice_error("NoCallbackFound")
         end

@@ -2,6 +2,10 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 
+# TODO - timing between state changes
+# TODO - timeout values for a state
+# TODO - Model sequence log (collection)
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -60,7 +64,10 @@ module ProjectRazor
 
 
 
-      def preseed_call (args_array)
+      def preseed_call (args_array, policy, node)
+        @policy_bound = policy
+        @node_bound = node
+
         @arg = args_array.shift
 
         case @arg
@@ -75,7 +82,7 @@ module ProjectRazor
 "
           when "file"
             fsm_action(:preseed_action)
-            return generate_preseed
+            return generate_preseed(policy)
 
           else
             return "error"
@@ -84,7 +91,7 @@ module ProjectRazor
       end
 
 
-      def generate_preseed
+      def generate_preseed(policy)
 "d-i console-setup/ask_detect boolean false
 
 d-i keyboard-configuration/layoutcode string us
@@ -175,7 +182,13 @@ d-i grub-installer/only_debian boolean true
 
 d-i grub-installer/with_other_os boolean true
 
-d-i finish-install/reboot_in_progress note"
+d-i finish-install/reboot_in_progress note
+
+
+#Our callbacks
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/start
+d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/end
+"
       end
 
       def nl(s)
