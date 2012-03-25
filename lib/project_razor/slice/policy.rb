@@ -67,6 +67,7 @@ module ProjectRazor
         end
 
         if active_bound_policy != nil
+          logger.debug "Active bound policy found for callback: #{callback_namespace}"
           make_callback(active_bound_policy, callback_namespace)
           return
         end
