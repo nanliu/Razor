@@ -115,13 +115,13 @@ module ProjectRazor
         # A bound policy means the node will never evaluate a policy rule
         # So for safety's sake - we set an extra flag (bound_policy_flag) which
         # prevents the policy eval below to run
-        bound_policy = mk_check_bound_policy(node.uuid)
+        bound_policy = find_bound_policy(node.uuid)
 
 
 
 
         if bound_policy
-          command_array = bound_policy.policy.mk_call(node)
+          command_array = bound_policy.mk_call(node)
           bound_policy.update_self
           return mk_command(command_array[0],command_array[1])
         else
@@ -138,17 +138,6 @@ module ProjectRazor
         logger.debug "Unknown Node #{uuid}, asking to register"
         mk_command(:register,{})
       end
-    end
-
-
-    def mk_check_bound_policy(node_uuid)
-      bound_policy.each do
-      |bp|
-        if bp.node_uuid == node_uuid
-          return bp
-        end
-      end
-      nil
     end
 
 
@@ -180,12 +169,14 @@ module ProjectRazor
 
 
     def mk_bind_policy(node, policy_rule)
-      logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.label})"
-      policy_binding = ProjectRazor::PolicyBinding.new({})
-      policy_binding.node_uuid = node.uuid
-      policy_binding.policy = policy_rule
-      policy_binding.timestamp = Time.now.to_i
-      $data.persist_object(policy_binding)
+
+
+      if policy_rule.bind_me(node)
+        logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.label})"
+        $data.persist_object(policy_rule)
+      else
+        logger.error "Cannot bind Node (#{node.uuid}) to Policy (#{policy_rule.label})"
+      end
     end
 
 
@@ -234,8 +225,8 @@ module ProjectRazor
         #method call from a boot
         if bound_policy
           # Call the bound policy boot_call
-          logger.debug "Active policy found (#{bound_policy.policy.label}) for Node uuid: #{node.uuid}"
-          bound_policy.policy.boot_call(node)
+          logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
+          bound_policy.boot_call(node)
           bound_policy.update_self
         else
         #There is not bound policy so we boot the MK
