@@ -103,7 +103,7 @@ module ProjectRazor
         @image.set_image_svc_path(@data.config.image_svc_path)
 
         @command_array.each do
-          |a|
+        |a|
           unless /^[^ \/\\]+$/ =~ a
             slice_error("InvalidPathItem", false)
             return
@@ -112,7 +112,12 @@ module ProjectRazor
         file_path = @image.image_path + "/" + @command_array.join("/")
 
 
-        slice_success(file_path)
+        if File.exists?(file_path) || Dir.exist?(file_path)
+          slice_success(file_path)
+        else
+          slice_success("FilePathDoesNotExistInImage")
+        end
+
 
       end
 
