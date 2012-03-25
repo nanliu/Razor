@@ -97,8 +97,8 @@ d-i netcfg/get_domain string unassigned-domain
 
 d-i mirror/protocol string http
 d-i mirror/country string manual
-d-i mirror/http/hostname string 192.168.99.10
-d-i mirror/http/directory string /os/95a1f9b05672012f5a86000c29a78d16
+d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
+d-i mirror/http/directory string /razor/image/os/#{@image_uuid}
 d-i mirror/http/proxy string
 d-i mirror/suite string oneiric
 
@@ -110,15 +110,21 @@ d-i time/zone string US/Eastern
 
 d-i partman-auto/disk string /dev/sda
 d-i partman-auto/method string lvm
-d-i partman-lvm/confirm boolean true
 
 d-i partman-auto/choose_recipe select atomic
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true"
+d-i partman/confirm_nooverwrite boolean true
 
-
+# Always install the server kernel.
+d-i	base-installer/kernel/override-image	string linux-server
+# Only install basic language packs. Let tasksel ask about tasks.
+d-i	pkgsel/language-pack-patterns	string
+# No language support packages.
+d-i	pkgsel/install-language-support	boolean false
+# Only ask the UTC question if there are other operating systems installed.
+d-i	clock-setup/utc-auto	boolean true"
 
 
       end
