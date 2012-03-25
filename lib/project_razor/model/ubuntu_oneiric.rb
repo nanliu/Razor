@@ -85,28 +85,39 @@ module ProjectRazor
 
 
       def generate_preseed
-        ps = ""
-        ps << nl('# Suggest LVM by default.')
-        ps << nl('d-i	partman-auto/init_automatically_partition	string some_device_lvm')
-        ps << nl('d-i	partman-auto/init_automatically_partition	seen false')
-        ps << nl('# Always install the server kernel.')
-        ps << nl('d-i	base-installer/kernel/override-image	string linux-server')
-        ps << nl('# Only install basic language packs. Let tasksel ask about tasks.')
-        ps << nl('d-i	pkgsel/language-pack-patterns	string')
-        ps << nl('# No language support packages.')
-        ps << nl('d-i	pkgsel/install-language-support	boolean false')
-        ps << nl('# Only ask the UTC question if there are other operating systems installed.')
-        ps << nl('d-i	clock-setup/utc-auto	boolean true')
-        ps << nl('# Verbose output and no boot splash screen.')
-        ps << nl('d-i	debian-installer/quiet	boolean false')
-        ps << nl('d-i	debian-installer/splash	boolean false')
-        ps << nl('# Install the debconf oem-config frontend (if in OEM mode).')
-        ps << nl('d-i	oem-config-udeb/frontend	string debconf')
-        ps << nl('# Wait for two seconds in grub')
-        ps << nl('d-i	grub-installer/timeout	string 2')
-        ps << nl('# Add the network and tasks oem-config steps by default.')
-        ps << nl('oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks')
-        ps
+"d-i debian-installer/locale string en_US
+d-i console-setup/ask_detect boolean false
+d-i console-setup/layoutcode string us
+
+d-i netcfg/choose_interface select auto
+
+d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_domain string unassigned-domain
+
+d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
+d-i mirror/http/directory string /razor/image/#{@image_uuid.uuid}
+
+
+# Suggest LVM by default.
+d-i	partman-auto/init_automatically_partition	string some_device_lvm
+d-i	partman-auto/init_automatically_partition	seen false
+# Always install the server kernel.
+d-i	base-installer/kernel/override-image	string linux-server
+# Only install basic language packs. Let tasksel ask about tasks.
+d-i	pkgsel/language-pack-patterns	string
+# No language support packages.
+d-i	pkgsel/install-language-support	boolean false
+# Only ask the UTC question if there are other operating systems installed.
+d-i	clock-setup/utc-auto	boolean true
+# Verbose output and no boot splash screen.
+d-i	debian-installer/quiet	boolean false
+d-i	debian-installer/splash	boolean false
+# Install the debconf oem-config frontend (if in OEM mode).
+d-i	oem-config-udeb/frontend	string debconf
+# Wait for two seconds in grub
+d-i	grub-installer/timeout	string 2
+# Add the network and tasks oem-config steps by default.
+oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks"
       end
 
       def nl(s)
