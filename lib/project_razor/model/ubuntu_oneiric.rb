@@ -100,6 +100,7 @@ d-i mirror/country string manual
 d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
 d-i mirror/http/directory string /razor/image/#{@image_uuid}
 d-i mirror/http/proxy string
+d-i mirror/suite string oneiric
 
 d-i clock-setup/utc boolean true
 
