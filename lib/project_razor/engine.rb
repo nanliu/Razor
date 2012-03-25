@@ -122,6 +122,7 @@ module ProjectRazor
 
         if bound_policy
           command_array = bound_policy.policy.mk_call(node)
+          bound_policy.update_self
           return mk_command(command_array[0],command_array[1])
         else
           # Evaluate node vs policy rules to see if a policy needs to be bound
@@ -233,8 +234,9 @@ module ProjectRazor
         #method call from a boot
         if bound_policy
           # Call the bound policy boot_call
-          logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
-          bound_policy.boot_call(node)
+          logger.debug "Active policy found (#{bound_policy.policy.label}) for Node uuid: #{node.uuid}"
+          bound_policy.policy.boot_call(node)
+          bound_policy.update_self
         else
         #There is not bound policy so we boot the MK
         logger.debug "No active policy found - uuid: #{node.uuid}"
@@ -261,7 +263,7 @@ module ProjectRazor
       bound_policies.each do
       |bp|
         # If we find a bound policy we return it
-        return bp.policy if uuid_sanitize(bp.node_uuid) == uuid_sanitize(node.uuid)
+        return bp if uuid_sanitize(bp.node_uuid) == uuid_sanitize(node.uuid)
       end
       # Otherwise we return false indicating we have no policy
       false
