@@ -60,7 +60,7 @@ function respondWithFileMK(path, res) {
 
 function respondWithFile(path, res) {
     if (path != null) {
-
+        try {
         var mimetype = mime.lookup(path);
         var stat = fs.statSync(path);
 
@@ -73,6 +73,12 @@ function respondWithFile(path, res) {
         fileStream.on('end', function() {
             res.end();
         });
+        }
+        catch (err)
+        {
+            res.send("Error: File Not Found", 404, {"Content-Type": "text/plain"});
+        }
+
     } else {
         res.send("Error", 404, {"Content-Type": "text/plain"});
     }
