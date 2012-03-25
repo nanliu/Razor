@@ -57,9 +57,14 @@ module ProjectRazor
         # However we will search Policy_Rules also for testing reasons
         # And because some policies may not bind down the road
 
-        setup_data
+
         # First we check for a bound policy with a matching uuid
-        bound_policy = @data.fetch_object_by_uuid(:bound_policy, policy_uuid)
+        engine = ProjectRazor::Engine.instance
+        bound_policy = nil
+        engine.bound_policy.each do
+          |bp|
+          bound_policy = bp if bp.policy.uuid == policy_uuid
+        end
 
         if bound_policy != nil
           make_callback(bound_policy, callback_namespace)
