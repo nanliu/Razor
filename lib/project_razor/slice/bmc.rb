@@ -315,6 +315,8 @@ module ProjectRazor
           unless @verbose
             bmc_array.each do
             |bmc|
+              print "\tuuid"
+              print "#{bmc.uuid}  ".green
               print "\tmac: "
               print "#{bmc.mac}  ".green
               print "ip: "
