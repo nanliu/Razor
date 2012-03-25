@@ -54,7 +54,8 @@ function respondWithFile(path, res) {
         var filename = path.split("/")[path.split("/").length - 1];
 
         res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-        res.writeHead(200, {'Content-Type': 'application/octet-stream'});
+        res.contentType(path);
+        res.writeHead(200);
 
         var fileStream = fs.createReadStream(path);
         fileStream.on('data', function(chunk) {
