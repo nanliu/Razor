@@ -224,8 +224,9 @@ module ProjectRazor
         if bound_policy
           # Call the bound policy boot_call
           logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
-          bound_policy.boot_call(node)
+          boot_response = bound_policy.boot_call(node)
           $data.persist_object(bound_policy)
+          return boot_response
         else
         #There is not bound policy so we boot the MK
         logger.debug "No active policy found - uuid: #{node.uuid}"
