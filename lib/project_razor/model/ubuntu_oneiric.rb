@@ -56,15 +56,20 @@ module ProjectRazor
         }
 
 
-        @callback = {"preseed" => :preseed_call}
+        @callback = {"preseed" => :preseed_call,
+                     "postinstall" => :postinstall}
 
 
         from_hash(hash) unless hash == nil
       end
 
+      def postinstall(args_array, node, policy_uuid)
+        "!/bin/bash
+echo Script called
+"
+      end
 
-
-      def preseed_call (args_array, node, policy_uuid)
+      def preseed_call(args_array, node, policy_uuid)
         @node_bound = node
 
         @arg = args_array.shift
@@ -77,8 +82,7 @@ module ProjectRazor
 
           when "end"
             fsm_action(:preseed_end)
-            return "ok
-"
+            return "ok"
           when "file"
             fsm_action(:preseed_file)
             return generate_preseed(policy_uuid)
@@ -90,105 +94,7 @@ module ProjectRazor
       end
 
 
-      def generate_preseed(policy_uuid)
-"d-i console-setup/ask_detect boolean false
 
-d-i keyboard-configuration/layoutcode string us
-
-d-i netcfg/choose_interface select auto
-
-
-d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string unassigned-domain
-
-
-d-i mirror/protocol string http
-d-i mirror/country string manual
-d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
-d-i mirror/http/directory string /razor/image/os/#{@image_uuid}
-d-i mirror/http/proxy string
-
-
-d-i clock-setup/utc boolean true
-
-d-i time/zone string US/Central
-
-
-d-i clock-setup/ntp boolean true
-
-
-
-d-i partman-auto/disk string /dev/sda
-
-d-i partman-auto/method string lvm
-d-i partman-lvm/device_remove_lvm boolean true
-
-d-i partman-md/device_remove_md boolean true
-
-d-i partman-lvm/confirm boolean true
-
-
-d-i partman-auto-lvm/guided_size string max
-
-d-i partman-auto/choose_recipe select atomic
-
-
-d-i partman/default_filesystem string ext4
-
-
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
-
-
-d-i partman-md/confirm boolean true
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
-
-
-d-i passwd/root-login boolean true
-d-i passwd/make-user boolean true
-
-
-d-i passwd/root-password password test123
-d-i passwd/root-password-again password test123
-
-
-
-d-i passwd/user-fullname string User
-d-i passwd/username string user
-
-d-i passwd/user-password password insecure
-d-i passwd/user-password-again password insecure
-
-d-i user-setup/allow-password-weak boolean true
-
-
-
-d-i apt-setup/restricted boolean true
-d-i apt-setup/universe boolean true
-d-i apt-setup/backports boolean true
-
-
-
-d-i pkgsel/include string openssh-server build-essential
-
-
-d-i grub-installer/only_debian boolean true
-
-d-i grub-installer/with_other_os boolean true
-
-d-i finish-install/reboot_in_progress note
-
-
-#Our callbacks
-d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
-d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
-"
-      end
 
       def nl(s)
         s + "\n"
@@ -345,6 +251,106 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
       end
 
 
+
+      def generate_preseed(policy_uuid)
+        "d-i console-setup/ask_detect boolean false
+
+d-i keyboard-configuration/layoutcode string us
+
+d-i netcfg/choose_interface select auto
+
+
+d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_domain string unassigned-domain
+
+
+d-i mirror/protocol string http
+d-i mirror/country string manual
+d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
+d-i mirror/http/directory string /razor/image/os/#{@image_uuid}
+d-i mirror/http/proxy string
+
+
+d-i clock-setup/utc boolean true
+
+d-i time/zone string US/Central
+
+
+d-i clock-setup/ntp boolean true
+
+
+
+d-i partman-auto/disk string /dev/sda
+
+d-i partman-auto/method string lvm
+d-i partman-lvm/device_remove_lvm boolean true
+
+d-i partman-md/device_remove_md boolean true
+
+d-i partman-lvm/confirm boolean true
+
+
+d-i partman-auto-lvm/guided_size string max
+
+d-i partman-auto/choose_recipe select atomic
+
+
+d-i partman/default_filesystem string ext4
+
+
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+
+d-i partman-md/confirm boolean true
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+
+d-i passwd/root-login boolean true
+d-i passwd/make-user boolean true
+
+
+d-i passwd/root-password password test123
+d-i passwd/root-password-again password test123
+
+
+
+d-i passwd/user-fullname string User
+d-i passwd/username string user
+
+d-i passwd/user-password password insecure
+d-i passwd/user-password-again password insecure
+
+d-i user-setup/allow-password-weak boolean true
+
+
+
+d-i apt-setup/restricted boolean true
+d-i apt-setup/universe boolean true
+d-i apt-setup/backports boolean true
+
+
+
+d-i pkgsel/include string openssh-server build-essential
+
+
+d-i grub-installer/only_debian boolean true
+
+d-i grub-installer/with_other_os boolean true
+
+d-i finish-install/reboot_in_progress note
+
+
+#Our callbacks
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
+d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
+"
+      end
     end
   end
 end
