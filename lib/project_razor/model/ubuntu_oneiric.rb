@@ -143,12 +143,6 @@ d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 
 
-
-# The kernel image (meta) package to be installed; "none" can be used if no
-# kernel is to be installed.
-#d-i base-installer/kernel/image string linux-generic
-
-
 d-i passwd/root-login boolean true
 d-i passwd/make-user boolean true
 
@@ -182,8 +176,6 @@ d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 
 d-i finish-install/reboot_in_progress note"
-
-
       end
 
       def nl(s)
