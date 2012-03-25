@@ -72,13 +72,20 @@ function respondWithFileMK(path, res) {
 function respondWithFile(path, res) {
     if (path != null) {
 
-        res.writeHead(200);
+        var mimetype = mime.lookup(file);
+        res.writeHead(200, {'Content-Type': mimetype});
         var fileStream = fs.createReadStream(path);
-        fileStream.on('data', function(chunk) {
-            res.write(chunk);
-        });
-        fileStream.on('end', function() {
-            res.end();
+//        fileStream.on('data', function(chunk) {
+//            res.write(chunk);
+//        });
+//        fileStream.on('end', function() {
+//            res.end();
+//        });
+
+        // This will wait until we know the readable stream is actually valid before piping
+        fileStream.on('open', function () {
+            // This just pipes the read stream to the response object (which goes to the client)
+            fileStream.pipe(res);
         });
     } else {
         res.send("Error", 404, {"Content-Type": "text/plain"});
