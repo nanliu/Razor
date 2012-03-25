@@ -65,7 +65,7 @@ module ProjectRazor
       end
 
       def postinstall(args_array, node, policy_uuid)
-        "!/bin/bash
+        "#!/bin/bash
 echo Script called
 "
       end
@@ -337,7 +337,7 @@ d-i apt-setup/backports boolean true
 
 
 
-d-i pkgsel/include string openssh-server build-essential
+d-i pkgsel/include string openssh-server build-essential curl
 
 
 d-i grub-installer/only_debian boolean true
@@ -348,8 +348,8 @@ d-i finish-install/reboot_in_progress note
 
 
 #Our callbacks
-d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
-d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
+d-i preseed/early_command string curl #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
+d-i preseed/late_command string curl #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
 "
       end
     end
