@@ -97,8 +97,8 @@ d-i netcfg/get_domain string unassigned-domain
 
 d-i mirror/protocol string http
 d-i mirror/country string manual
-d-i mirror/http/hostname string #{config.image_svc_host}
-d-i mirror/http/directory string /razor/image/nick
+d-i mirror/http/hostname string 192.168.99.10
+d-i mirror/http/directory string /os/95a1f9b05672012f5a86000c29a78d16
 d-i mirror/http/proxy string
 d-i mirror/suite string oneiric
 
