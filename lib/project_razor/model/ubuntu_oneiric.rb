@@ -107,16 +107,17 @@ d-i clock-setup/utc boolean true
 d-i time/zone string US/Eastern
 
 # Suggest LVM by default.
-d-i	partman-auto/init_automatically_partition	string some_device_lvm
-d-i	partman-auto/init_automatically_partition	seen false
-# Always install the server kernel.
-d-i	base-installer/kernel/override-image	string linux-server
-# Only install basic language packs. Let tasksel ask about tasks.
-d-i	pkgsel/language-pack-patterns	string
-# No language support packages.
-d-i	pkgsel/install-language-support	boolean false
-# Only ask the UTC question if there are other operating systems installed.
-d-i	clock-setup/utc-auto	boolean true"
+
+d-i partman-auto/disk string /dev/sda
+d-i partman-auto/method string lvm
+
+d-i partman-auto/choose_recipe select atomic
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true"
+
+
 
 
       end
@@ -229,7 +230,7 @@ d-i	clock-setup/utc-auto	boolean true"
         ka << "preseed/url=#{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/file "
         ka << "debian-installer/locale=en_US "
         ka << "netcfg/choose_interface=auto "
-        #ka << "priority=critical "
+        ka << "priority=critical "
         ka
       end
 
