@@ -228,7 +228,7 @@ oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, netw
 
       def kernel_args
         ka = ""
-        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/file "
+        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/file "
         ka << "debian-installer/locale=en_US "
         ka << "netcfg/choose_interface=auto "
         ka << "priority=critical "
