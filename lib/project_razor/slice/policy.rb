@@ -82,7 +82,7 @@ module ProjectRazor
           setup_data
           node = @data.fetch_object_by_uuid(:node, bound_policy.node_uuid)
 
-          puts policy.model.send(callback, @command_array, bound_policy.policy, node)
+          bound_policy.policy.model.send(callback, @command_array, bound_policy.policy, node)
         else
           slice_error("NoCallbackFound")
         end
