@@ -191,8 +191,8 @@ module ProjectRazor
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
         ip << "\n"
-        ip << "echo kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
-        ip << "echo initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
+        ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
         ip << "shell\n"
         ip
       end
