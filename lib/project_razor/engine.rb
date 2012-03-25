@@ -169,8 +169,6 @@ module ProjectRazor
 
 
     def mk_bind_policy(node, policy_rule)
-
-
       if policy_rule.bind_me(node)
         logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.label})"
         $data.persist_object(policy_rule)

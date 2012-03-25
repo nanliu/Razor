@@ -114,6 +114,29 @@ module ProjectRazor
         end
       end
 
+      def print_policy_rules_bound(rules_array)
+        unless @web_command
+          puts "Policy Rules:"
+          unless @verbose
+            rules_array.each do |rule|
+              print "   Order: " + "#{rule.line_number}".yellow
+              print "  Label: " + "#{rule.label}".yellow
+              print "  Type: " + "#{rule.policy_type}".yellow
+              print "  Model label: " + "#{rule.model.label}".yellow
+              print "  Model type: " + "#{rule.model.model_type}".yellow
+              print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
+              print "\n  UUID: " + "#{rule.uuid}\n\n".yellow
+              print "\n  Node UUID: " + "#{rule.node_uuid}\n\n".yellow
+            end
+          else
+            rules_array.each { |rule| print_object_details_cli(rule) }
+          end
+        else
+          rules_array = rules_array.collect { |rule| rule.to_hash }
+          slice_success(rules_array, false)
+        end
+      end
+
       def print_policy_types(types_array)
         unless @web_command
           puts "Valid Policy Types:"

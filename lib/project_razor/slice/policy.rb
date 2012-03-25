@@ -204,7 +204,9 @@ module ProjectRazor
             get_policy_types
           when "model"
             get_model
-          when "help"
+          when "bound"
+            get_bound
+          when "help", "get"
             slice_error("Help", false)
           else
             get_policy_rules
@@ -213,6 +215,10 @@ module ProjectRazor
 
       def get_policy_rules
         print_policy_rules get_object("policy_rules", :policy_rule)
+      end
+
+      def get_bound
+        print_policy_rules_bound get_object("policy_rules", :bound_policy)
       end
 
       def get_policy_types
