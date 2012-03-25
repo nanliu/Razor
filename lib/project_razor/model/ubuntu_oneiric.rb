@@ -65,7 +65,6 @@ module ProjectRazor
 
 
       def preseed_call (args_array, node, policy_uuid)
-        @policy_bound = policy
         @node_bound = node
 
         @arg = args_array.shift
