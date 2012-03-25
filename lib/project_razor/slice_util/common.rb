@@ -125,7 +125,7 @@ module ProjectRazor
               print "  Model type: " + "#{rule.model.model_type}".yellow
               print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
               print "    UUID: " + "#{rule.uuid}".yellow
-              print "  Node UUID: " + "#{rule.node_uuid}\n\n".yellow
+              print "  Node UUID: " + "#{rule.node_uuid}".yellow
               print "  Current state: " + "#{rule.model.current_state}\n\n".yellow
             end
           else
