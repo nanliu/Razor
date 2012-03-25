@@ -2,6 +2,10 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 
+# TODO - timing between state changes
+# TODO - timeout values for a state
+# TODO - Model sequence log (collection)
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -175,7 +179,13 @@ d-i grub-installer/only_debian boolean true
 
 d-i grub-installer/with_other_os boolean true
 
-d-i finish-install/reboot_in_progress note"
+d-i finish-install/reboot_in_progress note
+
+
+#Our callbacks
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/start
+d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/end
+"
       end
 
       def nl(s)
