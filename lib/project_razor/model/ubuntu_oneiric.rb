@@ -266,6 +266,7 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{@policy_bo
       def boot_call(node, policy)
         @node_bound = node
         @policy_bound = policy
+        self.update_self
 
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
