@@ -115,7 +115,7 @@ module ProjectRazor
         # A bound policy means the node will never evaluate a policy rule
         # So for safety's sake - we set an extra flag (bound_policy_flag) which
         # prevents the policy eval below to run
-        bound_policy = find_bound_policy(node.uuid)
+        bound_policy = find_bound_policy(node)
 
 
 
