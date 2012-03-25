@@ -97,6 +97,9 @@ d-i netcfg/get_domain string unassigned-domain
 d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
 d-i mirror/http/directory string /razor/image/#{@image_uuid}
 
+d-i clock-setup/utc boolean true
+
+d-i time/zone string US/Eastern
 
 # Suggest LVM by default.
 d-i	partman-auto/init_automatically_partition	string some_device_lvm
