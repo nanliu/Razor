@@ -132,5 +132,9 @@ function startServer(json_config) {
 }
 
 
+mime.define({
+    'application/gpg-keys': ['gpg']
+});
+
 getConfig();
 //console.log(mime.lookup('/root/Razor/nick.txt'));
