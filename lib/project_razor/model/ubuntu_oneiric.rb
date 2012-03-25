@@ -272,7 +272,7 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
           when :init, :preinstall
             return start_install(node, policy_uuid)
           when :postinstall, :os_validate, :os_complete
-            return local_boot
+            return local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
             return engine.default_mk_boot(node.uuid)
@@ -300,7 +300,7 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
         ip
       end
 
-      def local_boot
+      def local_boot(node)
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "echo Our image UUID is: #{@image_uuid}\n"
