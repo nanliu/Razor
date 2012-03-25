@@ -37,10 +37,10 @@ app.get('/razor/image/*',
         args.splice(0,2);
         var args_string = getArguments(args);
         if (args.length < 1) {
-            res.send("Error", 404, {"Content-Type": "application/octet-stream"});
+            res.send("MissingPath", 404, {"Content-Type": "application/octet-stream"});
             return
         }
-
+        console.log(razor_bin + " imagesvc path " + args_string);
         exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
             console.log(stdout);
             path = getPath(stdout);
