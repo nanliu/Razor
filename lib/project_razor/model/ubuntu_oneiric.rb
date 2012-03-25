@@ -95,7 +95,7 @@ d-i netcfg/get_hostname string unassigned-hostname
 d-i netcfg/get_domain string unassigned-domain
 
 d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
-d-i mirror/http/directory string /razor/image/#{@image_uuid.uuid}
+d-i mirror/http/directory string /razor/image/#{@image_uuid}
 
 
 # Suggest LVM by default.
