@@ -9,6 +9,7 @@ var razor_bin = __dirname+ "/razor -w"; // Set project_razor.rb path
 console.log(razor_bin);
 var exec = require("child_process").exec; // create our exec object
 var express = require('express'); // include our express libs
+var mime = require('mime');
 fs = require('fs');
 
 app = express.createServer(); // our express server
