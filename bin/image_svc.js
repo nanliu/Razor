@@ -72,7 +72,7 @@ function respondWithFileMK(path, res) {
 function respondWithFile(path, res) {
     if (path != null) {
 
-
+        res.writeHead(200, {'Content-Type': 'text/plain'});
         var fileStream = fs.createReadStream(path);
         fileStream.on('data', function(chunk) {
             res.write(chunk);
@@ -81,7 +81,7 @@ function respondWithFile(path, res) {
             res.end();
         });
     } else {
-        res.send("Error", 404, {"Content-Type": "application/octet-stream"});
+        res.send("Error", 404, {"Content-Type": "text/plain"});
     }
 }
 
@@ -118,12 +118,11 @@ function startServer(json_config) {
     if (config['@image_svc_port'] != null) {
         app.listen(config['@image_svc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
-
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
     }
 }
 
 
-//getConfig();
-console.log(mime.lookup('/root/Razor/nick.txt'));
+getConfig();
+//console.log(mime.lookup('/root/Razor/nick.txt'));
