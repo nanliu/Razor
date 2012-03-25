@@ -126,4 +126,4 @@ function startServer(json_config) {
 
 
 //getConfig();
-console.log(mime.lookup('/root/Razor/image/os/95a1f9b05672012f5a86000c29a78d16/dists/oneiric/Release.gpg'));
+console.log(mime.lookup('/root/Razor/image/os/95a1f9b05672012f5a86000c29a78d16/README.diskdefines'));
