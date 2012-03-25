@@ -164,8 +164,9 @@ module ProjectRazor
       end
 
 
-      def mk_call(node)
+      def mk_call(node, policy)
         @node_bound = node
+        @policy_bound = policy
 
 
         case @current_state
@@ -183,15 +184,17 @@ module ProjectRazor
         ret
       end
 
-      def boot_call(node)
+      def boot_call(node, policy)
         @node_bound = node
+        @policy_bound = policy
+
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "echo Our image UUID is: #{@image_uuid}\n"
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
         ip << "\n"
-        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url=#{api_svc_uri}/policy/#{policy.uuid}/callback/preseed/file  || goto error\n"
         ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
         ip << "shell\n"
         ip
@@ -199,14 +202,14 @@ module ProjectRazor
 
 
       def boot_install_script
-        boot_script = ""
-        boot_script << "#!ipxe\n"
-        boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
-        boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
-        boot_script << "boot || goto error\n"
-        boot_script << "\n\n\n"
-        boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
-        boot_script
+        #boot_script = ""
+        #boot_script << "#!ipxe\n"
+        #boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url= || goto error\n"
+        #boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        #boot_script << "boot || goto error\n"
+        #boot_script << "\n\n\n"
+        #boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
+        #boot_script
       end
 
       def kernel_path
@@ -223,6 +226,10 @@ module ProjectRazor
 
       def image_svc_uri
         "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image"
+      end
+
+      def api_svc_uri
+        "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
       end
 
 

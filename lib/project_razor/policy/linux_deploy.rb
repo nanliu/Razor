@@ -18,12 +18,12 @@ module ProjectRazor
       end
 
 
-      def mk_call(node)
+      def mk_call(node, policy)
         model.mk_call(node)
       end
 
 
-      def boot_call(node)
+      def boot_call(node, policy)
         model.boot_call(node)
       end
 
