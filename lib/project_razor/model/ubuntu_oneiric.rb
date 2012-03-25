@@ -208,7 +208,7 @@ oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, netw
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
         ip << "\n"
-        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url=#{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/file  || goto error\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args}  || goto error\n"
         ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
         ip << "boot\n"
         ip
@@ -224,6 +224,15 @@ oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, netw
         #boot_script << "\n\n\n"
         #boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
         #boot_script
+      end
+
+      def kernel_args
+        ka = ""
+        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/file "
+        ka << "debian-installer/locale=en_US "
+        ka << "netcfg/choose_interface=auto "
+        ka << "priority=critical "
+        ka
       end
 
       def kernel_path
