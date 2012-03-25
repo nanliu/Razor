@@ -46,21 +46,22 @@ module ProjectRazor
         # Image prefix we can attach
         @image_prefix = "os"
 
+        from_hash(hash) unless hash == nil
+      end
 
-        @req_metadata_hash = {
+      def req_metadata_hash
+        {
             "@hostname" => {:default => "",
                             :example => "hostname.example.org",
                             :validation => '^[\w.]+$',
                             :required => true,
                             :description => "node hostname"}
         }
+      end
 
-
-        @callback = {"preseed" => :preseed_call,
-                     "postinstall" => :postinstall}
-
-
-        from_hash(hash) unless hash == nil
+      def callback
+        {"preseed" => :preseed_call,
+         "postinstall" => :postinstall}
       end
 
       def postinstall(args_array, node, policy_uuid)
