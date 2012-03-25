@@ -49,6 +49,7 @@ app.get('/razor/image/*',
 //            path = getPath(stdout);
 //            respondWithFile(path, res)
 //        });
+        res.send("Error", 404, {"Content-Type": "text/plain"});
     });
 
 
