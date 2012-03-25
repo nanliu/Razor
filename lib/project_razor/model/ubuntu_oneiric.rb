@@ -310,7 +310,7 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
         ip << "echo Continuing local boot\n"
         ip << "sleep 3\n"
         ip << "\n"
-        ip << "shell\n"
+        ip << "sanboot --no-describe --drive 0x80\n"
         ip
       end
 
