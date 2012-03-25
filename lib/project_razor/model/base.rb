@@ -19,6 +19,7 @@ module ProjectRazor
       attr_accessor :callback
       attr_accessor :current_state
       attr_accessor :node_bound
+      attr_accessor :policy_bound
 
       # init
       # @param hash [Hash]
@@ -38,6 +39,7 @@ module ProjectRazor
         @current_state = :init
 
         @node_bound = nil
+        @policy_bound = nil
 
 
         @_collection = :model

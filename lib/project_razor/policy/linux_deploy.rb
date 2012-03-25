@@ -19,12 +19,12 @@ module ProjectRazor
 
 
       def mk_call(node)
-        model.mk_call(node)
+        model.mk_call(node, self)
       end
 
 
       def boot_call(node)
-        model.boot_call(node)
+        model.boot_call(node, self)
       end
 
     end

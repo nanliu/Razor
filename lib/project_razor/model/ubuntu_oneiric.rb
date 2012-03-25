@@ -85,28 +85,97 @@ module ProjectRazor
 
 
       def generate_preseed
-        ps = ""
-        ps << nl('# Suggest LVM by default.')
-        ps << nl('d-i	partman-auto/init_automatically_partition	string some_device_lvm')
-        ps << nl('d-i	partman-auto/init_automatically_partition	seen false')
-        ps << nl('# Always install the server kernel.')
-        ps << nl('d-i	base-installer/kernel/override-image	string linux-server')
-        ps << nl('# Only install basic language packs. Let tasksel ask about tasks.')
-        ps << nl('d-i	pkgsel/language-pack-patterns	string')
-        ps << nl('# No language support packages.')
-        ps << nl('d-i	pkgsel/install-language-support	boolean false')
-        ps << nl('# Only ask the UTC question if there are other operating systems installed.')
-        ps << nl('d-i	clock-setup/utc-auto	boolean true')
-        ps << nl('# Verbose output and no boot splash screen.')
-        ps << nl('d-i	debian-installer/quiet	boolean false')
-        ps << nl('d-i	debian-installer/splash	boolean false')
-        ps << nl('# Install the debconf oem-config frontend (if in OEM mode).')
-        ps << nl('d-i	oem-config-udeb/frontend	string debconf')
-        ps << nl('# Wait for two seconds in grub')
-        ps << nl('d-i	grub-installer/timeout	string 2')
-        ps << nl('# Add the network and tasks oem-config steps by default.')
-        ps << nl('oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks')
-        ps
+"d-i console-setup/ask_detect boolean false
+
+d-i keyboard-configuration/layoutcode string us
+
+d-i netcfg/choose_interface select auto
+
+
+d-i netcfg/get_hostname string unassigned-hostname
+d-i netcfg/get_domain string unassigned-domain
+
+
+d-i mirror/protocol string http
+d-i mirror/country string manual
+d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
+d-i mirror/http/directory string /razor/image/os/#{@image_uuid}
+d-i mirror/http/proxy string
+
+
+d-i clock-setup/utc boolean true
+
+d-i time/zone string US/Central
+
+
+d-i clock-setup/ntp boolean true
+
+
+
+d-i partman-auto/disk string /dev/sda
+
+d-i partman-auto/method string lvm
+d-i partman-lvm/device_remove_lvm boolean true
+
+d-i partman-md/device_remove_md boolean true
+
+d-i partman-lvm/confirm boolean true
+
+
+d-i partman-auto-lvm/guided_size string max
+
+d-i partman-auto/choose_recipe select atomic
+
+
+d-i partman/default_filesystem string ext4
+
+
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+
+d-i partman-md/confirm boolean true
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+
+d-i passwd/root-login boolean true
+d-i passwd/make-user boolean true
+
+
+d-i passwd/root-password password test123
+d-i passwd/root-password-again password test123
+
+
+
+d-i passwd/user-fullname string User
+d-i passwd/username string user
+
+d-i passwd/user-password password insecure
+d-i passwd/user-password-again password insecure
+
+d-i user-setup/allow-password-weak boolean true
+
+
+
+d-i apt-setup/restricted boolean true
+d-i apt-setup/universe boolean true
+d-i apt-setup/backports boolean true
+
+
+
+d-i pkgsel/include string openssh-server build-essential
+
+
+d-i grub-installer/only_debian boolean true
+
+d-i grub-installer/with_other_os boolean true
+
+d-i finish-install/reboot_in_progress note"
       end
 
       def nl(s)
@@ -164,8 +233,9 @@ module ProjectRazor
       end
 
 
-      def mk_call(node)
+      def mk_call(node, policy)
         @node_bound = node
+        @policy_bound = policy
 
 
         case @current_state
@@ -183,15 +253,61 @@ module ProjectRazor
         ret
       end
 
-      def boot_call(node)
+      def boot_call(node, policy)
         @node_bound = node
+        @policy_bound = policy
+
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "echo Our image UUID is: #{@image_uuid}\n"
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
-        ip << "shell\n"
+        ip << "\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args}  || goto error\n"
+        ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        ip << "boot\n"
         ip
+      end
+
+
+      def boot_install_script
+        #boot_script = ""
+        #boot_script << "#!ipxe\n"
+        #boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url= || goto error\n"
+        #boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        #boot_script << "boot || goto error\n"
+        #boot_script << "\n\n\n"
+        #boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
+        #boot_script
+      end
+
+      def kernel_args
+        ka = ""
+        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/file "
+        ka << "debian-installer/locale=en_US "
+        ka << "netcfg/choose_interface=auto "
+        ka << "priority=critical "
+        ka
+      end
+
+      def kernel_path
+        "install/netboot/ubuntu-installer/amd64/linux"
+      end
+
+      def initrd_path
+        "install/netboot/ubuntu-installer/amd64/initrd.gz"
+      end
+
+      def config
+        $data.config
+      end
+
+      def image_svc_uri
+        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os"
+      end
+
+      def api_svc_uri
+        "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
       end
 
 

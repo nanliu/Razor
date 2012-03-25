@@ -92,6 +92,8 @@ module ProjectRazor
           return
         end
 
+        @image_uuid = "95a1f9b05672012f5a86000c29a78d16" if @image_uuid == "nick"
+
         setup_data
         @image = @data.fetch_object_by_uuid(:images, @image_uuid)
 
@@ -115,7 +117,7 @@ module ProjectRazor
         if File.exists?(file_path) || Dir.exist?(file_path)
           slice_success(file_path)
         else
-          slice_success("FilePathDoesNotExistInImage")
+          slice_error("FilePathDoesNotExistInImage")
         end
 
 
