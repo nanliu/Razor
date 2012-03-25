@@ -115,7 +115,7 @@ module ProjectRazor
         if File.exists?(file_path) || Dir.exist?(file_path)
           slice_success(file_path)
         else
-          slice_success("FilePathDoesNotExistInImage")
+          slice_error("FilePathDoesNotExistInImage")
         end
 
 
