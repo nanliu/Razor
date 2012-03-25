@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "project_razor/power_control/bmc"
+require "project_razor/power_control/ipmi_controller"
 
 module ProjectRazor
   module PowerControl
