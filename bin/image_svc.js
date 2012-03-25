@@ -66,8 +66,9 @@ function respondWithFile(path, res) {
             var stat = fs.statSync(path);
 
             res.setHeader('Content-length', stat.size);
-//            res.writeHead(200, {'Content-Type': mimetype});
+            res.writeHead(200, {'Content-Type': mimetype});
 
+            var fileStream = fs.createReadStream(path);
             fileStream.on('data', function(chunk) {
                 res.write(chunk);
             });
