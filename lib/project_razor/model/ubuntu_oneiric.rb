@@ -64,7 +64,7 @@ module ProjectRazor
 
 
 
-      def preseed_call (args_array, policy, node)
+      def preseed_call (args_array, node, policy_uuid)
         @policy_bound = policy
         @node_bound = node
 
@@ -82,7 +82,7 @@ module ProjectRazor
 "
           when "file"
             fsm_action(:preseed_action)
-            return generate_preseed(policy)
+            return generate_preseed(policy_uuid)
 
           else
             return "error"
@@ -91,7 +91,7 @@ module ProjectRazor
       end
 
 
-      def generate_preseed(policy)
+      def generate_preseed(policy_uuid)
 "d-i console-setup/ask_detect boolean false
 
 d-i keyboard-configuration/layoutcode string us
@@ -186,8 +186,8 @@ d-i finish-install/reboot_in_progress note
 
 
 #Our callbacks
-d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/start
-d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/end
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
+d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
 "
       end
 
@@ -246,9 +246,8 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uui
       end
 
 
-      def mk_call(node, policy)
+      def mk_call(node, policy_uuid)
         @node_bound = node
-        @policy_bound = policy
 
 
         case @current_state
@@ -266,9 +265,8 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uui
         ret
       end
 
-      def boot_call(node, policy)
+      def boot_call(node, policy_uuid)
         @node_bound = node
-        @policy_bound = policy
 
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
@@ -276,7 +274,7 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uui
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
         ip << "\n"
-        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args}  || goto error\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args(policy_uuid)}  || goto error\n"
         ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
         ip << "boot\n"
         ip
@@ -294,9 +292,9 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uui
         #boot_script
       end
 
-      def kernel_args
+      def kernel_args(policy_uuid)
         ka = ""
-        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/file "
+        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/file "
         ka << "debian-installer/locale=en_US "
         ka << "netcfg/choose_interface=auto "
         ka << "priority=critical "
