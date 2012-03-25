@@ -133,7 +133,7 @@ function startServer(json_config) {
 
 
 mime.define({
-    'application/gpg-keys': ['gpg']
+    'text/plain': ['gpg']
 });
 
 getConfig();
