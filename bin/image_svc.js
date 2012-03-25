@@ -30,6 +30,25 @@ app.get('/razor/image/mk*',
         });
     });
 
+
+app.get('/razor/image/*',
+    function(req, res) {
+        args = req.path.split("/");
+        args.splice(0,3);
+        var args_string = getArguments(args);
+        if (args.length < 1) {
+            res.send("MissingPath", 404, {"Content-Type": "application/octet-stream"});
+            return
+        }
+        console.log(razor_bin + " imagesvc path " + args_string);
+        exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
+            console.log(stdout);
+            path = getPath(stdout);
+            respondWithFile(path, res)
+        });
+    });
+
+
 function respondWithFile(path, res) {
     if (path != null) {
         var filename = path.split("/")[path.split("/").length - 1];
