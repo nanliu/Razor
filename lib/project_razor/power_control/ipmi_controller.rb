@@ -63,9 +63,9 @@ module ProjectRazor
         if power_status == 'off'
           power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'on')
           power_output = power_output.split("\n")
-          return /.*(Up\/On)$/.match(power_output[0])[1]
+          return [true, /.*(Up\/On)$/.match(power_output[0])[1]]
         end
-        'Up/On'
+        [false, 'Up/On']
       end
 
       def power_off(host_ip, username, passwd)
@@ -75,9 +75,9 @@ module ProjectRazor
         if power_status == 'on'
           power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'off')
           power_output = power_output.split("\n")
-          return /.*(Down\/Off)$/.match(power_output[0])[1]
+          return [true, /.*(Down\/Off)$/.match(power_output[0])[1]]
         end
-        'Down/Off'
+        [false, 'Down/Off']
       end
 
       def power_cycle(host_ip, username, passwd)
@@ -87,9 +87,9 @@ module ProjectRazor
         if power_status == 'on'
           power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'cycle')
           power_output = power_output.split("\n")
-          return /.*(Cycle)$/.match(power_output[0])[1]
+          return [true, /.*(Cycle)$/.match(power_output[0])[1]]
         end
-        return 'Cycle'
+        [false, 'Off']
       end
 
       def power_reset(host_ip, username, passwd)
@@ -99,9 +99,9 @@ module ProjectRazor
         if power_status == 'on'
           power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'reset')
           power_output = power_output.split("\n")
-          return /.*(Reset)$/.match(power_output[0])[1]
+          return [true, /.*(Reset)$/.match(power_output[0])[1]]
         end
-        return 'Reset'
+        [false, 'Off']
       end
 
       private

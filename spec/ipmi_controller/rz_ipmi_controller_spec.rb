@@ -171,19 +171,19 @@ describe ProjectRazor::PowerControl::IpmiController do
     end
 
     it "should power on a node that is off (using the IpmiController)" do
-      test_ipmi_power_on_mock.should == 'Up/On'
+      test_ipmi_power_on_mock.should == [true, 'Up/On']
     end
 
     it "should power cycle a node that is on (using the IpmiController)" do
-      test_ipmi_power_cycle_mock.should == 'Cycle'
+      test_ipmi_power_cycle_mock.should == [true, 'Cycle']
     end
 
     it "should (hard) reset on a node that is on (using the IpmiController)" do
-      test_ipmi_power_reset_mock.should == 'Reset'
+      test_ipmi_power_reset_mock.should == [true, 'Reset']
     end
 
     it "should power off a node that is on (using the IpmiController)" do
-      test_ipmi_power_off_mock.should == 'Down/Off'
+      test_ipmi_power_off_mock.should == [true, 'Down/Off']
     end
 
   end
