@@ -26,7 +26,7 @@ app.get('/razor/image/mk*',
         exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
             console.log(stdout);
             path = getPath(stdout);
-            respondWithFile(path, res)
+            respondWithFileMK(path, res)
         });
     });
 
@@ -49,12 +49,12 @@ app.get('/razor/image/*',
     });
 
 
-function respondWithFile(path, res) {
+function respondWithFileMK(path, res) {
     if (path != null) {
         var filename = path.split("/")[path.split("/").length - 1];
 
-        //res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-        res.contentType(path);
+        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        res.writeHead(200, {'Content-Type': 'application/octet-stream'});
 
         var fileStream = fs.createReadStream(path);
         fileStream.on('data', function(chunk) {
@@ -68,7 +68,21 @@ function respondWithFile(path, res) {
     }
 }
 
+function respondWithFile(path, res) {
+    if (path != null) {
 
+
+        var fileStream = fs.createReadStream(path);
+        fileStream.on('data', function(chunk) {
+            res.write(chunk);
+        });
+        fileStream.on('end', function() {
+            res.end();
+        });
+    } else {
+        res.send("Error", 404, {"Content-Type": "application/octet-stream"});
+    }
+}
 
 function getPath(json_string) {
     var response = JSON.parse(json_string);
@@ -103,6 +117,7 @@ function startServer(json_config) {
     if (config['@image_svc_port'] != null) {
         app.listen(config['@image_svc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
+        mime.lookup('htm');
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
     }
