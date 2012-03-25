@@ -75,7 +75,7 @@ function getPath(json_string) {
     if (response['errcode'] == 0) {
         return response['response'];
     } else {
-        console.log("Error getting image path")
+        console.log("Error: finding file" )
         return null
     }
 
