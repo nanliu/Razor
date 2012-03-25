@@ -171,6 +171,14 @@ module ProjectRazor
         @command = :remove
         policy_uuid = @command_array.shift
 
+        if policy_uuid == "all_bound"
+          setup_data
+          @data.delete_all_objects(:bound_policy)
+          slice_success("BoundPolicyCleared")
+          return
+        end
+
+
         unless validate_arg(policy_uuid)
           slice_error("MissingUUID")
           return
