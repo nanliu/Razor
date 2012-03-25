@@ -61,18 +61,20 @@ function respondWithFileMK(path, res) {
 function respondWithFile(path, res) {
     if (path != null) {
         try {
-        var mimetype = mime.lookup(path);
-        var stat = fs.statSync(path);
 
-        res.setHeader('Content-length', stat.size);
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
-        fileStream.on('data', function(chunk) {
-            res.write(chunk);
-        });
-        fileStream.on('end', function() {
-            res.end();
-        });
+            var mimetype = mime.lookup(path);
+            var stat = fs.statSync(path);
+
+            res.setHeader('Content-length', stat.size);
+//            res.writeHead(200, {'Content-Type': mimetype});
+
+            fileStream.on('data', function(chunk) {
+                res.write(chunk);
+            });
+            fileStream.on('end', function() {
+                res.end();
+            });
+            console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
         }
         catch (err)
         {
