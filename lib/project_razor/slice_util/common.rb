@@ -125,8 +125,8 @@ module ProjectRazor
               print "  Model label: " + "#{rule.model.label}".yellow
               print "  Model type: " + "#{rule.model.model_type}".yellow
               print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
-              print "\n  UUID: " + "#{rule.uuid}\n\n".yellow
-              print "\n  Node UUID: " + "#{rule.node_uuid}\n\n".yellow
+              print "  UUID: " + "#{rule.uuid}".yellow
+              print "  Node UUID: " + "#{rule.node_uuid}\n\n".yellow
             end
           else
             rules_array.each { |rule| print_object_details_cli(rule) }
