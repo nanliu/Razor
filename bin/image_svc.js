@@ -73,7 +73,7 @@ function respondWithFile(path, res) {
     if (path != null) {
 
         var mimetype = mime.lookup(path);
-        var stat = fileSystem.statSync(path);
+        var stat = fs.statSync(path);
 
         res.setHeader('Content-length', stat.size);
         res.writeHead(200, {'Content-Type': 'text/plain'});
