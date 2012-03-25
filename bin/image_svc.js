@@ -73,8 +73,11 @@ function respondWithFile(path, res) {
     if (path != null) {
 
         var mimetype = mime.lookup(path);
+        var stat = fileSystem.statSync(path);
+
+        res.setHeader('Content-length', stat.size);
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        console.log("Sending: " + path + ", with mimetype: " + mimetype);
+        console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
         var fileStream = fs.createReadStream(path);
 //        fileStream.on('data', function(chunk) {
 //            res.write(chunk);
