@@ -64,7 +64,10 @@ module ProjectRazor
 
 
 
-      def preseed_call (args_array, policy)
+      def preseed_call (args_array, policy, node)
+        @policy_bound = policy
+        @node_bound = node
+
         @arg = args_array.shift
 
         case @arg
