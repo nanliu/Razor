@@ -110,6 +110,7 @@ d-i time/zone string US/Eastern
 
 d-i partman-auto/disk string /dev/sda
 d-i partman-auto/method string lvm
+d-i partman-lvm/confirm boolean true
 
 d-i partman-auto/choose_recipe select atomic
 d-i partman-partitioning/confirm_write_new_label boolean true
