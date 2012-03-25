@@ -118,11 +118,12 @@ function startServer(json_config) {
     if (config['@image_svc_port'] != null) {
         app.listen(config['@image_svc_port']);
         console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
-        mime.lookup('/root/Razor/image/os/95a1f9b05672012f5a86000c29a78d16/dists/oneiric/Release.gpg');
+
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
     }
 }
 
 
-getConfig();
+//getConfig();
+console.log(mime.lookup('/root/Razor/image/os/95a1f9b05672012f5a86000c29a78d16/dists/oneiric/Release.gpg'));
