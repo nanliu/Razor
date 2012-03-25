@@ -122,7 +122,8 @@ module ProjectRazor
 
         if bound_policy
           command_array = bound_policy.mk_call(node)
-          $data.persist_object(bound_policy)
+          p bound_policy
+          #$data.persist_object(bound_policy)
           return mk_command(command_array[0],command_array[1])
         else
           # Evaluate node vs policy rules to see if a policy needs to be bound
