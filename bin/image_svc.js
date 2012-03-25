@@ -35,7 +35,7 @@ app.get('/razor/image/mk*',
 app.get('/razor/image/*',
     function(req, res) {
         path = req.path.replace(/^\/razor\/image/, image_svc_path);
-        console.log(path);
+        console.log("file path" + path);
 //        args = req.path.split("/");
 //        args.splice(0,3);
 //        var args_string = getArguments(args);
