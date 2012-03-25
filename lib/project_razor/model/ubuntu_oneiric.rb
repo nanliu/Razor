@@ -254,7 +254,7 @@ d-i	clock-setup/utc-auto	boolean true"
       end
 
       def image_svc_uri
-        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image"
+        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os"
       end
 
       def api_svc_uri
