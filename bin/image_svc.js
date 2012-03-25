@@ -78,7 +78,7 @@ function respondWithFile(path, res) {
         }
         catch (err)
         {
-            console.log("File not found: " + path);
+            console.log("Error: " + err.message);
             res.send("Error: File Not Found", 404, {"Content-Type": "text/plain"});
         }
 
