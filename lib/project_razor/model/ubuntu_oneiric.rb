@@ -115,16 +115,9 @@ d-i	pkgsel/language-pack-patterns	string
 # No language support packages.
 d-i	pkgsel/install-language-support	boolean false
 # Only ask the UTC question if there are other operating systems installed.
-d-i	clock-setup/utc-auto	boolean true
-# Verbose output and no boot splash screen.
-d-i	debian-installer/quiet	boolean false
-d-i	debian-installer/splash	boolean false
-# Install the debconf oem-config frontend (if in OEM mode).
-d-i	oem-config-udeb/frontend	string debconf
-# Wait for two seconds in grub
-d-i	grub-installer/timeout	string 2
-# Add the network and tasks oem-config steps by default.
-oem-config	oem-config/steps	multiselect language, timezone, keyboard, user, network, tasks"
+d-i	clock-setup/utc-auto	boolean true"
+
+
       end
 
       def nl(s)
