@@ -72,7 +72,7 @@ function respondWithFileMK(path, res) {
 function respondWithFile(path, res) {
     if (path != null) {
 
-        var mimetype = mime.lookup(file);
+        var mimetype = mime.lookup(path);
         res.writeHead(200, {'Content-Type': mimetype});
         var fileStream = fs.createReadStream(path);
 //        fileStream.on('data', function(chunk) {
