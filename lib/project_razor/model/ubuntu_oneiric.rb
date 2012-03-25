@@ -46,26 +46,62 @@ module ProjectRazor
         # Image prefix we can attach
         @image_prefix = "os"
 
+        from_hash(hash) unless hash == nil
+      end
 
-        @req_metadata_hash = {
+      def req_metadata_hash
+        {
             "@hostname" => {:default => "",
                             :example => "hostname.example.org",
                             :validation => '^[\w.]+$',
                             :required => true,
                             :description => "node hostname"}
         }
+      end
+
+      def callback
+        {"preseed" => :preseed_call,
+         "postinstall" => :postinstall}
+      end
+
+      def postinstall(args_array, node, policy_uuid)
+        @node_bound = node
+
+        @arg = args_array.shift
+
+        case @arg
+          when "inject"
+            fsm_action(:postinstall_inject)
+            return os_boot_script(policy_uuid)
+          when "boot"
+            fsm_action(:os_boot)
+            return os_complete_script(node)
+          else
+            return
+        end
 
 
-        @callback = {"preseed" => :preseed_call}
-
-
-        from_hash(hash) unless hash == nil
       end
 
 
+      def os_boot_script(policy_uuid)
+        "#!/bin/bash
+curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
+"
+      end
 
-      def preseed_call (args_array, policy, node)
-        @policy_bound = policy
+      def os_complete_script(node)
+"#!/bin/bash
+echo Razor policy successfully applied > /tmp/razor_complete.log
+echo Model #{@label} >> /tmp/razor_complete.log
+echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
+echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
+
+sed -i '/razor_postinstall/d' /etc/rc.local
+"
+      end
+
+      def preseed_call(args_array, node, policy_uuid)
         @node_bound = node
 
         @arg = args_array.shift
@@ -78,11 +114,10 @@ module ProjectRazor
 
           when "end"
             fsm_action(:preseed_end)
-            return "ok
-"
+            return "ok"
           when "file"
-            fsm_action(:preseed_action)
-            return generate_preseed(policy)
+            fsm_action(:preseed_file)
+            return generate_preseed(policy_uuid)
 
           else
             return "error"
@@ -91,16 +126,169 @@ module ProjectRazor
       end
 
 
-      def generate_preseed(policy)
-"d-i console-setup/ask_detect boolean false
+
+
+      def nl(s)
+        s + "\n"
+      end
+
+
+      # Defines our FSM for this model
+      #  For state => {action => state, ..}
+      def fsm
+        {
+            :init => {:mk_call => :init,
+                      :boot_call => :init,
+                      :preseed_start => :preinstall,
+                      :preseed_file => :init,
+                      :preseed_end => :postinstall,
+                      :timeout => :timeout_error,
+                      :error => :error_catch,
+                      :else => :init},
+            :preinstall => {:mk_call => :preinstall,
+                            :boot_call => :preinstall,
+                            :preseed_start => :preinstall,
+                            :preseed_file => :init,
+                            :preseed_end => :postinstall,
+                            :preseed_timeout => :timeout_error,
+                            :error => :error_catch,
+                            :else => :preinstall},
+            :postinstall => {:mk_call => :postinstall,
+                             :boot_call => :postinstall,
+                             :preseed_end => :postinstall,
+                             :postinstall_inject => :postinstall,
+                             :os_boot => :os_complete,
+                             :post_error => :error_catch,
+                             :post_timeout => :timeout_error,
+                             :error => :error_catch,
+                             :else => :error_catch},
+            :os_complete => {:mk_call => :os_complete,
+                             :boot_call => :os_complete,
+                             :else => :os_complete,
+                             :reset => :init},
+            :timeout_error => {:mk_call => :timeout_error,
+                               :boot_call => :timeout_error,
+                               :else => :timeout_error,
+                               :reset => :init},
+            :error_catch => {:mk_call => :error_catch,
+                             :boot_call => :error_catch,
+                             :else => :error_catch,
+                             :reset => :init},
+        }
+      end
+
+
+      def mk_call(node, policy_uuid)
+        @node_bound = node
+
+
+        case @current_state
+
+          # We need to reboot
+          when :init, :preinstall, :postinstall, :os_validate, :os_complete
+            ret = [:reboot, {}]
+          when :timeout_error, :error_catch
+            ret = [:acknowledge, {}]
+          else
+            ret = [:acknowledge, {}]
+        end
+
+        fsm_action(:mk_call)
+        ret
+      end
+
+      def boot_call(node, policy_uuid)
+        @node_bound = node
+
+        case @current_state
+
+          when :init, :preinstall
+            return start_install(node, policy_uuid)
+          when :postinstall, :os_complete
+            return local_boot(node)
+          when :timeout_error, :error_catch
+            engine = ProjectRazor::Engine.instance
+            return engine.default_mk_boot(node.uuid)
+          else
+            engine = ProjectRazor::Engine.instance
+            return engine.default_mk_boot(node.uuid)
+        end
+
+
+      end
+
+      def start_install(node, policy_uuid)
+        ip = "#!ipxe\n"
+        ip << "echo Reached #{@label} model boot_call\n"
+        ip << "echo Our image UUID is: #{@image_uuid}\n"
+        ip << "echo Our state is: #{@current_state}\n"
+        ip << "echo Our node UUID: #{node.uuid}\n"
+        ip << "\n"
+        ip << "echo We will be running an install now\n"
+        ip << "sleep 3\n"
+        ip << "\n"
+        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args(policy_uuid)}  || goto error\n"
+        ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        ip << "boot\n"
+        ip
+      end
+
+      def local_boot(node)
+        ip = "#!ipxe\n"
+        ip << "echo Reached #{@label} model boot_call\n"
+        ip << "echo Our image UUID is: #{@image_uuid}\n"
+        ip << "echo Our state is: #{@current_state}\n"
+        ip << "echo Our node UUID: #{node.uuid}\n"
+        ip << "\n"
+        ip << "echo Continuing local boot\n"
+        ip << "sleep 3\n"
+        ip << "\n"
+        ip << "sanboot --no-describe --drive 0x80\n"
+        ip
+      end
+
+
+      def kernel_args(policy_uuid)
+        ka = ""
+        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/file "
+        ka << "debian-installer/locale=en_US "
+        ka << "netcfg/choose_interface=auto "
+        ka << "priority=critical "
+        ka
+      end
+
+      def kernel_path
+        "install/netboot/ubuntu-installer/amd64/linux"
+      end
+
+      def initrd_path
+        "install/netboot/ubuntu-installer/amd64/initrd.gz"
+      end
+
+      def config
+        $data.config
+      end
+
+      def image_svc_uri
+        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os"
+      end
+
+      def api_svc_uri
+        "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
+      end
+
+
+
+      def generate_preseed(policy_uuid)
+        "d-i console-setup/ask_detect boolean false
 
 d-i keyboard-configuration/layoutcode string us
 
 d-i netcfg/choose_interface select auto
 
 
-d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/get_hostname string #{@hostname}
+d-i netcfg/get_domain string razorlab.local
 
 
 d-i mirror/protocol string http
@@ -175,7 +363,7 @@ d-i apt-setup/backports boolean true
 
 
 
-d-i pkgsel/include string openssh-server build-essential
+d-i pkgsel/include string openssh-server build-essential curl
 
 
 d-i grub-installer/only_debian boolean true
@@ -186,144 +374,17 @@ d-i finish-install/reboot_in_progress note
 
 
 #Our callbacks
-d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/start
-d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy.uuid}/preseed/end
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
+
+d-i preseed/late_command string \\
+    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end; \\
+    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh; \\
+    sed -i '/exit 0/d' /target/etc/rc.local; \\
+    echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \\
+    echo exit 0 >> /target/etc/rc.local; \\
+    chmod +x /target/usr/local/bin/razor_postinstall.sh
 "
       end
-
-      def nl(s)
-        s + "\n"
-      end
-
-
-      # Defines our FSM for this model
-      #  For state => {action => state, ..}
-      def fsm
-        {
-            :init => {:mk_call => :init,
-                      :boot_call => :init,
-                      :preseed_start => :preinstall,
-                      :preseed_file => :init,
-                      :preseed_end => :postinstall,
-                      :timeout => :timeout_error,
-                      :error => :error_catch,
-                      :else => :init},
-            :preinstall => {:mk_call => :preinstall,
-                            :boot_call => :preinstall,
-                            :preseed_start => :preinstall,
-                            :preseed_file => :init,
-                            :preseed_end => :postinstall,
-                            :preseed_timeout => :timeout_error,
-                            :error => :error_catch,
-                            :else => :preinstall},
-            :postinstall => {:mk_call => :postinstall,
-                             :boot_call => :postinstall,
-                             :post_ok => :postinstall,
-                             :post_error => :error_catch,
-                             :post_timeout => :timeout_error,
-                             :error => :error_catch,
-                             :else => :error_catch},
-            :os_validate => {:mk_call => :os_validate,
-                             :boot_call => :os_validate,
-                             :os_ok => :os_complete,
-                             :os_error => :os_error,
-                             :os_timeout => :timeout_error,
-                             :error => :error_catch,
-                             :else => :error_catch},
-            :os_complete => {:mk_call => :os_complete,
-                             :boot_call => :os_complete,
-                             :else => :os_complete,
-                             :reset => :init},
-            :timeout_error => {:mk_call => :timeout_error,
-                               :boot_call => :timeout_error,
-                               :else => :timeout_error,
-                               :reset => :init},
-            :error_catch => {:mk_call => :error_catch,
-                             :boot_call => :error_catch,
-                             :else => :error_catch,
-                             :reset => :init},
-        }
-      end
-
-
-      def mk_call(node, policy)
-        @node_bound = node
-        @policy_bound = policy
-
-
-        case @current_state
-
-          # We need to reboot
-          when :init, :preinstall, :postinstall, :os_validate, :os_complete
-            ret = [:reboot, {}]
-          when :timeout_error, :error_catch
-            ret = [:acknowledge, {}]
-          else
-            ret = [:acknowledge, {}]
-        end
-
-        fsm_action(:mk_call)
-        ret
-      end
-
-      def boot_call(node, policy)
-        @node_bound = node
-        @policy_bound = policy
-
-        ip = "#!ipxe\n"
-        ip << "echo Reached #{@label} model boot_call\n"
-        ip << "echo Our image UUID is: #{@image_uuid}\n"
-        ip << "echo Our state is: #{@current_state}\n"
-        ip << "echo Our node UUID: #{@node_bound.uuid}\n"
-        ip << "\n"
-        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args}  || goto error\n"
-        ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
-        ip << "boot\n"
-        ip
-      end
-
-
-      def boot_install_script
-        #boot_script = ""
-        #boot_script << "#!ipxe\n"
-        #boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url= || goto error\n"
-        #boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
-        #boot_script << "boot || goto error\n"
-        #boot_script << "\n\n\n"
-        #boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
-        #boot_script
-      end
-
-      def kernel_args
-        ka = ""
-        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{@policy_bound.uuid}/preseed/file "
-        ka << "debian-installer/locale=en_US "
-        ka << "netcfg/choose_interface=auto "
-        ka << "priority=critical "
-        ka
-      end
-
-      def kernel_path
-        "install/netboot/ubuntu-installer/amd64/linux"
-      end
-
-      def initrd_path
-        "install/netboot/ubuntu-installer/amd64/initrd.gz"
-      end
-
-      def config
-        $data.config
-      end
-
-      def image_svc_uri
-        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os"
-      end
-
-      def api_svc_uri
-        "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
-      end
-
-
     end
   end
 end

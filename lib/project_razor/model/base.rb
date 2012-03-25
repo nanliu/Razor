@@ -62,7 +62,6 @@ module ProjectRazor
           else
             @current_state = fsm[@current_state][:else]
           end
-          self.update_self
           logger.debug "state update: #{old_state} => #{@current_state} on #{action} for #{node_bound.uuid}"
         else
           logger.debug "Action #{action} called with state #{@current_state} but no Node bound"

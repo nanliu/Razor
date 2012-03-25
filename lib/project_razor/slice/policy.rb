@@ -60,14 +60,15 @@ module ProjectRazor
 
         # First we check for a bound policy with a matching uuid
         engine = ProjectRazor::Engine.instance
-        bound_policy = nil
+        active_bound_policy = nil
         engine.bound_policy.each do
           |bp|
-          bound_policy = bp if bp.policy.uuid == policy_uuid
+          active_bound_policy = bp if bp.uuid == policy_uuid
         end
 
-        if bound_policy != nil
-          make_callback(bound_policy, callback_namespace)
+        if active_bound_policy != nil
+          logger.debug "Active bound policy found for callback: #{callback_namespace}"
+          make_callback(active_bound_policy, callback_namespace)
           return
         end
 
@@ -77,12 +78,13 @@ module ProjectRazor
       end
 
       def make_callback(bound_policy, callback_namespace)
-        callback = bound_policy.policy.model.callback[callback_namespace]
+        callback = bound_policy.model.callback[callback_namespace]
         if callback != nil
           setup_data
           node = @data.fetch_object_by_uuid(:node, bound_policy.node_uuid)
-
-          bound_policy.policy.model.send(callback, @command_array, bound_policy.policy, node)
+          callback_return = bound_policy.model.send(callback, @command_array, node, bound_policy.uuid)
+          bound_policy.update_self
+          puts callback_return
         else
           slice_error("NoCallbackFound")
         end
@@ -169,6 +171,14 @@ module ProjectRazor
         @command = :remove
         policy_uuid = @command_array.shift
 
+        if policy_uuid == "all_bound"
+          setup_data
+          @data.delete_all_objects(:bound_policy)
+          slice_success("BoundPolicyCleared")
+          return
+        end
+
+
         unless validate_arg(policy_uuid)
           slice_error("MissingUUID")
           return
@@ -203,7 +213,9 @@ module ProjectRazor
             get_policy_types
           when "model"
             get_model
-          when "help"
+          when "bound"
+            get_bound
+          when "help", "get"
             slice_error("Help", false)
           else
             get_policy_rules
@@ -212,6 +224,10 @@ module ProjectRazor
 
       def get_policy_rules
         print_policy_rules get_object("policy_rules", :policy_rule)
+      end
+
+      def get_bound
+        print_policy_rules_bound get_object("policy_rules", :bound_policy)
       end
 
       def get_policy_types
