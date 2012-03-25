@@ -80,7 +80,7 @@ module ProjectRazor
             return "ok
 "
           when "file"
-            fsm_action(:preseed_action)
+            fsm_action(:preseed_file)
             return generate_preseed(policy_uuid)
 
           else
