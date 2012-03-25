@@ -267,11 +267,32 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
       def boot_call(node, policy_uuid)
         @node_bound = node
 
+        case @current_state
+
+          when :init, :preinstall
+            return start_install(node, policy_uuid)
+          when :postinstall, :os_validate, :os_complete
+            return local_boot
+          when :timeout_error, :error_catch
+            engine = ProjectRazor::Engine.instance
+            return engine.default_mk_boot(node.uuid)
+          else
+            engine = ProjectRazor::Engine.instance
+            return engine.default_mk_boot(node.uuid)
+        end
+
+
+      end
+
+      def start_install(node, policy_uuid)
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "echo Our image UUID is: #{@image_uuid}\n"
         ip << "echo Our state is: #{@current_state}\n"
-        ip << "echo Our node UUID: #{@node_bound.uuid}\n"
+        ip << "echo Our node UUID: #{node.uuid}\n"
+        ip << "\n"
+        ip << "We will be running an install now\n"
+        ip << "sleep 3\n"
         ip << "\n"
         ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args(policy_uuid)}  || goto error\n"
         ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
@@ -279,17 +300,20 @@ d-i preseed/late_command string wget #{api_svc_uri}/policy/callback/#{policy_uui
         ip
       end
 
-
-      def boot_install_script
-        #boot_script = ""
-        #boot_script << "#!ipxe\n"
-        #boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} preseed/url= || goto error\n"
-        #boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
-        #boot_script << "boot || goto error\n"
-        #boot_script << "\n\n\n"
-        #boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
-        #boot_script
+      def local_boot
+        ip = "#!ipxe\n"
+        ip << "echo Reached #{@label} model boot_call\n"
+        ip << "echo Our image UUID is: #{@image_uuid}\n"
+        ip << "echo Our state is: #{@current_state}\n"
+        ip << "echo Our node UUID: #{node.uuid}\n"
+        ip << "\n"
+        ip << "Continuing local boot\n"
+        ip << "sleep 3\n"
+        ip << "\n"
+        ip << "shell\n"
+        ip
       end
+
 
       def kernel_args(policy_uuid)
         ka = ""
