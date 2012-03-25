@@ -47,8 +47,8 @@ module ProjectRazor
                                 :fru_print => "fru_print_bmc (JSON STRING)",
                                 :default => "bmc [get] (JSON STRING)"}
         @slice_name = "Bmc"
-        @data = ProjectRazor::Data.new
-        config = @data.config
+        data = ProjectRazor::Data.new
+        config = data.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
       end
@@ -116,6 +116,87 @@ module ProjectRazor
         logger.debug "Power_On bmc called"
         @command_name = "power_reset_bmc"
         change_bmc_power_state("reset")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def power_status_bmc
+        logger.debug "ipmitool 'power_status' called"
+        @command_name = "power_status_bmc"
+        run_ipmi_query_cmd("power_status")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def bmc_info_bmc
+        logger.debug "ipmitool 'bmc_info' called"
+        @command_name = "bmc_info_bmc"
+        run_ipmi_query_cmd("bmc_info")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def bmc_getenables_bmc
+        logger.debug "ipmitool 'bmc_getenables' called"
+        @command_name = "bmc_getenables_bmc"
+        run_ipmi_query_cmd("bmc_getenables")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def bmc_guid_bmc
+        logger.debug "ipmitool 'bmc_guid' called"
+        @command_name = "bmc_guid_bmc"
+        run_ipmi_query_cmd("bmc_guid")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def chassis_status_bmc
+        logger.debug "ipmitool 'chassis_status' called"
+        @command_name = "chassis_status_bmc"
+        run_ipmi_query_cmd("chassis_status")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def lan_print_bmc
+        logger.debug "ipmitool 'lan_print' called"
+        @command_name = "lan_print_bmc"
+        run_ipmi_query_cmd("lan_print")
+      end
+
+      # Run an ipmitool "fru_print" on the node
+      def fru_print_bmc
+        logger.debug "ipmitool 'fru_print' called"
+        @command_name = "fru_print_bmc"
+        run_ipmi_query_cmd("fru_print")
+      end
+
+      def run_ipmi_query_cmd(ipmitool_cmd)
+        if @web_command
+          @command_query_string = @command_array.shift
+          if @command_query_string == "{}"
+            logger.error "Missing bmc details"
+            slice_error("MissingDetails")
+          else
+            begin
+              details = JSON.parse(@command_query_string)
+              if details['@uuid'] != nil
+                logger.debug "Running ipmi_query command #{ipmitool_cmd} on bmc: #{details['@uuid']}"
+                details['@timestamp'] = Time.now.to_i
+                bmc = get_bmc(details)
+                command_matched, output = bmc.run_ipmi_query_cmd(ipmitool_cmd, @ipmi_username, @ipmi_password)
+                # handle the returned values;
+                if command_matched
+                  p output
+                else
+                  logger.error "No command matching #{ipmitool_cmd} supported by Bmc object"
+                  slice_error("CouldNotPowerOn", false)
+                end
+              else
+                logger.error "Incomplete bmc details"
+                slice_error("IncompleteDetails", false)
+              end
+            rescue StandardError => e
+              slice_error(e.message, false)
+            end
+          end
+        end
       end
 
       # Handler for changing power state of a bmc node to a new state
