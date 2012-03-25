@@ -116,7 +116,7 @@ module ProjectRazor
 
       def print_policy_rules_bound(rules_array)
         unless @web_command
-          puts "Policy Rules:"
+          puts "Bound Policy:"
           unless @verbose
             rules_array.each do |rule|
               print "   Order: " + "#{rule.line_number}".yellow
