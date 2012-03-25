@@ -34,7 +34,8 @@ app.get('/razor/image/mk*',
 
 app.get('/razor/image/*',
     function(req, res) {
-        path = req.path.replace(/^\/razor\/image/, image_svc_path);
+
+        path = decodeURIComponent(req.path.replace(/^\/razor\/image/, image_svc_path));
         respondWithFile(path, res);
     });
 
