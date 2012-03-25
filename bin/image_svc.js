@@ -34,7 +34,7 @@ app.get('/razor/image/mk*',
 app.get('/razor/image/*',
     function(req, res) {
         args = req.path.split("/");
-        args.splice(0,2);
+        args.splice(0,3);
         var args_string = getArguments(args);
         if (args.length < 1) {
             res.send("MissingPath", 404, {"Content-Type": "application/octet-stream"});
