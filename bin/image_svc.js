@@ -72,7 +72,7 @@ function respondWithFileMK(path, res) {
 function respondWithFile(path, res) {
     if (path != null) {
 
-        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.writeHead(200);
         var fileStream = fs.createReadStream(path);
         fileStream.on('data', function(chunk) {
             res.write(chunk);
