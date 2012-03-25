@@ -190,8 +190,39 @@ module ProjectRazor
         ip << "echo Our image UUID is: #{@image_uuid}\n"
         ip << "echo Our state is: #{@current_state}\n"
         ip << "echo Our node UUID: #{@node_bound.uuid}\n"
+        ip << "\n"
+        ip << "echo kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
+        ip << "echo initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
         ip << "shell\n"
         ip
+      end
+
+
+      def boot_install_script
+        boot_script = ""
+        boot_script << "#!ipxe\n"
+        boot_script << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} || goto error\n"
+        boot_script << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
+        boot_script << "boot || goto error\n"
+        boot_script << "\n\n\n"
+        boot_script << ":error\necho ERROR, will reboot in #{config.mk_checkin_interval}\nsleep #{config.mk_checkin_interval}\nreboot\n"
+        boot_script
+      end
+
+      def kernel_path
+        "install/netboot/ubuntu-installer/amd64/linux.gz"
+      end
+
+      def initrd_path
+        "install/netboot/ubuntu-installer/amd64/initrd.gz"
+      end
+
+      def config
+        $data.config
+      end
+
+      def image_svc_uri
+        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image"
       end
 
 
