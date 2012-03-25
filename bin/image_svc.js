@@ -35,21 +35,7 @@ app.get('/razor/image/mk*',
 app.get('/razor/image/*',
     function(req, res) {
         path = req.path.replace(/^\/razor\/image/, image_svc_path);
-        console.log("file path" + path);
-//        args = req.path.split("/");
-//        args.splice(0,3);
-//        var args_string = getArguments(args);
-//        if (args.length < 1) {
-//            res.send("MissingPath", 404, {"Content-Type": "application/octet-stream"});
-//            return
-//        }
-//        console.log(razor_bin + " imagesvc path " + args_string);
-//        exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
-//            console.log(stdout);
-//            path = getPath(stdout);
-//            respondWithFile(path, res)
-//        });
-        res.send("Error", 404, {"Content-Type": "text/plain"});
+        respondWithFile(path, res);
     });
 
 
@@ -81,18 +67,11 @@ function respondWithFile(path, res) {
         res.setHeader('Content-length', stat.size);
         res.writeHead(200, {'Content-Type': 'text/plain'});
         console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
-        var fileStream = fs.createReadStream(path);
-//        fileStream.on('data', function(chunk) {
-//            res.write(chunk);
-//        });
-//        fileStream.on('end', function() {
-//            res.end();
-//        });
-
-        // This will wait until we know the readable stream is actually valid before piping
-        fileStream.on('open', function () {
-            // This just pipes the read stream to the response object (which goes to the client)
-            fileStream.pipe(res);
+        fileStream.on('data', function(chunk) {
+            res.write(chunk);
+        });
+        fileStream.on('end', function() {
+            res.end();
         });
     } else {
         res.send("Error", 404, {"Content-Type": "text/plain"});
