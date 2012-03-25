@@ -119,8 +119,7 @@ module ProjectRazor
           puts "Bound Policy:"
           unless @verbose
             rules_array.each do |rule|
-              print "   Order: " + "#{rule.line_number}".yellow
-              print "  Label: " + "#{rule.label}".yellow
+              print "    Label: " + "#{rule.label}".yellow
               print "  Type: " + "#{rule.policy_type}".yellow
               print "  Model label: " + "#{rule.model.label}".yellow
               print "  Model type: " + "#{rule.model.model_type}".yellow
