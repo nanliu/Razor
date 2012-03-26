@@ -262,10 +262,9 @@ module ProjectRazor
           unless @verbose
             bound_policy.model.log.each do
             |log_item|
-              print "\tMethod (#{log_item["method"]}) action (#{log_item["action"]}) = state change: "
+              print "\t(#{log_item["method"]}) (#{log_item["action"]}) = "
               print "#{log_item["old_state"]} => #{log_item["state"]}"
-              print " -  #{log_item["timestamp"]} \n\tNode: #{log_item["node_uuid"]}"
-              print "/ #{Time.at(log_item["timestamp"].to_i)}\n"
+              print "- #{Time.at(log_item["timestamp"].to_i)}\n"
             end
 
           else
