@@ -235,11 +235,8 @@ module ProjectRazor
           return
         end
 
-        selected_bound_policy = nil
-        engine.bound_policy do
-        |bp|
-          selected_bound_policy = bp if bp.uuid == arg
-        end
+        setup_data
+        selected_bound_policy = @data.fetch_object_by_uuid(:bound_policy, arg)
 
         unless selected_bound_policy != nil
           slice_error("CannotFindBoundPolicy")
