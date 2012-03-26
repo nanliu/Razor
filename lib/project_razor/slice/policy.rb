@@ -256,87 +256,82 @@ module ProjectRazor
 
 
 
-
-
-
-    end
-
-    def get_policy_types
-      policy_rules = ProjectRazor::PolicyRules.instance
-
-      print_policy_types policy_rules.get_types
-    end
-
-    def get_model
-      @command = "get model"
-      @arg02 =  @command_array.shift
-
-      case @arg02
-        when "config"
-          get_model_config
-        when "type"
-          get_model_types
-        when "help"
-          slice_error("Help")
-        else
-          slice_error("Help")
-      end
-    end
-
-    def get_model_config
-      @command = "get model config"
-      policy_type_name =  @command_array.shift
-
-      if policy_type_name == nil
-        slice_error("MissingArgument")
-      else
-        policy_rules = ProjectRazor::PolicyRules.instance
-        policy_type = nil
-        policy_rules.get_types.each do
-        |type|
-          policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
-        end
-
-        if policy_type != nil
-          print_model_configs policy_rules.get_model_configs(policy_type)
-        else
-          slice_error("PolicyTypeNotFound")
-        end
-      end
-    end
-
-    def get_model_types
-      @command = "get model type"
-      policy_type_name =  @command_array.shift
-
-      if policy_type_name == nil
-        slice_error("MissingArgument")
-      else
+      def get_policy_types
         policy_rules = ProjectRazor::PolicyRules.instance
 
-        if policy_rules.is_policy_type?(policy_type_name)
-          valid_model_types = []
-          policy_rules.get_model_types.each do
+        print_policy_types policy_rules.get_types
+      end
+
+      def get_model
+        @command = "get model"
+        @arg02 =  @command_array.shift
+
+        case @arg02
+          when "config"
+            get_model_config
+          when "type"
+            get_model_types
+          when "help"
+            slice_error("Help")
+          else
+            slice_error("Help")
+        end
+      end
+
+      def get_model_config
+        @command = "get model config"
+        policy_type_name =  @command_array.shift
+
+        if policy_type_name == nil
+          slice_error("MissingArgument")
+        else
+          policy_rules = ProjectRazor::PolicyRules.instance
+          policy_type = nil
+          policy_rules.get_types.each do
           |type|
-            valid_model_types << type if policy_type_name == type.model_type.to_s
+            policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
           end
-          print_model_types valid_model_types
-        else
-          slice_error("PolicyTypeNotFound")
+
+          if policy_type != nil
+            print_model_configs policy_rules.get_model_configs(policy_type)
+          else
+            slice_error("PolicyTypeNotFound")
+          end
         end
       end
+
+      def get_model_types
+        @command = "get model type"
+        policy_type_name =  @command_array.shift
+
+        if policy_type_name == nil
+          slice_error("MissingArgument")
+        else
+          policy_rules = ProjectRazor::PolicyRules.instance
+
+          if policy_rules.is_policy_type?(policy_type_name)
+            valid_model_types = []
+            policy_rules.get_model_types.each do
+            |type|
+              valid_model_types << type if policy_type_name == type.model_type.to_s
+            end
+            print_model_types valid_model_types
+          else
+            slice_error("PolicyTypeNotFound")
+          end
+        end
+      end
+
+      ####
+
+
+
+
+
+
+
+
     end
-
-    ####
-
-
-
-
-
-
-
-
   end
-end
 end
 
