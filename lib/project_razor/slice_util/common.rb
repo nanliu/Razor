@@ -273,7 +273,7 @@ module ProjectRazor
             |log_item|
               log_item.instance_variables.each do
               |iv|
-                unless iv.to_s.start_with?("@_")         tw
+                unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
                   print "#{log_item.instance_variable_get(iv)}  ".green
