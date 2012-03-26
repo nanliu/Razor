@@ -205,18 +205,19 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         case @current_state
 
           when :init, :preinstall
-            return start_install(node, policy_uuid)
+            ret = start_install(node, policy_uuid)
           when :postinstall, :os_complete
-            return local_boot(node)
+            ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
-            return engine.default_mk_boot(node.uuid)
+            ret = engine.default_mk_boot(node.uuid)
           else
             engine = ProjectRazor::Engine.instance
-            return engine.default_mk_boot(node.uuid)
+            ret = engine.default_mk_boot(node.uuid)
         end
 
-
+        fsm_action(:boot_call, :boot_call)
+        ret
       end
 
       def start_install(node, policy_uuid)
