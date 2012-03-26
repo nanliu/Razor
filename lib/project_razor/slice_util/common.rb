@@ -264,8 +264,8 @@ module ProjectRazor
             |log_item|
               print "\tMethod (#{log_item[:method]}) action (#{log_item[:action]}) = state change: "
               print "#{log_item[:old_state]} => #{log_item[:state]}"
-              print " -  #{log_item[:timestamp]} \n\tNode: #{log_item[:timestamp]}"
-              print "#{log_item[:old_state]} => #{Time.at(log_item[:state])}\n"
+              print " -  #{log_item[:timestamp]} \n\tNode: #{log_item[:node_uuid]}"
+              print "/ #{Time.at(log_item[:timestamp])}\n"
             end
 
           else
