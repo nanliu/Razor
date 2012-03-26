@@ -83,7 +83,20 @@ module ProjectRazor
       end
 
       def add_tag_rule
-        @command = "remove_tag_rule"
+        if @web_command
+          add_tag_rule_web
+        else
+          add_tage_rule_cli
+        end
+
+      end
+
+      def add_tag_rule_cli
+
+      end
+
+      def add_tag_rule_web
+        @command = "add_tag_rule"
         json_string = @command_array.shift
         if json_string != "{}" && json_string != nil
           begin

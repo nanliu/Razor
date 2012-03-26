@@ -189,6 +189,9 @@ describe "ProjectRazor::Slice::Tag" do
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']
 
+
+
+      tag_rules.count.should == 3
       tag_rules.sort do
         |a,b|
         a["@name"] <=> b["@name"]
