@@ -46,6 +46,9 @@ module ProjectRazor
         # Image prefix we can attach
         @image_prefix = "os"
 
+        # Model Log
+        @log = []
+
         from_hash(hash) unless hash == nil
       end
 
@@ -71,10 +74,10 @@ module ProjectRazor
 
         case @arg
           when "inject"
-            fsm_action(:postinstall_inject)
+            fsm_action(:postinstall_inject, :postinstall)
             return os_boot_script(policy_uuid)
           when "boot"
-            fsm_action(:os_boot)
+            fsm_action(:os_boot, :postinstall)
             return os_complete_script(node)
           else
             return
@@ -109,14 +112,14 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         case @arg
 
           when  "start"
-            fsm_action(:preseed_start)
+            fsm_action(:preseed_start, :preseed)
             return "ok"
 
           when "end"
-            fsm_action(:preseed_end)
+            fsm_action(:preseed_end, :preseed)
             return "ok"
           when "file"
-            fsm_action(:preseed_file)
+            fsm_action(:preseed_file, :preseed)
             return generate_preseed(policy_uuid)
 
           else
@@ -193,7 +196,7 @@ sed -i '/razor_postinstall/d' /etc/rc.local
             ret = [:acknowledge, {}]
         end
 
-        fsm_action(:mk_call)
+        fsm_action(:mk_call, :mk_call)
         ret
       end
 

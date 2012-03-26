@@ -62,7 +62,7 @@ module ProjectRazor
         engine = ProjectRazor::Engine.instance
         active_bound_policy = nil
         engine.bound_policy.each do
-          |bp|
+        |bp|
           active_bound_policy = bp if bp.uuid == policy_uuid
         end
 
@@ -216,7 +216,7 @@ module ProjectRazor
           when "bound"
             get_bound
           when "help", "get"
-            slice_error("Help", false)
+            slice_error("Help")
           else
             get_policy_rules
         end
@@ -227,78 +227,32 @@ module ProjectRazor
       end
 
       def get_bound
-        print_policy_rules_bound get_object("policy_rules", :bound_policy)
-      end
+        arg = @command_array.shift
+        engine = ProjectRazor::Engine.instance
 
-      def get_policy_types
-        policy_rules = ProjectRazor::PolicyRules.instance
-
-        print_policy_types policy_rules.get_types
-      end
-
-      def get_model
-        @command = "get model"
-        @arg02 =  @command_array.shift
-
-        case @arg02
-          when "config"
-            get_model_config
-          when "type"
-            get_model_types
-          when "help"
-            slice_error("Help")
-          else
-            slice_error("Help")
+        unless validate_arg(arg)
+          print_policy_rules_bound engine.bound_policy
         end
-      end
 
-      def get_model_config
-        @command = "get model config"
-        policy_type_name =  @command_array.shift
+        selected_bound_policy = nil
+        engine.bound_policy do
+        |bp|
+          selected_bound_policy = bp if bp.uuid == arg
+        end
 
-        if policy_type_name == nil
-          slice_error("MissingArgument")
+        unless selected_bound_policy != nil
+          slice_error("CannotFindBoundPolicy")
+          return
+        end
+
+        next_arg = @command_array.shift
+
+        if next_arg == "log"
+          print_policy_bound_log selected_bound_policy
         else
-          policy_rules = ProjectRazor::PolicyRules.instance
-          policy_type = nil
-          policy_rules.get_types.each do
-          |type|
-            policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
-          end
-
-          if policy_type != nil
-            print_model_configs policy_rules.get_model_configs(policy_type)
-          else
-            slice_error("PolicyTypeNotFound")
-          end
+          print_policy_rules_bound [selected_bound_policy]
         end
       end
-
-      def get_model_types
-        @command = "get model type"
-        policy_type_name =  @command_array.shift
-
-        if policy_type_name == nil
-          slice_error("MissingArgument")
-        else
-          policy_rules = ProjectRazor::PolicyRules.instance
-
-          if policy_rules.is_policy_type?(policy_type_name)
-            valid_model_types = []
-            policy_rules.get_model_types.each do
-            |type|
-              valid_model_types << type if policy_type_name == type.model_type.to_s
-            end
-            print_model_types valid_model_types
-          else
-            slice_error("PolicyTypeNotFound")
-          end
-        end
-      end
-
-      ####
-
-
 
 
 
@@ -306,6 +260,83 @@ module ProjectRazor
 
 
     end
+
+    def get_policy_types
+      policy_rules = ProjectRazor::PolicyRules.instance
+
+      print_policy_types policy_rules.get_types
+    end
+
+    def get_model
+      @command = "get model"
+      @arg02 =  @command_array.shift
+
+      case @arg02
+        when "config"
+          get_model_config
+        when "type"
+          get_model_types
+        when "help"
+          slice_error("Help")
+        else
+          slice_error("Help")
+      end
+    end
+
+    def get_model_config
+      @command = "get model config"
+      policy_type_name =  @command_array.shift
+
+      if policy_type_name == nil
+        slice_error("MissingArgument")
+      else
+        policy_rules = ProjectRazor::PolicyRules.instance
+        policy_type = nil
+        policy_rules.get_types.each do
+        |type|
+          policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
+        end
+
+        if policy_type != nil
+          print_model_configs policy_rules.get_model_configs(policy_type)
+        else
+          slice_error("PolicyTypeNotFound")
+        end
+      end
+    end
+
+    def get_model_types
+      @command = "get model type"
+      policy_type_name =  @command_array.shift
+
+      if policy_type_name == nil
+        slice_error("MissingArgument")
+      else
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+        if policy_rules.is_policy_type?(policy_type_name)
+          valid_model_types = []
+          policy_rules.get_model_types.each do
+          |type|
+            valid_model_types << type if policy_type_name == type.model_type.to_s
+          end
+          print_model_types valid_model_types
+        else
+          slice_error("PolicyTypeNotFound")
+        end
+      end
+    end
+
+    ####
+
+
+
+
+
+
+
+
   end
+end
 end
 

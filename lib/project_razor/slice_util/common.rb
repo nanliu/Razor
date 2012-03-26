@@ -255,6 +255,38 @@ module ProjectRazor
         end
       end
 
+      def print_policy_bound_log(bound_policy)
+        unless @web_command
+          puts "Nodes:"
+
+          unless @verbose
+            bound_policy.model.log.each do
+            |log_item|
+              print "\tMethod (#{log_item[:method]}) action (#{log_item[:action]}) = state change: "
+              print "#{log_item[:old_state]} => #{log_item[:state]}"
+              print " -  #{log_item[:timestamp]} \n\tNode: #{log_item[:timestamp]}"
+              print "#{log_item[:old_state]} => #{Time.at(log_item[:state])}\n"
+            end
+
+          else
+            bound_policy.model.log.each do
+            |log_item|
+              log_item.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")         tw
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{log_item.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          slice_success(bound_policy.model.log, false)
+        end
+      end
+
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(arg)
         arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
