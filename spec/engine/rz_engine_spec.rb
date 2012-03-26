@@ -107,8 +107,7 @@ describe ProjectRazor::Engine do
 
       # Create a new policy rule
       new_policy_rule = ProjectRazor::Policy::LinuxDeploy.new({})
-      new_policy_rule.name = "Base Swift Servers - Ubuntu 11.10"
-      new_policy_rule.kernel_path = "kp"
+      new_policy_rule.label = "Base Swift Servers - Ubuntu 11.10"
       new_policy_rule.model = ProjectRazor::Model::Base.new({})
       new_policy_rule.tags << "RSPEC_ENGINE"
 
@@ -130,7 +129,7 @@ describe ProjectRazor::Engine do
       # We should now have a binding for our node
       @engine.bound_policy.count.should == 1
       @engine.bound_policy[0].node_uuid.should == "TESTRSPECENGINE"
-      @engine.bound_policy[0].policy.uuid.should == new_policy_rule.uuid
+      @engine.bound_policy[0].uuid.should == new_policy_rule.uuid
     end
   end
 
