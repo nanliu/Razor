@@ -355,7 +355,7 @@ d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uu
 d-i preseed/late_command string \\
     wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end; \\
     wget #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh; \\
-    sed -i '/exit 0/d' /etc/rc.local; \\
+    sed -i '/exit 0/d' /target/etc/rc.local; \\
     echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \\
     echo exit 0 >> /target/etc/rc.local; \\
     chmod +x /target/usr/local/bin/razor_postinstall.sh
