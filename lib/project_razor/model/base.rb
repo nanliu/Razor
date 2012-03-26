@@ -14,12 +14,11 @@ module ProjectRazor
       attr_accessor :label
       attr_accessor :model_type
       attr_accessor :description
-      attr_accessor :req_metadata_hash
       attr_accessor :hidden
       attr_accessor :callback
       attr_accessor :current_state
       attr_accessor :node_bound
-      attr_accessor :policy_bound
+      attr_accessor :log
 
       # init
       # @param hash [Hash]
@@ -40,6 +39,9 @@ module ProjectRazor
 
         @node_bound = nil
         @policy_bound = nil
+
+        # Model Log
+        @log = []
 
 
         @_collection = :model

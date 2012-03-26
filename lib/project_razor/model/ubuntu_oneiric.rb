@@ -46,8 +46,7 @@ module ProjectRazor
         # Image prefix we can attach
         @image_prefix = "os"
 
-        # Model Log
-        @log = []
+
 
         from_hash(hash) unless hash == nil
       end
