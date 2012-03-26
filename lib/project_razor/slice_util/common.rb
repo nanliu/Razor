@@ -263,7 +263,7 @@ module ProjectRazor
             print "\t" + "(Model call) (Action) | (Original state) => (New state) | (Time)\n".yellow.underline
             bound_policy.model.log.each do
             |log_item|
-              print "\t#{log_item["method"]} #{log_item["action"]} | ".green
+              print "\t#{log_item["method"]}##{log_item["action"]} | ".green
               print "#{log_item["old_state"]} => #{log_item["state"]}".green
               print " | #{Time.at(log_item["timestamp"].to_i)}\n".green
             end
