@@ -72,10 +72,10 @@ module ProjectRazor
         case @arg
           when "inject"
             fsm_action(:postinstall_inject)
-            return os_boot_script
+            return os_boot_script(policy_uuid)
           when "boot"
             fsm_action(:os_boot)
-            return os_complete_script
+            return os_complete_script(node)
           else
             return
         end
@@ -84,13 +84,13 @@ module ProjectRazor
       end
 
 
-      def os_boot_script
+      def os_boot_script(policy_uuid)
         "#!/bin/bash
 curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
 "
       end
 
-      def os_complete_script
+      def os_complete_script(node)
 "#!/bin/bash
 echo Razor policy successfully applied > /tmp/razor_complete.log
 echo Model #{@label} >> /tmp/razor_complete.log
