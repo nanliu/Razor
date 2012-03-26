@@ -62,7 +62,7 @@ module ProjectRazor
         engine = ProjectRazor::Engine.instance
         active_bound_policy = nil
         engine.bound_policy.each do
-          |bp|
+        |bp|
           active_bound_policy = bp if bp.uuid == policy_uuid
         end
 
@@ -216,7 +216,7 @@ module ProjectRazor
           when "bound"
             get_bound
           when "help", "get"
-            slice_error("Help", false)
+            slice_error("Help")
           else
             get_policy_rules
         end
@@ -227,8 +227,32 @@ module ProjectRazor
       end
 
       def get_bound
-        print_policy_rules_bound get_object("policy_rules", :bound_policy)
+        arg = @command_array.shift
+        engine = ProjectRazor::Engine.instance
+
+        unless validate_arg(arg)
+          print_policy_rules_bound engine.bound_policy
+          return
+        end
+
+        setup_data
+        selected_bound_policy = @data.fetch_object_by_uuid(:bound_policy, arg)
+
+        unless selected_bound_policy != nil
+          slice_error("CannotFindBoundPolicy")
+          return
+        end
+
+        next_arg = @command_array.shift
+
+        if next_arg == "log"
+          print_policy_bound_log selected_bound_policy
+        else
+          print_policy_rules_bound [selected_bound_policy]
+        end
       end
+
+
 
       def get_policy_types
         policy_rules = ProjectRazor::PolicyRules.instance

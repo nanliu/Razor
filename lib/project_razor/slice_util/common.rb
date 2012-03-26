@@ -255,6 +255,38 @@ module ProjectRazor
         end
       end
 
+      def print_policy_bound_log(bound_policy)
+        unless @web_command
+          puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
+
+          unless @verbose
+            print "\t" + "(Model call) (Action) | (Original state) => (New state) | (Time)\n".yellow.underline
+            bound_policy.model.log.each do
+            |log_item|
+              print "\t#{log_item["method"]}##{log_item["action"]} | ".green
+              print "#{log_item["old_state"]} => #{log_item["state"]}".green
+              print " | #{Time.at(log_item["timestamp"].to_i)}\n".green
+            end
+
+          else
+            bound_policy.model.log.each do
+            |log_item|
+              log_item.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{log_item.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          slice_success(bound_policy.model.log, false)
+        end
+      end
+
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(arg)
         arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''

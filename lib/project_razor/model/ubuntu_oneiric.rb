@@ -46,6 +46,8 @@ module ProjectRazor
         # Image prefix we can attach
         @image_prefix = "os"
 
+
+
         from_hash(hash) unless hash == nil
       end
 
@@ -71,10 +73,10 @@ module ProjectRazor
 
         case @arg
           when "inject"
-            fsm_action(:postinstall_inject)
+            fsm_action(:postinstall_inject, :postinstall)
             return os_boot_script(policy_uuid)
           when "boot"
-            fsm_action(:os_boot)
+            fsm_action(:os_boot, :postinstall)
             return os_complete_script(node)
           else
             return
@@ -93,10 +95,12 @@ curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
       def os_complete_script(node)
 "#!/bin/bash
 echo Razor policy successfully applied > /tmp/razor_complete.log
-echo Model #{@label} >> /tmp/razor_complete.log
+echo Model #{@label} - #{@description} >> /tmp/razor_complete.log
 echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
 echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
 
+hostname #{@hostname}
+echo #{@hostname} >> /etc/hostname
 sed -i '/razor_postinstall/d' /etc/rc.local
 "
       end
@@ -109,14 +113,14 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         case @arg
 
           when  "start"
-            fsm_action(:preseed_start)
+            fsm_action(:preseed_start, :preseed)
             return "ok"
 
           when "end"
-            fsm_action(:preseed_end)
+            fsm_action(:preseed_end, :preseed)
             return "ok"
           when "file"
-            fsm_action(:preseed_file)
+            fsm_action(:preseed_file, :preseed)
             return generate_preseed(policy_uuid)
 
           else
@@ -193,7 +197,7 @@ sed -i '/razor_postinstall/d' /etc/rc.local
             ret = [:acknowledge, {}]
         end
 
-        fsm_action(:mk_call)
+        fsm_action(:mk_call, :mk_call)
         ret
       end
 
@@ -203,18 +207,19 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         case @current_state
 
           when :init, :preinstall
-            return start_install(node, policy_uuid)
+            ret = start_install(node, policy_uuid)
           when :postinstall, :os_complete
-            return local_boot(node)
+            ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
-            return engine.default_mk_boot(node.uuid)
+            ret = engine.default_mk_boot(node.uuid)
           else
             engine = ProjectRazor::Engine.instance
-            return engine.default_mk_boot(node.uuid)
+            ret = engine.default_mk_boot(node.uuid)
         end
 
-
+        fsm_action(:boot_call, :boot_call)
+        ret
       end
 
       def start_install(node, policy_uuid)

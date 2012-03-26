@@ -14,12 +14,11 @@ module ProjectRazor
       attr_accessor :label
       attr_accessor :model_type
       attr_accessor :description
-      attr_accessor :req_metadata_hash
       attr_accessor :hidden
       attr_accessor :callback
       attr_accessor :current_state
       attr_accessor :node_bound
-      attr_accessor :policy_bound
+      attr_accessor :log
 
       # init
       # @param hash [Hash]
@@ -41,6 +40,9 @@ module ProjectRazor
         @node_bound = nil
         @policy_bound = nil
 
+        # Model Log
+        @log = []
+
 
         @_collection = :model
         from_hash(hash) unless hash == nil
@@ -53,7 +55,7 @@ module ProjectRazor
       end
 
 
-      def fsm_action(action)
+      def fsm_action(action, method)
         # We only change state if we have a node bound
         if @node_bound
           old_state = @current_state
@@ -63,6 +65,12 @@ module ProjectRazor
             @current_state = fsm[@current_state][:else]
           end
           logger.debug "state update: #{old_state} => #{@current_state} on #{action} for #{node_bound.uuid}"
+          @log << {:state => @current_state,
+                   :old_state => old_state,
+                   :action => action,
+                   :method => method,
+                   :node_uuid => node_bound.uuid,
+                   :timestamp => Time.now.to_i}
         else
           logger.debug "Action #{action} called with state #{@current_state} but no Node bound"
         end
