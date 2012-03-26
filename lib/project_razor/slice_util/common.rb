@@ -262,9 +262,9 @@ module ProjectRazor
           unless @verbose
             bound_policy.model.log.each do
             |log_item|
-              print "\t(#{log_item["method"]}) (#{log_item["action"]}) = "
+              print "\t(#{log_item["method"]}) (#{log_item["action"]}) | "
               print "#{log_item["old_state"]} => #{log_item["state"]}"
-              print "- #{Time.at(log_item["timestamp"].to_i)}\n"
+              print " | #{Time.at(log_item["timestamp"].to_i)}\n"
             end
 
           else

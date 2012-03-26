@@ -246,7 +246,6 @@ module ProjectRazor
         next_arg = @command_array.shift
 
         if next_arg == "log"
-          p selected_bound_policy.model
           print_policy_bound_log selected_bound_policy
         else
           print_policy_rules_bound [selected_bound_policy]
