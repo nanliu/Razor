@@ -260,7 +260,7 @@ module ProjectRazor
           puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
 
           unless @verbose
-            print "\t(Model call) (Action) | (Original state) => (New state) | (Time)\n".yellow.underscore
+            print "\t(Model call) (Action) | (Original state) => (New state) | (Time)\n".yellow.underline
             bound_policy.model.log.each do
             |log_item|
               print "\t#{log_item["method"]} #{log_item["action"]} | ".green
