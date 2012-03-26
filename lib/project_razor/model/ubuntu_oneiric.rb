@@ -66,7 +66,7 @@ module ProjectRazor
 
       def postinstall(args_array, node, policy_uuid)
         "#!/bin/bash
-echo Script called
+curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot
 "
       end
 
