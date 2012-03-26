@@ -95,7 +95,7 @@ curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
       def os_complete_script(node)
 "#!/bin/bash
 echo Razor policy successfully applied > /tmp/razor_complete.log
-echo Model #{@label} >> /tmp/razor_complete.log
+echo Model #{@label} - #{@description} >> /tmp/razor_complete.log
 echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
 echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
 
