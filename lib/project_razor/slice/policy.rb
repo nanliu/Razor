@@ -232,6 +232,7 @@ module ProjectRazor
 
         unless validate_arg(arg)
           print_policy_rules_bound engine.bound_policy
+          return
         end
 
         selected_bound_policy = nil
