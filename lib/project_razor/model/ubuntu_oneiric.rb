@@ -287,8 +287,8 @@ d-i keyboard-configuration/layoutcode string us
 d-i netcfg/choose_interface select auto
 
 
-d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/get_hostname string #{@hostname}
+d-i netcfg/get_domain string razorlab.local
 
 
 d-i mirror/protocol string http
