@@ -257,7 +257,7 @@ module ProjectRazor
 
       def print_policy_bound_log(bound_policy)
         unless @web_command
-          puts "Bound policy log for Node(#{bound_policy.node_bound.uuid}):"
+          puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
 
           unless @verbose
             bound_policy.model.log.each do
