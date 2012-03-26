@@ -124,15 +124,17 @@ echo Script called
                             :else => :preinstall},
             :postinstall => {:mk_call => :postinstall,
                              :boot_call => :postinstall,
-                             :post_ok => :postinstall,
+                             :preseed_end => :postinstall,
+                             :os_boot => :os_installed,
                              :post_error => :error_catch,
                              :post_timeout => :timeout_error,
                              :error => :error_catch,
                              :else => :error_catch},
-            :os_validate => {:mk_call => :os_validate,
-                             :boot_call => :os_validate,
-                             :os_ok => :os_complete,
-                             :os_error => :os_error,
+            :os_installed => {:mk_call => :os_installed,
+                             :boot_call => :os_installed,
+                             :os_ok => :os_installed,
+                             :os_error => :error_catch,
+                             :os_valid => :os_complete,
                              :os_timeout => :timeout_error,
                              :error => :error_catch,
                              :else => :error_catch},
@@ -348,8 +350,15 @@ d-i finish-install/reboot_in_progress note
 
 
 #Our callbacks
-d-i preseed/early_command string curl #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
-d-i preseed/late_command string curl #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end
+d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
+
+d-i preseed/late_command string \\
+    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end; \\
+    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh; \\
+    sed -i '/exit 0/d' /etc/rc.local; \\
+    echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \\
+    echo exit 0 >> /target/etc/rc.local; \\
+    chmod +x /target/usr/local/bin/razor_postinstall.sh
 "
       end
     end
