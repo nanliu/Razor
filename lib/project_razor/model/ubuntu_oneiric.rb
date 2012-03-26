@@ -65,8 +65,39 @@ module ProjectRazor
       end
 
       def postinstall(args_array, node, policy_uuid)
+        @node_bound = node
+
+        @arg = args_array.shift
+
+        case @arg
+          when "inject"
+            fsm_action(:postinstall_inject)
+            return os_boot_script
+          when "boot"
+            fsm_action(:os_boot)
+            return os_complete_script
+          else
+            return
+        end
+
+
+      end
+
+
+      def os_boot_script
         "#!/bin/bash
-curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot
+curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
+"
+      end
+
+      def os_complete_script
+"#!/bin/bash
+echo Razor policy successfully applied > /tmp/razor_complete.log
+echo Model #{@label} >> /tmp/razor_complete.log
+echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
+echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
+
+sed
 "
       end
 
@@ -125,17 +156,10 @@ curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot
             :postinstall => {:mk_call => :postinstall,
                              :boot_call => :postinstall,
                              :preseed_end => :postinstall,
-                             :os_boot => :os_installed,
+                             :postinstall_inject => :postinstall,
+                             :os_boot => :os_complete,
                              :post_error => :error_catch,
                              :post_timeout => :timeout_error,
-                             :error => :error_catch,
-                             :else => :error_catch},
-            :os_installed => {:mk_call => :os_installed,
-                             :boot_call => :os_installed,
-                             :os_ok => :os_installed,
-                             :os_error => :error_catch,
-                             :os_valid => :os_complete,
-                             :os_timeout => :timeout_error,
                              :error => :error_catch,
                              :else => :error_catch},
             :os_complete => {:mk_call => :os_complete,
@@ -180,7 +204,7 @@ curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot
 
           when :init, :preinstall
             return start_install(node, policy_uuid)
-          when :postinstall, :os_validate, :os_complete
+          when :postinstall, :os_complete
             return local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
