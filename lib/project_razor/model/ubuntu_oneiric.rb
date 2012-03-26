@@ -97,7 +97,7 @@ echo Model #{@label} >> /tmp/razor_complete.log
 echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
 echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
 
-sed
+sed -i '/razor_postinstall/d' /etc/rc.local
 "
       end
 
