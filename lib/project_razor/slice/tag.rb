@@ -16,9 +16,15 @@ module ProjectRazor
         super(args)
         # Define your commands and help text
         @slice_commands = {:rule => "rule_call",
+                           :get => "get_tag",
+                           :add => "add_tag",
+                           :remove => "remove_tag",
                            :matcher => "matcher_call",
                            :default => "get_tag_rule"}
-        @slice_commands_help = {:rules => "tag [rules]"}
+        @slice_commands_help = {:rules => "tag [rules]",
+                                :get => "tag ".red + "{get [rule|matcher]}".blue,
+                                :add => "tag add ".red + "[rule|matcher]".blue,
+                                :remove => "tag remove ".red + "[rule|matcher] (uuid)".blue,}
         @slice_name = "Tag"
       end
 
