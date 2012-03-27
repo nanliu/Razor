@@ -137,8 +137,25 @@ module ProjectRazor
         if json_string != "{}" && json_string != nil
           begin
             post_hash = JSON.parse(json_string)
-            if post_hash["@name"] != nil && post_hash["@tag"] != nil && post_hash["@tag_matchers"] != nil
-              new_tag_rule = ProjectRazor::Tagging::TagRule.new(post_hash)
+            if post_hash["@name"] != nil && post_hash["@tag"] != nil
+              name = post_hash["@name"]
+
+              unless validate_arg(name)
+                slice_error("InvalidName")
+                return
+              end
+
+              tags_array = post_hash["@tag"]
+
+
+              new_tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => name, "@tag" => tags_array})
+
+              unless new_tag_rule.tag.count > 0
+                slice_error("MustProvideAtLeastOneTag")
+                return
+              end
+
+
               setup_data
               if @data.persist_object(new_tag_rule) != nil
                 print_tag_rule [new_tag_rule]
@@ -189,92 +206,6 @@ module ProjectRazor
 
 
 
-      def matcher_call
-        @command_query_string = @command_array.shift
-        case @command_query_string
-
-          when "add"
-            add_tag_matcher
-          when "remove"
-            remove_tag_matcher
-          else
-            @command = "get_tag_matcher"
-            tag_rule = get_tag_rule_by_uuid(@command_query_string)
-            slice_success(tag_rule.to_hash, false) unless !tag_rule
-        end
-      end
-
-      def add_tag_matcher
-        @command = "add_tag_matcher"
-        # First make sure we have a valid rule
-        tag_rule = get_tag_rule_by_uuid(@command_array.shift)
-        return if !tag_rule
-
-
-        begin
-          json_string = @command_array.shift
-          if json_string != nil && (json_string =~ /^\{.*\}$/) != nil && json_string != ''
-            tag_matcher = ProjectRazor::Tagging::TagMatcher.new(JSON.parse(json_string))
-            if tag_rule.add_tag_matcher(tag_matcher.key,tag_matcher.value,tag_matcher.compare,tag_matcher.inverse)
-              if tag_rule.update_self
-                slice_success(tag_rule.to_hash, false)
-              else
-                slice_error("CouldNotUpdateTagRule", false)
-              end
-            else
-              slice_error("CouldNotAddTagMatcherToRule", false)
-            end
-          else
-            slice_error("MissingTagMatcherProperties", false)
-          end
-        rescue => e
-          logger.error e.message
-          slice_error(e.message, false)
-        end
-      end
-
-
-      def remove_tag_matcher
-        @command = "add_tag_matcher"
-        # First make sure we have a valid rule
-        tag_rule = get_tag_rule_by_uuid(@command_array.shift)
-        return if !tag_rule
-
-
-        begin
-          uuid = @command_array.shift
-          if uuid != nil && (uuid =~ /^\{.*\}$/) == nil && uuid != ''
-            if tag_rule.remove_tag_matcher(uuid)
-              slice_success(tag_rule.to_hash, false)
-            else
-              slice_error("TagMatcherNotFound", false)
-            end
-          else
-            slice_error("InvalidTagMatcherUUID", false)
-          end
-        rescue => e
-          logger.error e.message
-          slice_error(e.message, false)
-        end
-      end
-
-      def get_tag_rule_by_uuid(uuid)
-        if uuid != nil && (uuid =~ /^\{.*\}$/) == nil && uuid != ''
-          @command_array.unshift('{"@uuid":"' + uuid +'"}')
-          tag_rules = get_object("tag_rule", :tag)
-          tag_rules.each do
-          |tag_rule|
-            if tag_rule.uuid == uuid
-              return tag_rule
-            end
-          end
-          slice_success("TagRuleNotFound", false)
-          false
-        else
-          slice_error("NoTagRuleUUIDProvided", false)
-          false
-        end
-      end
     end
   end
 end
