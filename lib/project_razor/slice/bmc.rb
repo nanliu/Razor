@@ -5,7 +5,7 @@ require "json"
 require "yaml"
 
 # time to wait for an external command (in milliseconds)
-EXT_COMMAND_TIMEOUT = 5000
+EXT_COMMAND_TIMEOUT = 2000
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver

@@ -11,7 +11,7 @@ require 'singleton'
 require 'timeout'
 
 # time to wait for an external command (in milliseconds)
-EXT_COMMAND_TIMEOUT = 5000 unless EXT_COMMAND_TIMEOUT
+EXT_COMMAND_TIMEOUT = 2000 unless EXT_COMMAND_TIMEOUT
 
 module ProjectRazor
   module PowerControl
@@ -152,7 +152,7 @@ module ProjectRazor
 
       def run_ipmi_command(host_ip, username, passwd, *cmd_and_args)
         command_str = cmd_and_args.join(' ')
-        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str}"
+        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2> /dev/null"
         begin
           timeout = EXT_COMMAND_TIMEOUT / 1000.0
           Timeout::timeout(timeout) do
