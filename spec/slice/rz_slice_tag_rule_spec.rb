@@ -6,6 +6,7 @@ require "rspec"
 require "net/http"
 require "json"
 
+
 describe "ProjectRazor::Slice::TagRule" do
 
   describe ".RESTful Interface" do
@@ -27,10 +28,11 @@ describe "ProjectRazor::Slice::TagRule" do
     it "should be able to create a new empty tag rule from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule/add"
 
-      name = "test_tag_rule"
+      name = "test_tag_rule_web"
       tag = ["test"]
 
       json_hash = {}
+      json_hash["@uuid"] = @uuid
       json_hash["@name"] = name
       json_hash["@tag"] = tag
 
@@ -39,39 +41,24 @@ describe "ProjectRazor::Slice::TagRule" do
       response_hash = JSON.parse(res.body)
 
       response_hash['errcode'].should == 0
+
+      response_hash['response'][0]['@uuid'].should == @uuid
       response_hash['response'][0]['@name'].should == name
       response_hash['response'][0]['@tag'].should == tag
     end
 
     it "should be able to create a new empty tag rule from CLI" do
-      #uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule/add"
-      #
-      #name = "test_tag_rule"
-      #tag = ["test"]
-      #
-      #json_hash = {}
-      #json_hash["@name"] = name
-      #json_hash["@tag"] = tag
-      #
-      #json_string = JSON.generate(json_hash)
-      #res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
-      #response_hash = JSON.parse(res.body)
-      #
-      #response_hash['errcode'].should == 0
-      #response_hash['response'][0]['@name'].should == name
-      #response_hash['response'][0]['@tag'].should == tag
+      `#{$razor_root}/bin/razor tagrule add test_tag_rule_cli test1,test2`
+      $?.should == 0
     end
 
+    it "should be able to get one tag rule from REST" do
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule/get/#{@uuid}"
+      res = Net::HTTP.get(uri)
+      res_hash = JSON.parse(res)
+      res_hash['response'][0]['@uuid'].should == @uuid
+    end
 
-    #
-    #it "should be able to get one tag rule from REST" do
-    #  uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/rule/#{@uuid}"
-    #  res = Net::HTTP.get(uri)
-    #  res_hash = JSON.parse(res)
-    #  res_hash['response']['@uuid'].should == @uuid
-    #end
-    #
-    #
     #it "should be able to create a tag matchers for a tag rule from REST" do
     #
     #  uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/rule/#{@uuid}"

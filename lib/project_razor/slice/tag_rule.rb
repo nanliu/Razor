@@ -3,6 +3,8 @@
 
 require "json"
 
+
+
 module ProjectRazor
   module Slice
     # ProjectRazor Tag Slice
@@ -20,9 +22,9 @@ module ProjectRazor
                            :add => "add_tag",
                            :remove => "remove_tag",
         }
-        @slice_commands_help = {:rule => "tag rule".red + "[add|remove|get]".blue,
-                                :matcher => "tag matcher".red + " (tag rule uuid) [add|remove|get]".blue,
-                                "add_tag_rule" => "tag rule add ".red + "(name) (tag{,tag,tag})".blue,
+        @slice_commands_help = {:default => "tagrule".red + "[add|remove|get]".blue,
+                                :get => "tagrule".red + "[add|remove|get]".blue,
+                                "add_tag" => "tagrule add ".red + "(name) (tag{,tag,tag})".blue,
                                 "remove_tag" => "tagrule remove ".red + "[(uuid)|all]".blue}
         @slice_name = "Tagrule"
       end
@@ -91,14 +93,14 @@ module ProjectRazor
 
       def add_tag
         if @web_command
-          add_tag_rule_web
+          add_tag_web
         else
           add_tag_cli
         end
       end
 
       def add_tag_cli
-        @command = "add_tag_rule"
+        @command = "add_tag"
         name = @command_array.shift
 
         unless validate_arg(name)
@@ -132,7 +134,7 @@ module ProjectRazor
 
 
       def add_tag_web
-        @command = "add_tag_rule"
+        @command = "add_tag"
         json_string = @command_array.shift
         if json_string != "{}" && json_string != nil
           begin
@@ -148,12 +150,14 @@ module ProjectRazor
               tags_array = post_hash["@tag"]
 
 
-              new_tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => name, "@tag" => tags_array})
+              new_tag_rule = ProjectRazor::Tagging::TagRule.new(post_hash)
 
               unless new_tag_rule.tag.count > 0
                 slice_error("MustProvideAtLeastOneTag")
                 return
               end
+
+              new_tag_rule.tag_matchers = [] unless new_tag_rule.tag_matchers
 
 
               setup_data
