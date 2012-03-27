@@ -154,7 +154,8 @@ module ProjectRazor
         command_str = cmd_and_args.join(' ')
         command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str}"
         begin
-          Timeout::timeout(EXT_COMMAND_TIMEOUT) do
+          timeout = EXT_COMMAND_TIMEOUT / 1000.0
+          Timeout::timeout(timeout) do
             return [false, %x[#{command}]]
           end
         rescue Timeout::Error
