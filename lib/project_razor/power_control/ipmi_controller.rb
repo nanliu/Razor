@@ -8,6 +8,10 @@
 #@author Tom McSweeney
 
 require 'singleton'
+require 'timeout'
+
+# time to wait for an external command (in milliseconds)
+EXT_COMMAND_TIMEOUT = 5000 unless EXT_COMMAND_TIMEOUT
 
 module ProjectRazor
   module PowerControl
@@ -18,50 +22,81 @@ module ProjectRazor
       # First, define a set of 'query-style' actions that will invoke corresponding
       # commands from the ipmitool command set
       def power_status(host_ip, username, passwd)
-        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        if command_failed
+          return [false, "unknown"]
+        end
         power_output = power_output.split("\n")
         power_status = /.*(on|off)$/.match(power_output[0])[1]
+        [true, power_status]
       end
 
       def bmc_info(host_ip, username, passwd)
-        bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'info')
-        bmc_hash = impi_output_to_hash(bmc_output, ':')
+        command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'info')
+        if command_failed
+          return [false, {}]
+        end
+        bmc_hash = ipmi_output_to_hash(bmc_output, ':')
+        [true, bmc_hash]
       end
 
       def bmc_getenables(host_ip, username, passwd)
-        bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'getenables')
-        bmc_hash = impi_output_to_hash(bmc_output, ':')
+        command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'getenables')
+        if command_failed
+          return [false, {}]
+        end
+        bmc_hash = ipmi_output_to_hash(bmc_output, ':')
+        [true, bmc_hash]
       end
 
       def bmc_guid(host_ip, username, passwd)
-        bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'guid')
-        bmc_hash = impi_output_to_hash(bmc_output, ':')
+        command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'guid')
+        if command_failed
+          return [false, {}]
+        end
+        bmc_hash = ipmi_output_to_hash(bmc_output, ':')
+        [true, bmc_hash]
       end
 
       def chassis_status(host_ip, username, passwd)
-        chassis_output = run_ipmi_command(host_ip, username, passwd, 'chassis', 'status')
-        chassis_hash = impi_output_to_hash(chassis_output, ':')
+        command_failed, chassis_output = run_ipmi_command(host_ip, username, passwd, 'chassis', 'status')
+        if command_failed
+          return [false, {}]
+        end
+        chassis_hash = ipmi_output_to_hash(chassis_output, ':')
+        [true, chassis_hash]
       end
 
       def lan_print(host_ip, username, passwd)
-        lan_output = run_ipmi_command(host_ip, username, passwd, 'lan', 'print')
-        lan_hash = impi_output_to_hash(lan_output, ':')
+        command_failed, lan_output = run_ipmi_command(host_ip, username, passwd, 'lan', 'print')
+        if command_failed
+          return [false, {}]
+        end
+        lan_hash = ipmi_output_to_hash(lan_output, ':')
+        [true, lan_hash]
       end
 
       def fru_print(host_ip, username, passwd)
-        fru_output = run_ipmi_command(host_ip, username, passwd, 'fru', 'print')
-        fru_hash = impi_output_to_hash(fru_output, ':')
+        command_failed, fru_output = run_ipmi_command(host_ip, username, passwd, 'fru', 'print')
+        if command_failed
+          return [false, {}]
+        end
+        fru_hash = ipmi_output_to_hash(fru_output, ':')
+        [true, fru_hash]
       end
 
       # Then, define a set of 'command-style' actions that will invoke corresponding
       # actions from the ipmitool command set (power on, power off, power cycle, )
 
       def power_on(host_ip, username, passwd)
-        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        if command_failed
+          return [false, power_output]
+        end
         power_output = power_output.split("\n")
         power_status = /.*(on|off)$/.match(power_output[0])[1]
         if power_status == 'off'
-          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'on')
+          command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'on')
           power_output = power_output.split("\n")
           return [true, /.*(Up\/On)$/.match(power_output[0])[1]]
         end
@@ -69,11 +104,14 @@ module ProjectRazor
       end
 
       def power_off(host_ip, username, passwd)
-        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        if command_failed
+          return [false, power_output]
+        end
         power_output = power_output.split("\n")
         power_status = /.*(on|off)$/.match(power_output[0])[1]
         if power_status == 'on'
-          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'off')
+          command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'off')
           power_output = power_output.split("\n")
           return [true, /.*(Down\/Off)$/.match(power_output[0])[1]]
         end
@@ -81,11 +119,14 @@ module ProjectRazor
       end
 
       def power_cycle(host_ip, username, passwd)
-        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        if command_failed
+          return [false, power_output]
+        end
         power_output = power_output.split("\n")
         power_status = /.*(on|off)$/.match(power_output[0])[1]
         if power_status == 'on'
-          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'cycle')
+          command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'cycle')
           power_output = power_output.split("\n")
           return [true, /.*(Cycle)$/.match(power_output[0])[1]]
         end
@@ -93,11 +134,14 @@ module ProjectRazor
       end
 
       def power_reset(host_ip, username, passwd)
-        power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
+        if command_failed
+          return [false, power_output]
+        end
         power_output = power_output.split("\n")
         power_status = /.*(on|off)$/.match(power_output[0])[1]
         if power_status == 'on'
-          power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'reset')
+          command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'reset')
           power_output = power_output.split("\n")
           return [true, /.*(Reset)$/.match(power_output[0])[1]]
         end
@@ -108,11 +152,20 @@ module ProjectRazor
 
       def run_ipmi_command(host_ip, username, passwd, *cmd_and_args)
         command_str = cmd_and_args.join(' ')
-        %x[ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str}]
+        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str}"
+        begin
+          Timeout::timeout(EXT_COMMAND_TIMEOUT) do
+            return [false, %x[#{command}]]
+          end
+        rescue Timeout::Error
+          return [true, "External Command Timeout (#{EXT_COMMAND_TIMEOUT} msecs) exceeded while executing '#{command}'"]
+        rescue Exception => e
+          return [true, e.backtrace]
+        end
       end
 
-      def impi_output_to_hash(impi_output, delimiter)
-        array = impi_output.split("\n")
+      def ipmi_output_to_hash(ipmi_output, delimiter)
+        array = ipmi_output.split("\n")
         split_hash = Hash.new
         delimiter = "\\#{delimiter}"
         prev_key = nil
