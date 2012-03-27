@@ -19,6 +19,12 @@ module ProjectRazor
 
       include Singleton
 
+      def initialize
+        super
+        test = %x[which ipmitool]
+        @ipmitool_exists = (test.length > 0)
+      end
+
       # First, define a set of 'query-style' actions that will invoke corresponding
       # commands from the ipmitool command set
       def power_status(host_ip, username, passwd)
@@ -151,6 +157,10 @@ module ProjectRazor
       private
 
       def run_ipmi_command(host_ip, username, passwd, *cmd_and_args)
+        # if the ipmitool command does not exist, need to return an error now
+        unless @ipmitool_exists
+          return [true, "Command 'ipmitool' does not exist; install ipmitool package and restart server"]
+        end
         command_str = cmd_and_args.join(' ')
         command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2> /dev/null"
         begin
