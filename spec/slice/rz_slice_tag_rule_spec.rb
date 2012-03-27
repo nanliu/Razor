@@ -42,6 +42,27 @@ describe "ProjectRazor::Slice::TagRule" do
       response_hash['response'][0]['@name'].should == name
       response_hash['response'][0]['@tag'].should == tag
     end
+
+    it "should be able to create a new empty tag rule from CLI" do
+      #uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule/add"
+      #
+      #name = "test_tag_rule"
+      #tag = ["test"]
+      #
+      #json_hash = {}
+      #json_hash["@name"] = name
+      #json_hash["@tag"] = tag
+      #
+      #json_string = JSON.generate(json_hash)
+      #res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
+      #response_hash = JSON.parse(res.body)
+      #
+      #response_hash['errcode'].should == 0
+      #response_hash['response'][0]['@name'].should == name
+      #response_hash['response'][0]['@tag'].should == tag
+    end
+
+
     #
     #it "should be able to get one tag rule from REST" do
     #  uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/rule/#{@uuid}"
