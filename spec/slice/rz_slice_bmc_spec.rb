@@ -16,9 +16,9 @@ describe "ProjectRazor::Slice::Bmc" do
       @data = ProjectRazor::Data.new
       @config = @data.config
       @data.delete_all_objects(:bmc)
-      @uuid = ["001517FAE036", "001517FADE66", "001517FA7B0A"]
-      @mac = ["00:15:17:FA:E0:36", "00:15:17:FA:DE:66", "00:15:17:FA:7B:0A"]
-      @ip = ["192.168.2.51", "192.168.2.52", "192.168.2.53"]
+      @uuid = ["001517FAE036", "001517FADE66"]
+      @mac = ["00:15:17:FA:E0:36", "00:15:17:FA:DE:66"]
+      @ip = ["192.168.2.51", "192.168.2.52"]
     end
 
     after(:all) do
@@ -88,7 +88,6 @@ describe "ProjectRazor::Slice::Bmc" do
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
       bmc_nodes = response_hash['response']
-
       bmc_nodes.sort do
         |a,b|
         a["@ip"] <=> b["@ip"]

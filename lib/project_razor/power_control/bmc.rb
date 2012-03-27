@@ -8,11 +8,15 @@ module ProjectRazor
     class Bmc < ProjectRazor::Object
       attr_accessor :mac
       attr_accessor :ip
+      attr_accessor :current_power_state
+      attr_accessor :board_serial_number
 
       # @param hash [Hash]
       def initialize(hash = nil)
         super()
         @_collection = :bmc
+        @current_power_state = "unknown"
+        @board_serial_number = ''
         from_hash(hash) unless hash == nil
         @_ipmi = ProjectRazor::PowerControl::IpmiController.instance
       end
