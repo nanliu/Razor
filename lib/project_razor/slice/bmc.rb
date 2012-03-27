@@ -4,6 +4,9 @@
 require "json"
 require "yaml"
 
+# time to wait for an external command (in milliseconds)
+EXT_COMMAND_TIMEOUT = 5000
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -117,42 +120,42 @@ module ProjectRazor
         change_bmc_power_state("reset")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "power_status" on the node
       def power_status_bmc
         logger.debug "ipmitool 'power_status' called"
         @command_name = "power_status_bmc"
         run_ipmi_query_cmd("power_status")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "bmc_info" on the node
       def bmc_info_bmc
         logger.debug "ipmitool 'bmc_info' called"
         @command_name = "bmc_info_bmc"
         run_ipmi_query_cmd("bmc_info")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "bmc_getenables" on the node
       def bmc_getenables_bmc
         logger.debug "ipmitool 'bmc_getenables' called"
         @command_name = "bmc_getenables_bmc"
         run_ipmi_query_cmd("bmc_getenables")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "bmc_guid" on the node
       def bmc_guid_bmc
         logger.debug "ipmitool 'bmc_guid' called"
         @command_name = "bmc_guid_bmc"
         run_ipmi_query_cmd("bmc_guid")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "chassis_status" on the node
       def chassis_status_bmc
         logger.debug "ipmitool 'chassis_status' called"
         @command_name = "chassis_status_bmc"
         run_ipmi_query_cmd("chassis_status")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "lan_print" on the node
       def lan_print_bmc
         logger.debug "ipmitool 'lan_print' called"
         @command_name = "lan_print_bmc"
@@ -179,13 +182,13 @@ module ProjectRazor
                 logger.debug "Running ipmi_query command #{ipmitool_cmd} on bmc: #{details['@uuid']}"
                 details['@timestamp'] = Time.now.to_i
                 bmc = get_bmc(details)
-                command_matched, output = bmc.run_ipmi_query_cmd(ipmitool_cmd, @ipmi_username, @ipmi_password)
+                command_success, output = bmc.run_ipmi_query_cmd(ipmitool_cmd, @ipmi_username, @ipmi_password)
                 # handle the returned values;
-                if command_matched
+                if command_success
                   p output
                 else
-                  logger.error "No command matching #{ipmitool_cmd} supported by Bmc object"
-                  slice_error("CouldNotPowerOn", false)
+                  logger.error output
+                  slice_error("IpmiCommandFailed", false)
                 end
               else
                 logger.error "Incomplete bmc details"
@@ -281,15 +284,15 @@ module ProjectRazor
       end
 
       def update_bmc_hash!(bmc, bmc_hash)
-        begin
-          status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
-          bmc_hash["@current_power_state"] = power_state if status_flag
-          status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
-          bmc_hash["@board_serial_number"] = fru_hash[:Board_Serial] if status_flag
-        rescue => e
-          bmc_hash["@current_power_state"] = "unknown"
-          bmc_hash["@board_serial_number"] = ''
-        end
+        # values to return if the ipmitool command does not succeed
+        bmc_hash["@current_power_state"] = "unknown"
+        bmc_hash["@board_serial_number"] = ''
+        # now, invoke run the ipmitool commands needed to get the current-power-state and
+        # board-serial-number for this bmc node
+        command_success, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+        bmc_hash["@current_power_state"] = power_state if command_success
+        command_success, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+        bmc_hash["@board_serial_number"] = fru_hash[:Board_Serial] if command_success
       end
 
       # Inserts bmc using hash
@@ -305,26 +308,24 @@ module ProjectRazor
               bmc.board_serial_number != bmc_hash['@board_serial_number']
             bmc.mac = bmc_hash['@mac']
             bmc.ip = bmc_hash['@ip']
+            # values to use if the ipmitool commands fail for some reason
             bmc.current_power_state = "unknown"
             bmc.board_serial_number = ''
-            begin
-              status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
-              bmc.current_power_state = power_state if status_flag
-              status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
-              bmc.board_serial_number = fru_hash[:Board_Serial] if status_flag
-            rescue => e
-              bmc.current_power_state = "unknown"
-              bmc.board_serial_number = ''
-            end
+            # now, invoke run the ipmitool commands needed to get the current-power-state and
+            # board-serial-number for this bmc node
+            command_success, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+            bmc.current_power_state = power_state if command_success
+            command_success, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+            bmc.board_serial_number = fru_hash[:Board_Serial] if command_success
             bmc.update_self
           end
           bmc
         else
           bmc = ProjectRazor::PowerControl::Bmc.new(bmc_hash)
           begin
-            status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+            command_success, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
             bmc.current_power_state = power_state if status_flag
-            status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+            command_success, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
             bmc.board_serial_number = fru_hash[:Board_Serial] if status_flag
           rescue => e
             bmc.current_power_state = "unknown"
@@ -353,16 +354,15 @@ module ProjectRazor
           unless @verbose
             bmc_array.each do
             |bmc|
-              power_state = ''
+              # default values to use if the ipmitool commands fail for some reason
+              power_state = "unknown"
               board_no = ''
-              begin
-                status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
-                status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
-                board_no = fru_hash[:Board_Serial] if status_flag
-              rescue
-                power_state = "unknown"
-                board_no = ''
-              end
+              # now, invoke run the ipmitool commands needed to get the current-power-state and
+              # board-serial-number for this bmc node
+              command_success, returned_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+              power_state = returned_state if command_success
+              command_success, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+              board_no = fru_hash[:Board_Serial] if command_success
               case power_state
                 when "on"
                   puts "    uuid: #{bmc.uuid}   mac: #{bmc.mac}   ip: #{bmc.ip}   s/n: #{board_no}".green

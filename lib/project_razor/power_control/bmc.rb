@@ -3,6 +3,7 @@
 
 # ProjectRazor Policy Base class
 # Root abstract
+
 module ProjectRazor
   module PowerControl
     class Bmc < ProjectRazor::Object
@@ -21,7 +22,7 @@ module ProjectRazor
         @_ipmi = ProjectRazor::PowerControl::IpmiController.instance
       end
 
-      def change_power_state(new_state, username, password)
+      def change_power_state(new_state, username, password, ipmi_timeout = EXT_COMMAND_TIMEOUT)
         case new_state
           when new_state = "on"
             return @_ipmi.power_on(@ip, username, password)
@@ -39,19 +40,19 @@ module ProjectRazor
       def run_ipmi_query_cmd(cmd, username, password)
         case cmd
           when new_state = "power_status"
-            return [true, @_ipmi.power_status(@ip, username, password)]
+            return @_ipmi.power_status(@ip, username, password)
           when new_state = "bmc_info"
-            return [true, @_ipmi.bmc_info(@ip, username, password)]
+            return @_ipmi.bmc_info(@ip, username, password)
           when new_state = "bmc_getenables"
-            return [true, @_ipmi.bmc_getenables(@ip, username, password)]
+            return @_ipmi.bmc_getenables(@ip, username, password)
           when new_state = "bmc_guid"
-            return [true, @_ipmi.bmc_guid(@ip, username, password)]
+            return @_ipmi.bmc_guid(@ip, username, password)
           when new_state = "chassis_status"
-            return [true, @_ipmi.chassis_status(@ip, username, password)]
+            return @_ipmi.chassis_status(@ip, username, password)
           when new_state = "lan_print"
-            return [true, @_ipmi.lan_print(@ip, username, password)]
+            return @_ipmi.lan_print(@ip, username, password)
           when new_state = "fru_print"
-            return [true, @_ipmi.fru_print(@ip, username, password)]
+            return @_ipmi.fru_print(@ip, username, password)
           else
             return [false, "Unrecognized query command #{cmd}; acceptable values are power_status," +
                 " bmc_info, bmc_getenables, bmc_guid, chassis_status, lan_print or fru_print"]
