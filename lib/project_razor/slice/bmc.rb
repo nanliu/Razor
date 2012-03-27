@@ -353,13 +353,24 @@ module ProjectRazor
           unless @verbose
             bmc_array.each do
             |bmc|
-              print "\tuuid: "
-              print "#{bmc.uuid}  ".green
-              print "\tmac: "
-              print "#{bmc.mac}  ".green
-              print "ip: "
-              print "#{bmc.ip}   ".green
-              print "\n"
+              power_state = ''
+              board_no = ''
+              begin
+                status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+                status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+                board_no = fru_hash[:Board_Serial] if status_flag
+              rescue
+                power_state = "unknown"
+                board_no = ''
+              end
+              case power_state
+                when "on"
+                  puts "    uuid: #{bmc.uuid}   mac: #{bmc.mac}   ip: #{bmc.ip}   s/n: #{board_no}".green
+                when "off"
+                  puts "    uuid: #{bmc.uuid}   mac: #{bmc.mac}   ip: #{bmc.ip}   s/n: #{board_no}".red
+                else
+                  puts "    uuid: #{bmc.uuid}   mac: #{bmc.mac}   ip: #{bmc.ip}   s/n: #{board_no}".yellow
+              end
             end
           else
             bmc_array.each do
