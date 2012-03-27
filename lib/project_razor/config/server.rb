@@ -74,6 +74,10 @@ module ProjectRazor
         @register_timeout = 120
         @force_mk_uuid = ""
 
+        @default_ipmi_power_state = 'off'
+        @default_ipmi_username = 'ipmi_user'
+        @default_ipmi_password = 'ipmi_password'
+
       end
 
       def get_client_config_hash
