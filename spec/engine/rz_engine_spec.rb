@@ -82,7 +82,7 @@ describe ProjectRazor::Engine do
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       response_hash = JSON.parse(res.body)
-      live_tag_rule_uuid = response_hash['response']['@uuid']
+      live_tag_rule_uuid = response_hash['response'][0]['@uuid']
 
 
       # We add one tag matchers to it
