@@ -53,7 +53,6 @@ module ProjectRazor
         @ipmi_password = config.default_ipmi_password
       end
 
-
       # Registers BMC NIC
       def register_bmc
         logger.debug "Register bmc called"
@@ -281,19 +280,58 @@ module ProjectRazor
         end
       end
 
+      def update_bmc_hash!(bmc, bmc_hash)
+        begin
+          status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+          bmc_hash["@current_power_state"] = power_state if status_flag
+          status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+          bmc_hash["@board_serial_number"] = fru_hash[:Board_Serial] if status_flag
+        rescue => e
+          bmc_hash["@current_power_state"] = "unknown"
+          bmc_hash["@board_serial_number"] = ''
+        end
+      end
+
       # Inserts bmc using hash
       # @param [Hash] bmc_hash
       # @return [ProjectRazor::Bmc]
       def insert_bmc(bmc_hash)
         setup_data
-        existing_bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
-        if existing_bmc != nil
-          existing_bmc.mac = bmc_hash['@mac']
-          existing_bmc.ip = bmc_hash['@ip']
-          existing_bmc.update_self
-          existing_bmc
+        bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
+        if bmc != nil
+          update_bmc_hash!(bmc, bmc_hash)
+          if bmc.mac != bmc_hash['@mac'] || bmc.ip != bmc_hash['@ip'] ||
+              bmc.current_power_state != bmc_hash['@current_power_state'] ||
+              bmc.board_serial_number != bmc_hash['@board_serial_number']
+            bmc.mac = bmc_hash['@mac']
+            bmc.ip = bmc_hash['@ip']
+            bmc.current_power_state = "unknown"
+            bmc.board_serial_number = ''
+            begin
+              status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+              bmc.current_power_state = power_state if status_flag
+              status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+              bmc.board_serial_number = fru_hash[:Board_Serial] if status_flag
+            rescue => e
+              bmc.current_power_state = "unknown"
+              bmc.board_serial_number = ''
+            end
+            bmc.update_self
+          end
+          bmc
         else
-          @data.persist_object(ProjectRazor::PowerControl::Bmc.new(bmc_hash))
+          bmc = ProjectRazor::PowerControl::Bmc.new(bmc_hash)
+          begin
+            status_flag, power_state = bmc.run_ipmi_query_cmd("power_status", @ipmi_username, @ipmi_password)
+            bmc.current_power_state = power_state if status_flag
+            status_flag, fru_hash = bmc.run_ipmi_query_cmd("fru_print", @ipmi_username, @ipmi_password)
+            bmc.board_serial_number = fru_hash[:Board_Serial] if status_flag
+          rescue => e
+            bmc.current_power_state = "unknown"
+            bmc.board_serial_number = ''
+          end
+          @data.persist_object(bmc)
+          bmc
         end
       end
 
@@ -315,7 +353,7 @@ module ProjectRazor
           unless @verbose
             bmc_array.each do
             |bmc|
-              print "\tuuid"
+              print "\tuuid: "
               print "#{bmc.uuid}  ".green
               print "\tmac: "
               print "#{bmc.mac}  ".green
