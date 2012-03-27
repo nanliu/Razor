@@ -44,7 +44,7 @@ module ProjectRazor
       # @param filter [Hash] contains key/values used for filtering
       # @param collection [Symbol] collection symbol
       def return_object_using_filter(collection, filter_hash)
-      setup_data
+        setup_data
         @data.fetch_objects_by_filter(filter_hash, collection)
       end
 
@@ -287,12 +287,155 @@ module ProjectRazor
         end
       end
 
+      def print_tag_rule_old(rule_array)
+        if rule_array.respond_to?(:each)
+          rule_array = rule_array.collect { |rule| rule.to_hash }
+          slice_success(rule_array, false)
+        else
+          slice_success(rule_array.to_hash, false)
+        end
+
+      end
+
+      def print_tag_rule(object_array)
+        unless @web_command
+          puts "Tag Rules:"
+
+          unless @verbose
+
+            print_array = []
+            header = []
+            line_color = :green
+            header_color = :white
+
+            object_array.each do
+            |rule|
+              print_array << rule.print_items
+              header = rule.print_header
+              line_color = rule.line_color
+              header_color = rule.header_color
+            end
+
+            print_array.unshift header if header != []
+            print_table(print_array, line_color, header_color)
+          else
+            object_array.each do
+            |rule|
+              rule.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{rule.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          object_array = object_array.collect { |rule| rule.to_hash }
+          slice_success(object_array, false)
+        end
+      end
+
+      def print_tag_matcher(object_array)
+        unless @web_command
+          puts "\t\tTag Matchers:"
+
+          unless @verbose
+            object_array.each do
+            |matcher|
+              print "   Key: " + "#{matcher.key}".yellow
+              print "  Compare: " + "#{matcher.compare}".yellow
+              print "  Value: " + "#{matcher.value}".yellow
+              print "  Inverse: " + "#{matcher.inverse}".yellow
+              print "\n"
+            end
+          else
+            object_array.each do
+            |matcher|
+              matcher.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{matcher.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          object_array = object_array.collect { |matcher| matcher.to_hash }
+          slice_success(object_array, false)
+        end
+      end
+
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(arg)
         arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
       end
 
 
+      def print_object_array(object_array, title = nil)
+        unless @web_command
+          puts title if title
+          unless @verbose
+            print_array = []
+            header = []
+            line_color = :green
+            header_color = :white
+
+            object_array.each do
+            |rule|
+              print_array << rule.print_items
+              header = rule.print_header
+              line_color = rule.line_color
+              header_color = rule.header_color
+            end
+
+            print_array.unshift header if header != []
+            puts print_table(print_array, line_color, header_color)
+          else
+            object_array.each do
+            |rule|
+              rule.instance_variables.each do
+              |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{rule.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          end
+        else
+          object_array = object_array.collect { |rule| rule.to_hash }
+          slice_success(object_array)
+        end
+      end
+
+
+      def print_table(print_array, line_color, header_color)
+        table = ""
+        print_array.each_with_index do
+        |line, li|
+          line_string = ""
+          line.each_with_index do
+          |col, ci|
+            max_col = print_array.collect {|x| x[ci].length}.max
+            if li == 0
+              line_string << "#{col.center(max_col)}  ".send(header_color)
+            else
+              line_string << "#{col.ljust(max_col)}  ".send(line_color)
+            end
+          end
+          table << line_string + "\n"
+        end
+        table
+      end
     end
   end
 end
+

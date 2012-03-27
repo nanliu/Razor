@@ -19,6 +19,8 @@ module ProjectRazor
       attr_accessor :node_uuid
       attr_accessor :bind_timestamp
 
+      # TODO - method for setting tags that removes duplicates
+
       # @param hash [Hash]
       def initialize(hash)
         super()
