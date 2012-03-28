@@ -393,28 +393,29 @@ module ProjectRazor
           unless @verbose
             print_array = []
             header = []
-            line_color = :green
+            line_colors = []
+
             header_color = :white
 
             object_array.each do
-            |rule|
-              print_array << rule.print_items
-              header = rule.print_header
-              line_color = rule.line_color
-              header_color = rule.header_color
+            |obj|
+              print_array << obj.print_items
+              header = obj.print_header
+              line_colors << obj.line_color
+              header_color = obj.header_color
             end
 
             print_array.unshift header if header != []
-            puts print_table(print_array, line_color, header_color)
+            puts print_table(print_array, line_colors, header_color)
           else
             object_array.each do
-            |rule|
-              rule.instance_variables.each do
+            |obj|
+              obj.instance_variables.each do
               |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
-                  print "#{rule.instance_variable_get(iv)}  ".green
+                  print "#{obj.instance_variable_get(iv)}  ".green
                 end
               end
               print "\n"
@@ -427,7 +428,7 @@ module ProjectRazor
       end
 
 
-      def print_table(print_array, line_color, header_color)
+      def print_table(print_array, line_colors, header_color)
         table = ""
         print_array.each_with_index do
         |line, li|
@@ -438,7 +439,7 @@ module ProjectRazor
             if li == 0
               line_string << "#{col.center(max_col)}  ".send(header_color)
             else
-              line_string << "#{col.ljust(max_col)}  ".send(line_color)
+              line_string << "#{col.ljust(max_col)}  ".send(line_colors[li])
             end
           end
           table << line_string + "\n"
