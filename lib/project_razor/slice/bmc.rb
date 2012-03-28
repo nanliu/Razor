@@ -342,7 +342,7 @@ module ProjectRazor
       end
 
       def query_bmc
-        print_object_array get_object("bmc", :bmc), "Bmc Nodes" unless @web_command
+        print_object_array get_object("bmc", :bmc), "Bmc Nodes"
       end
 
     end
