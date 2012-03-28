@@ -439,7 +439,7 @@ module ProjectRazor
             if li == 0
               line_string << "#{col.center(max_col)}  ".send(header_color)
             else
-              line_string << "#{col.ljust(max_col)}  ".send(line_colors[li])
+              line_string << "#{col.ljust(max_col)}  ".send(line_colors[li-1])
             end
           end
           table << line_string + "\n"
