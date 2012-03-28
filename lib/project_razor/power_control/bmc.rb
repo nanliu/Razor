@@ -20,6 +20,10 @@ module ProjectRazor
         @board_serial_number = ''
         from_hash(hash) unless hash == nil
         @_ipmi = ProjectRazor::PowerControl::IpmiController.instance
+        data = ProjectRazor::Data.new
+        config = data.config
+        @_ipmi_username = config.default_ipmi_username
+        @_ipmi_password = config.default_ipmi_password
       end
 
       def change_power_state(new_state, username, password, ipmi_timeout = EXT_COMMAND_TIMEOUT)
@@ -39,24 +43,47 @@ module ProjectRazor
 
       def run_ipmi_query_cmd(cmd, username, password)
         case cmd
-          when new_state = "power_status"
+          when "power_status"
             return @_ipmi.power_status(@ip, username, password)
-          when new_state = "bmc_info"
+          when "bmc_info"
             return @_ipmi.bmc_info(@ip, username, password)
-          when new_state = "bmc_getenables"
+          when "bmc_getenables"
             return @_ipmi.bmc_getenables(@ip, username, password)
-          when new_state = "bmc_guid"
+          when "bmc_guid"
             return @_ipmi.bmc_guid(@ip, username, password)
-          when new_state = "chassis_status"
+          when "chassis_status"
             return @_ipmi.chassis_status(@ip, username, password)
-          when new_state = "lan_print"
+          when "lan_print"
             return @_ipmi.lan_print(@ip, username, password)
-          when new_state = "fru_print"
+          when "fru_print"
             return @_ipmi.fru_print(@ip, username, password)
           else
             return [false, "Unrecognized query command #{cmd}; acceptable values are power_status," +
                 " bmc_info, bmc_getenables, bmc_guid, chassis_status, lan_print or fru_print"]
         end
+      end
+
+      def print_header
+        return "UUID", "IP-Addr", "MAC-Addr", "S/N"
+      end
+
+      def print_items
+        return @uuid, @ip, @mac, @board_serial_number
+      end
+
+      def line_color
+        case @current_power_state
+          when "on"
+            return :green
+          when "off"
+            return :red
+          else
+            return :yellow
+        end
+      end
+
+      def header_color
+        :white
       end
 
     end
