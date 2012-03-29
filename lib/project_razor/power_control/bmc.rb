@@ -26,6 +26,26 @@ module ProjectRazor
         @_ipmi_password = config.default_ipmi_password
       end
 
+      def refresh_power_state
+        # values to return if the ipmitool command does not succeed
+        @current_power_state = "unknown"
+        # now, invoke run the ipmitool commands needed to get the current-power-state and
+        # board-serial-number for this bmc node
+        command_success, power_state = run_ipmi_query_cmd("power_status", @_ipmi_username, @_ipmi_password)
+        @current_power_state = power_state if command_success
+        self.update_self
+      end
+
+      def refresh_board_serial_number
+        # values to return if the ipmitool command does not succeed
+        @board_serial_number = ""
+        # now, invoke run the ipmitool commands needed to get the current-power-state and
+        # board-serial-number for this bmc node
+        command_success, fru_hash = run_ipmi_query_cmd("fru_print", @_ipmi_username, @_ipmi_password)
+        @board_serial_number = fru_hash[:Board_Serial] if command_success
+        self.update_self
+      end
+
       def change_power_state(new_state, username, password, ipmi_timeout = EXT_COMMAND_TIMEOUT)
         case new_state
           when new_state = "on"
@@ -64,11 +84,11 @@ module ProjectRazor
       end
 
       def print_header
-        return "UUID", "IP-Addr", "MAC-Addr", "S/N"
+        return "MAC-Addr", "IP-Addr", "Power", "S/N", "UUID"
       end
 
       def print_items
-        return @uuid, @ip, @mac, @board_serial_number
+        return @mac, @ip, @current_power_state, @board_serial_number, @uuid
       end
 
       def line_color

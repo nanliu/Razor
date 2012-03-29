@@ -226,7 +226,7 @@ module ProjectRazor
                 logger.debug "Changing power-state of bmc: #{details['@uuid']} to #{new_state}"
                 details['@timestamp'] = Time.now.to_i
                 bmc = get_bmc(details)
-                power_state_changed, status_string = bmc.change_power_state(@ipmi_username, @ipmi_password)
+                power_state_changed, status_string = bmc.change_power_state(new_state, @ipmi_username, @ipmi_password)
                 # handle the returned values; how the returned values should be handled will vary
                 # depending on the "new_state" that the node is being transitioned into.  For example,
                 # you can only turn on a node that is off (or turn off a node that is on), but it
@@ -236,36 +236,36 @@ module ProjectRazor
                 # these operations don't make any sense on a powered-off node.
                 case new_state
                   when new_state = "on"
-                    if power_state_changed && /Up\/On/.matches(status_string)
+                    if power_state_changed && /Up\/On/.match(status_string)
                       slice_success("Node #{details['@uuid']} now powering on", false)
-                    elsif !power_state_changed && /Up\/On/.matches(status_string)
+                    elsif !power_state_changed && /Up\/On/.match(status_string)
                       slice_success("Node #{details['@uuid']} already powered on", false)
                     else
                       logger.error "Could not power on bmc"
                       slice_error("CouldNotPowerOn", false)
                     end
                   when new_state = "off"
-                    if power_state_changed && /Down\/Off/.matches(status_string)
+                    if power_state_changed && /Down\/Off/.match(status_string)
                       slice_success("Node #{details['@uuid']} now powering off", false)
-                    elsif !power_state_changed && /Down\/Off/.matches(status_string)
+                    elsif !power_state_changed && /Down\/Off/.match(status_string)
                       slice_success("Node #{details['@uuid']} already powered off", false)
                     else
                       logger.error "Could not power off bmc"
                       slice_error("CouldNotPowerOff", false)
                     end
                   when new_state = "cycle"
-                    if power_state_changed && /Cycle/.matches(status_string)
+                    if power_state_changed && /Cycle/.match(status_string)
                       slice_success("Node #{details['@uuid']} now power cycling", false)
-                    elsif !power_state_changed && /Off/.matches(status_string)
+                    elsif !power_state_changed && /Off/.match(status_string)
                       slice_error("Node #{details['@uuid']} powered off, cannot power cycle", false)
                     else
                       logger.error "Could not power off bmc"
                       slice_error("CouldNotPowerOff", false)
                     end
                   when new_state = "reset"
-                    if power_state_changed && /Reset/.matches(status_string)
+                    if power_state_changed && /Reset/.match(status_string)
                       slice_success("Node #{details['@uuid']} now powering off", false)
-                    elsif !power_state_changed && /Off/.matches(status_string)
+                    elsif !power_state_changed && /Off/.match(status_string)
                       slice_error("Node #{details['@uuid']} powered off, cannot reset", false)
                     else
                       logger.error "Could not power off bmc"
@@ -339,9 +339,17 @@ module ProjectRazor
       def get_bmc(bmc_hash)
         setup_data
         existing_bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
+        existing_bmc.refresh_power_state if existing_bmc
+        existing_bmc
       end
 
       def query_bmc
+        bmc_array = get_object("bmc", :bmc)
+        if bmc_array
+          bmc_array.each { |bmc|
+            bmc.refresh_power_state
+          }
+        end
         print_object_array get_object("bmc", :bmc), "Bmc Nodes"
       end
 
