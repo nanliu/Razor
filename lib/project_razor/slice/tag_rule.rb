@@ -87,7 +87,7 @@ module ProjectRazor
 
 
 
-
+        @command_array.unshift uuid
         print_object_array get_object("tag_rule", :tag), "Tag Rules:"
       end
 
@@ -109,20 +109,20 @@ module ProjectRazor
         end
 
 
-        tags = @command_array.shift
-        unless tags != nil
-          slice_error("MustProvideAtLeastOneTag")
+        tag = @command_array.shift
+        unless tag != nil
+          slice_error("MustProvideTag")
           return
         end
-        tags_array = tags.split(",")
-        unless tags_array.count > 0
-          slice_error("MustProvideAtLeastOneTag")
+
+        unless validate_arg(tag)
+          slice_error("TagInvalid")
           return
         end
 
         new_tag_rule = ProjectRazor::Tagging::TagRule.new({})
         new_tag_rule.name = name
-        new_tag_rule.tag = tags_array
+        new_tag_rule.tag = tag.to_s
         new_tag_rule.tag_matchers = []
 
         setup_data
@@ -147,15 +147,9 @@ module ProjectRazor
                 return
               end
 
-              tags_array = post_hash["@tag"]
-
-
               new_tag_rule = ProjectRazor::Tagging::TagRule.new(post_hash)
 
-              unless new_tag_rule.tag.count > 0
-                slice_error("MustProvideAtLeastOneTag")
-                return
-              end
+
 
               new_tag_rule.tag_matchers = [] unless new_tag_rule.tag_matchers
 

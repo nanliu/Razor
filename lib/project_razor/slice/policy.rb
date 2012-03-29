@@ -223,7 +223,7 @@ module ProjectRazor
       end
 
       def get_policy_rules
-        print_policy_rules get_object("policy_rules", :policy_rule)
+        print_object_array get_object("policy_rules", :policy_rule) , "Policy Rules:"
       end
 
       def get_bound

@@ -116,7 +116,7 @@ module ProjectRazor
       end
 
       def print_items
-        return @name, @tag.join(","), @uuid
+        return @name, @tag, @uuid
       end
 
       def line_color

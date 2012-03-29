@@ -78,6 +78,23 @@ module ProjectRazor
       end
 
 
+      def print_header
+        return "Label", "Type", "Description", "UUID"
+      end
+
+      def print_items
+        return @label, @model_type.to_s, @description, @uuid
+      end
+
+      def line_color
+        :white_on_black
+      end
+
+      def header_color
+        :red_on_black
+      end
+
+
     end
   end
 end
