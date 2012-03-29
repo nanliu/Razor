@@ -51,8 +51,7 @@ module ProjectRazor
         end
 
         if @web_command
-
-
+          add_tag_matcher_web(uuid)
         else
           key = @command_array.shift
           value = @command_array.shift
@@ -98,14 +97,47 @@ module ProjectRazor
             slice_error("CouldNotAddMatcher")
             return
           end
-
-
-
-
         end
+      end
 
+      def add_tag_matcher_web(uuid)
+        json_string = @command_array.shift
+        if json_string != "{}" && json_string != nil
+          begin
+            post_hash = JSON.parse(json_string)
+            if post_hash["@key"] != nil && post_hash["@value"] != nil && post_hash["@compare"] != nil && post_hash["@inverse"] != nil
+              unless post_hash["@compare"] == "equal" || post_hash["@compare"] == "like"
+                slice_error("InvalidCompare")
+                return
+              end
 
+              unless post_hash["@inverse"] == "true" || post_hash["@inverse"] == "false"
+                slice_error("InvalidInverse")
+                return
+              end
 
+              if @tag_rule.add_tag_matcher(post_hash["@key"], post_hash["@value"], post_hash["@compare"], post_hash["@inverse"])
+                if @tag_rule.update_self
+                  @command_array.unshift(@tag_rule.uuid)
+                  print_object_array [@tag_rule]
+                else
+                  slice_error("CouldNotUpdateTagRule")
+                  return
+                end
+              else
+                slice_error("CouldNotAddMatcher")
+                return
+              end
+            else
+              slice_error("MissingProperties", false)
+            end
+          rescue => e
+            slice_error(e.message, false)
+          end
+
+        else
+          slice_error("MissingAttributes", false)
+        end
       end
 
       def remove_tag_matcher
@@ -125,7 +157,7 @@ module ProjectRazor
 
         tag_matcher = nil
         @tag_rule.tag_matchers.each do
-          |tm|
+        |tm|
           tag_matcher = tm if tm.uuid == tag_matcher_uuid
         end
 
@@ -137,9 +169,8 @@ module ProjectRazor
 
         @tag_rule.tag_matchers.delete(tag_matcher)
         if @tag_rule.update_self
-        slice_success("TagMatcherRemoved")
-        @command_array.unshift(uuid)
-        return get_tag_matcher
+          slice_success("TagMatcherRemoved") unless @web_command
+          print_object_array [@tag_rule]
         else
           slice_error("CouldNotUpdateTagRule")
           return
@@ -151,6 +182,7 @@ module ProjectRazor
 
         unless validate_arg(uuid)
           slice_error("MustProvideTagRuleUUID")
+          print_object_array get_object("tag_rules", :tag), "Valid Tag Rules" unless @web_command
           return false
         end
 

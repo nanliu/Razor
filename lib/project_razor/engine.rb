@@ -288,6 +288,8 @@ module ProjectRazor
     ########
 
     def check_tags(node_tags, policy_tags)
+      logger.debug "Node Tags: #{node_tags}"
+      logger.debug "Policy Tags: #{policy_tags}"
       policy_tags.each do
       |pt|
         return false unless node_tags.include?(pt)

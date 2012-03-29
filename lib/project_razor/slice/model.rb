@@ -48,7 +48,7 @@ module ProjectRazor
 
 
       def get_model_config
-        print_model_configs get_object("model_config", :model)
+        print_object_array get_object("model_config", :model), "Model Configs"
       end
 
       def get_model_types
@@ -63,6 +63,7 @@ module ProjectRazor
 
         unless validate_arg(model_uuid)
           slice_error("MissingUUID")
+          get_model_config
           return
         end
 

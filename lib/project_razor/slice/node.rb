@@ -24,9 +24,11 @@ module ProjectRazor
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:register => "register_node",
                            :checkin => "checkin_node",
-                           :default => "query_node"}
+                           :default => "query_node",
+                           :attributes => "get_node_attr"}
         @slice_commands_help = {:register => "node register (JSON STRING)",
-                                :default => "node (JSON STRING)"}
+                                :default => "node (JSON STRING)",
+                                :attributes => "node attributes".red + " (node uuid)".blue}
         @slice_name = "Node"
       end
 
@@ -109,7 +111,31 @@ module ProjectRazor
       end
 
       def query_node
-        print_node get_object("node", :node)
+        print_object_array get_object("node", :node), "Discovered Nodes:"
+      end
+
+      def get_node_attr
+        if !@web_command
+          uuid = @command_array.shift
+
+          unless validate_arg(uuid)
+            slice_error("InvalidUUID")
+            query_node
+            return
+          end
+
+          setup_data
+          node = @data.fetch_object_by_uuid(:node, uuid)
+          unless node
+            slice_error("CannotFindNode")
+            query_node
+            return
+          end
+
+          print_object_array node.print_attributes_hash, "Node Attributes:"
+        else
+          slice_error("NotImplemented")
+        end
       end
 
 

@@ -63,7 +63,7 @@ module ProjectRazor
 
       def callback
         {"preseed" => :preseed_call,
-         "postinstall" => :postinstall}
+         "postinstall" => :postinstall,}
       end
 
       def postinstall(args_array, node, policy_uuid)

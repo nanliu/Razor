@@ -84,6 +84,23 @@ module ProjectRazor
       end
 
 
+      def print_header
+        return "#", "Label", "Type", "Tags", "Model Label", "UUID"
+      end
+
+      def print_items
+        return @line_number.to_s, @label, @policy_type.to_s, "[#{@tags.join(",")}]", @model.model_type.to_s, @uuid
+      end
+
+      def line_color
+        :white_on_black
+      end
+
+      def header_color
+        :red_on_black
+      end
+
+
 
     end
   end
