@@ -253,11 +253,13 @@ module ProjectRazor
           return [true, "Command 'ipmitool' does not exist; install ipmitool package and restart server"]
         end
         command_str = cmd_and_args.join(' ')
-        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2> /dev/null"
+        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2>&1"
         begin
           timeout = EXT_COMMAND_TIMEOUT / 1000.0
           Timeout::timeout(timeout) do
-            return [false, %x[#{command}]]
+            output = %x[#{command}]
+            return [true, output] if /Error/.match(output)
+            return [false, output]
           end
         rescue Timeout::Error
           return [true, "External Command Timeout (#{EXT_COMMAND_TIMEOUT} msecs) exceeded while executing '#{command}'"]
