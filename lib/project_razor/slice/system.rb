@@ -21,7 +21,7 @@ module ProjectRazor
                            :get => "get_system",
                            :default => "get_system",
                            :remove => "remove_system",
-                           :else => "get_system"}
+                           :else => "get_system"} # Catches invalid commands
         @slice_commands_help = {:get => "system ".red + "[all|types|(System UUID)]".blue,
                                 :add => "system " + "(system type) (Name) (Description) [options..]".yellow,
                                 :remove => "system " + "(System UUID)".yellow}
@@ -30,19 +30,26 @@ module ProjectRazor
 
       # Returns all systems, all systems types (with [types]), or a system object (with [uuid])
       def get_system
+        # Set our @command for enabling help return
         @command = :get
-        p @command_array
+        # Get the next argument in our command array
         @arg = @command_array.shift
-        puts @arg
-        #Examine our arg for what to get
+
+        #Examine our arg and figure out what is being requested
         case @arg
-          when nil, "all"
-            puts "get all"
-          when "types"
+          when nil, "all" # nil or [all] will return all system instances
+            get_system_all
+          when "types"  # [types] wil list all system types
             puts "get types"
-          else
+          else # else will validate the uuid and attempt to return a system with this uuid
             puts "get uuid #{@arg}"
         end
+      end
+
+      # Returns all system instances
+      def get_system_all
+        # Get al system instances and print/return
+        print_object_array get_object("system_instances", :system) , "System Instances:"
       end
 
 
