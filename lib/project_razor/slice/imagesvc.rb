@@ -146,7 +146,10 @@ module ProjectRazor
                                :method => "add_mk"},
                        :os => {:desc => "OS Install ISO",
                                :classname => "ProjectRazor::ImageService::OSInstall",
-                               :method => "add_os"}}
+                               :method => "add_os"},
+                       :esxi => {:desc => "VMware Hypervisor ISO",
+                               :classname => "ProjectRazor::ImageService::VMwareHypervisor",
+                               :method => "add_esxi"}}
         if @web_command
           slice_error("CLIOnlySlice", false)
         else
@@ -189,6 +192,11 @@ module ProjectRazor
       end
 
       def add_mk(new_image, iso_path, image_svc_path)
+        puts "Attempting to add, please wait...".green
+        new_image.add(iso_path, image_svc_path, nil)
+      end
+
+      def add_esxi(new_image, iso_path, image_svc_path)
         puts "Attempting to add, please wait...".green
         new_image.add(iso_path, image_svc_path, nil)
       end

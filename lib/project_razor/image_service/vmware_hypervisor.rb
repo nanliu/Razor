@@ -21,7 +21,11 @@ module ProjectRazor
         begin
           resp = super(src_image_path, image_svc_path, extra)
           if resp[0]
-            puts image_svc_path
+            unless verify(image_svc_path)
+              logger.error "Missing metadata"
+              return [false, "Missing metadata"]
+            end
+            return resp
           else
             resp
           end
@@ -34,6 +38,26 @@ module ProjectRazor
 
       def verify(image_svc_path)
         super(image_svc_path)
+        unless super(image_svc_path)
+          logger.error "File structure is invalid"
+          return false
+        end
+
+        if File.exist?("#{image_path}/vmware-esx-base-osl.txt")
+          begin
+            @esxi_version = File.read("#{image_path}/vmware-esx-base-osl.txt").split("\n")[2].gsub("\r","")
+            if @esxi_version
+              return true
+            end
+            false
+          rescue => e
+            logger.debug e
+            false
+          end
+        else
+          logger.error "Does not look like an ESXi ISO"
+          false
+        end
       end
 
       def print_image_info(image_svc_path)
