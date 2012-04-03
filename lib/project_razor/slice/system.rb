@@ -22,7 +22,7 @@ module ProjectRazor
                            :default => "get_system",
                            :remove => "remove_system",
                            :else => "get_system"} # Catches invalid commands
-        @slice_commands_help = {:get => "system ".red + "[all|types|(System UUID)]".blue,
+        @slice_commands_help = {:get => "system ".red + "[all|types|(System UUID)]".yellow,
                                 :add => "system " + "(system type) (Name) (Description) [options..]".yellow,
                                 :remove => "system " + "(System UUID)".yellow}
         @slice_name = "System"
@@ -40,9 +40,9 @@ module ProjectRazor
           when nil, "all" # nil or [all] will return all system instances
             get_system_all
           when "types"  # [types] wil list all system types
-            puts "get types"
+            get_system_types
           else # else will validate the uuid and attempt to return a system with this uuid
-            puts "get uuid #{@arg}"
+            get_system_with_uuid
         end
       end
 
@@ -50,6 +50,14 @@ module ProjectRazor
       def get_system_all
         # Get al system instances and print/return
         print_object_array get_object("system_instances", :system) , "System Instances:"
+      end
+
+      def get_system_types
+
+      end
+
+      def get_system_with_uuid
+
       end
 
 

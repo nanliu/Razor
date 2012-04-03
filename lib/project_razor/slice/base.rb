@@ -14,8 +14,7 @@ module ProjectRazor
     # Abstract parent class for all ProjectRazor Modules
     # @abstract
     # @author Nicholas Weaver
-    class Base
-      include(ProjectRazor::Logging)
+    class Base < ProjectRazor::Object
       include(ProjectRazor::SliceUtil::Common)
 
       # Bool for indicating whether this was driven from Node.js

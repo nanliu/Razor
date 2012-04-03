@@ -4,16 +4,15 @@
 module ProjectRazor
   module ImageService
     # Image construct for generic Operating System install ISOs
-    class OSInstall < ProjectRazor::ImageService::Base
+    class VMwareHypervisor < ProjectRazor::ImageService::Base
 
-      attr_accessor :os_name
-      attr_accessor :os_version
+      attr_accessor :esxi_version
 
 
       def initialize(hash)
         super(hash)
-        @description = "OS Install"
-        @path_prefix = "os"
+        @description = "VMware Hypervisor Install"
+        @path_prefix = "esxi"
         @hidden = false
         from_hash(hash) unless hash == nil
       end
@@ -22,8 +21,7 @@ module ProjectRazor
         begin
           resp = super(src_image_path, image_svc_path, extra)
           if resp[0]
-            @os_name = extra[:os_name]
-            @os_version = extra[:os_version]
+            puts image_svc_path
           else
             resp
           end
@@ -40,10 +38,8 @@ module ProjectRazor
 
       def print_image_info(image_svc_path)
         super(image_svc_path)
-        print "\tOS Name: "
-        print "#{@os_name}  \n".green
-        print "\tOS Version: "
-        print "#{@os_version}  \n".green
+        print "\tVersion: "
+        print "#{@esxi_version}  \n".green
       end
 
     end
