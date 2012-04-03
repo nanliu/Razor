@@ -53,7 +53,17 @@ module ProjectRazor
         if @command == "help"
           available_commands(nil)
         else
-          slice_error("InvalidCommand", false) unless flag
+          # If we haven't called a command we need to either call :else or return an error
+          if !flag
+            # Check if there is an else catch for the slice
+            if @slice_commands[:else]
+              logger.debug "Slice command called: Else"
+              @command_array.unshift(@command) # Add the command back as it is a arg for :else now
+              self.send(@slice_commands[:else])
+            else
+              slice_error("InvalidCommand")
+            end
+          end
         end
       end
 
