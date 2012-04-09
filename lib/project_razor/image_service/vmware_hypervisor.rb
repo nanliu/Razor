@@ -7,6 +7,7 @@ module ProjectRazor
     class VMwareHypervisor < ProjectRazor::ImageService::Base
 
       attr_accessor :esxi_version
+      attr_accessor :boot_cfg
 
 
       def initialize(hash)
@@ -43,12 +44,18 @@ module ProjectRazor
           return false
         end
 
-        if File.exist?("#{image_path}/vmware-esx-base-osl.txt")
+        if File.exist?("#{image_path}/vmware-esx-base-osl.txt") && File.exist?("#{image_path}/boot.cfg")
           begin
             @esxi_version = File.read("#{image_path}/vmware-esx-base-osl.txt").split("\n")[2].gsub("\r","")
-            if @esxi_version
+
+            @boot_cfg =  File.read("#{image_path}/boot.cfg")
+
+
+
+            if @esxi_version && @boot_cfg
               return true
             end
+
             false
           rescue => e
             logger.debug e

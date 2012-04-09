@@ -202,7 +202,6 @@ module ProjectRazor
         print "\tStatus: "
         print "#{verify(image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
       end
-
     end
   end
 end
