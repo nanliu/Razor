@@ -66,7 +66,11 @@ module ProjectRazor
         @mk_uri = "http://#{get_an_ip}:#{@api_port}"
         @mk_register_path = "/razor/api/node/register"
         @mk_checkin_path = "/razor/api/node/checkin"
-        @mk_fact_excl_pattern = "(^uptime.*$)|(^memory.*$)"
+        fact_excl_pattern_array = ["(^facter.*$)", "(^id$)", "(^kernel.*$)", "(^memoryfree$)",
+                                   "(^operating.*$)", "(^osfamily$)", "(^path$)", "(^ps$)",
+                                   "(^ruby.*$)", "(^selinux$)", "(^ssh.*$)", "(^swap.*$)",
+                                   "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)"]
+        @mk_fact_excl_pattern = fact_excl_pattern_array.join("|")
         @mk_log_level = "Logger::ERROR"
 
         @image_svc_path = $img_svc_path
