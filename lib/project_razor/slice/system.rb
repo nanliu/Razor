@@ -39,7 +39,7 @@ module ProjectRazor
         case @arg
           when nil, "all" # nil or [all] will return all system instances
             get_system_all
-          when "types"  # [types] wil list all system types
+          when "types","type","t"  # [types] wil list all system types
             get_system_types
           else # else will validate the uuid and attempt to return a system with this uuid
             get_system_with_uuid
@@ -52,7 +52,14 @@ module ProjectRazor
         print_object_array get_object("system_instances", :system) , "System Instances:"
       end
 
+      # Returns the system types available
       def get_system_types
+        puts "System Types:"
+        # We use the common method in Utility to fetch object types by providing Namespace prefix
+        get_child_types("ProjectRazor::System::").each do
+          |system_type|
+          puts "\tName: ".green + "#{system_type.type.to_s}".white + " - Description: ".green + "#{system_type.description}".white unless system_type.hidden
+        end
 
       end
 

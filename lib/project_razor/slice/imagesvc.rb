@@ -39,6 +39,7 @@ module ProjectRazor
       # /%uuid&/%path to file% - gets the file from relative path for image with %uuid%
 
       def get_types
+
         @image_types = get_child_types("ProjectRazor::ImageService::")
         @image_types.map {|x| x.path_prefix.yellow unless x.hidden}.compact.join("|".red)
       end

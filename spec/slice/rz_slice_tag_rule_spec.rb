@@ -21,8 +21,8 @@ describe "ProjectRazor::Slice::TagRule" do
     end
 
     after(:all) do
-      @data.delete_all_objects(:tag)
-      @data.delete_all_objects(:node)
+      #@data.delete_all_objects(:tag)
+      #@data.delete_all_objects(:node)
     end
 
     it "should be able to create a new empty tag rule from REST" do
@@ -180,7 +180,7 @@ describe "ProjectRazor::Slice::TagRule" do
     end
 
     it "should be able to get all tag rules that match attributes from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule?@name=regex:test_tag_rule[3-5]"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule?name=regex:test_tag_rule[3-5]"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']

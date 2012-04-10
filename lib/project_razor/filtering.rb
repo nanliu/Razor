@@ -4,9 +4,12 @@
 module ProjectRazor
   module Filtering
 
+    # Uses a provided Filter Hash to match against an Object hash
     # @param filter_hash [Hash]
     # @param object_hash [Hash]
-    def check_filter_vs_hash(filter_hash, object_hash)
+    def check_filter_vs_hash(filter_hash, object_hash, loop = false)
+      object_hash = sanitize_hash(object_hash)
+      filter_hash = sanitize_hash(filter_hash)
       # Iterate over each key/value checking if there is a match within the object_hash level
       # if we run into a key/value that is a hash we check for a matching hash and call this same method
       filter_hash.each_key do
@@ -22,8 +25,9 @@ module ProjectRazor
         # If our keys match and the values are Hashes then iterate again catching the return and
         # passing if it is False
         if filter_hash[filter_key].class == Hash && object_hash[object_key].class == Hash
+          # Check deeper, setting the loop value to prevent changing the key prefix
           logger.debug "both values are hash, going deeper"
-          return false if !check_filter_vs_hash(filter_hash[filter_key],object_hash[object_key])
+          return false if !check_filter_vs_hash(filter_hash[filter_key], object_hash[object_key], true)
         else
 
           # Eval if our keys (one of which isn't a Hash) match
@@ -63,6 +67,15 @@ module ProjectRazor
       end
       logger.debug "match found"
       true
+    end
+
+    def sanitize_hash(in_hash)
+      new_hash = {}
+      in_hash.each_key do
+        |k|
+        new_hash[k.sub(/^@/,"")] = in_hash[k]
+      end
+      new_hash
     end
 
     def find_key_match(filter_key, object_hash)
