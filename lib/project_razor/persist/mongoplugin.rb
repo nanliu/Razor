@@ -200,8 +200,11 @@ module ProjectRazor
       # @param collection_name [Symbol]
       # @return [Mongo::Collection]
       def collection_by_name(collection_name)
-        # TODO add catch for DB being down
-        @razor_database.collection(collection_name.to_s)
+        if is_db_selected?
+          @razor_database.collection(collection_name.to_s)
+        else
+          raise "DB appears to be down"
+        end
       end
 
     end

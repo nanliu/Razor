@@ -4,8 +4,6 @@
 module ProjectRazor
   module Tagging
     class TagRule < ProjectRazor::Object
-      include(ProjectRazor::Logging)
-
       attr_accessor :name
       attr_accessor :tag
       attr_accessor :tag_matchers

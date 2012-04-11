@@ -16,6 +16,7 @@ module ProjectRazor::System
       @type = :puppet
       @description = "PuppetLabs PuppetMaster"
       @hidden = false
+      from_hash(hash) if hash
     end
 
 

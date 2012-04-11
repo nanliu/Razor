@@ -11,7 +11,7 @@ module ProjectRazor
       def initialize(hash)
         super(hash)
         @hidden = false
-        @policy_type = :linux_deploy
+        @type = :linux_deploy
         @description = "Policy for deploying a Linux-based operating system. Compatible with Linux operating system Model Configs"
 
         from_hash(hash) unless hash == nil

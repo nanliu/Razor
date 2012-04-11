@@ -30,7 +30,7 @@ module ProjectRazor
 
         # Static config
         @hidden = false
-        @model_type = :linux_deploy
+        @type = :linux_deploy
         @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
 

@@ -91,20 +91,46 @@ module ProjectRazor
       version
     end
 
-    def get_child_types(namespace_prefix)
-      temp_hash = {}
-      ObjectSpace.each_object do
-      |object_class|
 
-        if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix
-          temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
-        end
+
+    # Returns a true|false on whether the object type is valid
+    # requires that the instance variables for the object have @type & @hidden
+    # @param [String] namespace_prefix
+    # @param [String] type_name
+    # @return [true|false]
+    def is_valid_type?(namespace_prefix, type_name = "default")
+      get_child_types(namespace_prefix).each do
+        |type|
+        return true if type.type.to_s.strip == type_name.strip && !type.hidden
       end
-      object_array = {}
-      temp_hash.each_value {|x| object_array[x] = x}
-      object_array.each_value.collect {|x| x}.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+      false
+    end
+
+    def new_object_from_type_name(namespace_prefix, object_type_name)
+      get_child_types(namespace_prefix).each do
+      |type|
+        return type if type.type.to_s == object_type_name
+      end
+      type
+    end
 
 
+    def is_valid_json?(json_string)
+      begin
+        JSON.parse(json_string)
+        return true
+      rescue Exception => e
+        return false
+      end
+    end
+
+    def sanitize_hash(in_hash)
+      new_hash = {}
+      in_hash.each_key do
+      |k|
+        new_hash[k.sub(/^@/,"")] = in_hash[k]
+      end
+      new_hash
     end
   end
 end

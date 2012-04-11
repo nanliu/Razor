@@ -29,7 +29,7 @@ module ProjectRazor
 
         # Static config
         @hidden = false
-        @model_type = :vmware_hypervisor
+        @type = :vmware_hypervisor
         @name = "vmware_esxi5_simple"
         @description = "VMware ESXi 5 Simple Deployment"
 

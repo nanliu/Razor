@@ -8,16 +8,84 @@ module ProjectRazor
     module Common
 
 
+
+      class ObjectType < ProjectRazor::Object
+        attr_accessor :type, :description
+
+        def initialize(type, description)
+          @type, @description = type, description
+        end
+
+        def print_header
+          return "Type", "Description"
+        end
+
+        def print_items
+          return @type, @description
+        end
+
+        def line_color
+          :white_on_black
+        end
+
+        def header_color
+          :red_on_black
+        end
+      end
+
+      # Returns all child types from prefix
+      def get_child_types(namespace_prefix)
+        temp_hash = {}
+        ObjectSpace.each_object do
+        |object_class|
+          if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix && !(object_class.to_s =~ /#/)
+            temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
+          end
+        end
+        object_array = {}
+        temp_hash.each_value {|x| object_array[x] = x}
+
+        object_array.each_value.collect { |x| x }.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+      end
+
+      # returns child types as ObjectType (used for printing)
+      def get_types_as_object_types(namespace_prefix)
+        get_child_types(namespace_prefix).map do
+        |system_type|
+          ObjectType.new(system_type.type.to_s, system_type.description) unless system_type.hidden
+        end.compact
+      end
+
+      # Checks to make sure an arg is a format that supports a noun (uuid, etc))
+      def validate_arg(*arg)
+        if arg.respond_to?(:each)
+          arg.each do
+          |a|
+            unless a != nil && (a =~ /^\{.*\}$/) == nil && a != ''
+              return false
+            end
+          end
+        else
+          arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
+        end
+      end
+
+
+
       # Gets a selection of objects for slice
       # @param noun [String] name of the object for logging
       # @param collection [Symbol] collection for object
 
-      def get_object(noun, collection)
+      def get_object(noun, collection, uuid = nil)
         logger.debug "Query #{noun} called"
+
+        # If uuid provided just grab and return
+        if uuid
+          return return_objects_using_uuid(collection, uuid)
+        end
 
         # Check if REST-driven request
         if @web_command
-
           # Get request filter JSON string
           @filter_json_string = @command_array.shift
           # Check if we were passed a filter string
@@ -25,7 +93,7 @@ module ProjectRazor
             @command = "query_with_filter"
             begin
               # Render our JSON to a Hash
-              return return_object_using_filter(JSON.parse(@filter_json_string), collection)
+              return return_objects_using_filter(JSON.parse(@filter_json_string), collection)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
               slice_error(e.message, false)
@@ -43,7 +111,7 @@ module ProjectRazor
       # Return objects using a filter
       # @param filter [Hash] contains key/values used for filtering
       # @param collection [Symbol] collection symbol
-      def return_object_using_filter(collection, filter_hash)
+      def return_objects_using_filter(collection, filter_hash)
         setup_data
         @data.fetch_objects_by_filter(filter_hash, collection)
       end
@@ -52,6 +120,15 @@ module ProjectRazor
       def return_objects(collection)
         setup_data
         @data.fetch_all_objects(collection)
+
+      end
+
+      # Return objects using uuid
+      # @param filter [Hash] contains key/values used for filtering
+      # @param collection [Symbol] collection symbol
+      def return_objects_using_uuid(collection, uuid)
+        setup_data
+        @data.fetch_object_by_uuid(collection, uuid)
       end
 
 
@@ -72,26 +149,6 @@ module ProjectRazor
 
       ########### Common Slice Printing ###########
 
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      #def print_policy_rules(rules_array)
-      #  unless @web_command
-      #    puts "Policy Rules:"
-      #
-      #    #unless @verbose
-      #    #  rules_array.each do
-      #    #  |rule|
-      #    #    rule.print_image_info(@data.config.image_svc_path)
-      #    #    print "\n"
-      #    #  end
-      #    #else
-      #    rules_array.each { |rule| print_object_details_cli(rule) }
-      #  else
-      #    rules_array = rules_array.collect { |rule| rule.to_hash }
-      #    slice_success(rules_array, false)
-      #  end
-      #end
-
       def print_policy_rules(rules_array)
         unless @web_command
           puts "Policy Rules:"
@@ -99,9 +156,9 @@ module ProjectRazor
             rules_array.each do |rule|
               print "   Order: " + "#{rule.line_number}".yellow
               print "  Label: " + "#{rule.label}".yellow
-              print "  Type: " + "#{rule.policy_type}".yellow
+              print "  Type: " + "#{rule.type}".yellow
               print "  Model label: " + "#{rule.model.label}".yellow
-              print "  Model type: " + "#{rule.model.model_type}".yellow
+              print "  Model type: " + "#{rule.model.type}".yellow
               print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
               print "  UUID: " + "#{rule.uuid}\n\n".yellow
             end
@@ -120,9 +177,9 @@ module ProjectRazor
           unless @verbose
             rules_array.each do |rule|
               print "    Label: " + "#{rule.label}".yellow
-              print "  Type: " + "#{rule.policy_type}".yellow
+              print "  Type: " + "#{rule.type}".yellow
               print "  Model label: " + "#{rule.model.label}".yellow
-              print "  Model type: " + "#{rule.model.model_type}".yellow
+              print "  Model type: " + "#{rule.model.type}".yellow
               print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
               print "    UUID: " + "#{rule.uuid}".yellow
               print "  Node UUID: " + "#{rule.node_uuid}".yellow
@@ -141,7 +198,7 @@ module ProjectRazor
         unless @web_command
           puts "Valid Policy Types:"
           unless @verbose
-            types_array.each { |type| puts "\t#{type.policy_type} ".yellow + " :  #{type.description}" }
+            types_array.each { |type| puts "\t#{type.type} ".yellow + " :  #{type.description}" }
           else
             types_array.each { |type| print_object_details_cli(type) }
           end
@@ -371,20 +428,7 @@ module ProjectRazor
         end
       end
 
-      # Checks to make sure an arg is a format that supports a noun (uuid, etc))
-      def validate_arg(*arg)
-        if arg.respond_to?(:each)
-          arg.each do
-          |a|
-            unless a != nil && (a =~ /^\{.*\}$/) == nil && a != ''
-              return false
-            end
-          end
-        else
-          arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
-        end
 
-      end
 
 
       def print_object_array(object_array, title = nil)

@@ -11,7 +11,7 @@ module ProjectRazor
       def initialize(hash)
         super(hash)
         @hidden = false
-        @policy_type = :vmware_hypervisor
+        @type = :vmware_hypervisor
         @description = "Policy for deploying a VMware hypervisor. Compatible with VMware hypervisor Model Configs"
 
         from_hash(hash) unless hash == nil

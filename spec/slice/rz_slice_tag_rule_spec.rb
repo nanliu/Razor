@@ -21,8 +21,8 @@ describe "ProjectRazor::Slice::TagRule" do
     end
 
     after(:all) do
-      #@data.delete_all_objects(:tag)
-      #@data.delete_all_objects(:node)
+      @data.delete_all_objects(:tag)
+      @data.delete_all_objects(:node)
     end
 
     it "should be able to create a new empty tag rule from REST" do

@@ -11,7 +11,7 @@ module ProjectRazor
       attr_accessor :model
       attr_accessor :tags
       attr_reader :hidden
-      attr_reader :policy_type
+      attr_reader :type
       attr_reader :description
 
       # Used for binding
@@ -27,7 +27,7 @@ module ProjectRazor
 
         @tags = []
         @hidden = :true
-        @policy_type = :hidden
+        @type = :hidden
         @description = "Base policy rule object. Hidden"
 
         @node_uuid = nil
@@ -89,7 +89,7 @@ module ProjectRazor
       end
 
       def print_items
-        return @line_number.to_s, @label, @policy_type.to_s, "[#{@tags.join(",")}]", @model.model_type.to_s, @uuid
+        return @line_number.to_s, @label, @policy_type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, @uuid
       end
 
       def line_color

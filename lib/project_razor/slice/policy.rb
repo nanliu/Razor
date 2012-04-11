@@ -287,7 +287,7 @@ module ProjectRazor
           policy_type = nil
           policy_rules.get_types.each do
           |type|
-            policy_type = type.policy_type if policy_type_name == type.policy_type.to_s
+            policy_type = type.type if policy_type_name == type.type.to_s
           end
 
           if policy_type != nil
@@ -311,7 +311,7 @@ module ProjectRazor
             valid_model_types = []
             policy_rules.get_model_types.each do
             |type|
-              valid_model_types << type if policy_type_name == type.model_type.to_s
+              valid_model_types << type if policy_type_name == type.type.to_s
             end
             print_model_types valid_model_types
           else

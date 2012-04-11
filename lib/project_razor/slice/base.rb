@@ -18,7 +18,7 @@ module ProjectRazor
       include(ProjectRazor::SliceUtil::Common)
 
       # Bool for indicating whether this was driven from Node.js
-      attr_accessor :web_command
+      attr_accessor :command_array, :slice_name, :slice_commands, :web_command
       attr_accessor :verbose
       attr_accessor :debug
 
@@ -26,14 +26,26 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         @command_array = args
+        @command_help_text = nil
         @slice_commands = {}
         @web_command = false
+        @last_arg = nil
       end
 
       # Default call method for a slice
       # Used by {./bin/project_razor}
       # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
+        # Switch command/arguments to lower case
+        # @command_array.map! {|x| x.downcase}
+        if @new_slice_style
+          @command_hash = @slice_commands
+          new_slice_call
+          return
+        end
+
+
+
         # First var in array should be our root command
         @command = @command_array.shift
         # check command and route based on it
@@ -65,6 +77,139 @@ module ProjectRazor
           end
         end
       end
+
+
+      def new_slice_call
+        #puts "New Slice Call"
+        #puts @command_array.inspect
+        @command_hash = @slice_commands
+        eval_command
+      end
+
+      def eval_command
+        #puts "Evaluating slice command"
+
+        unless @command_array.count > 0
+          # No commands or arguments are left, we need to call the :default action
+          if @slice_commands[:default]
+            #puts "No command specified using calling (default)"
+            eval_action(@command_hash[:default])
+            return
+          else
+            #puts "No (default) action defined"
+            slice_error("System Error: no default action for slice")
+            return
+          end
+        end
+
+        # each key in the command hash - eval in against command_array
+        # If command_array is empty we call default - if it does not exist we call :else
+        # If nothing matches then we call the :else - if :else does not exist we throw error
+        if @command_array.first == "help"
+          list_help
+          return
+        end
+
+
+
+        @command_hash.each do
+        |k,v|
+
+          case k.class.to_s
+            when "Symbol"
+              #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(Symbol)"
+              if @command_array.first.to_s == k.to_s
+                #puts "**** Command matches - evaluating action"
+                #puts "removing arg"
+                @last_arg = @command_array.shift
+                return eval_action(@command_hash[k])
+              end
+            when "String"
+              #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(String)"
+              if @command_array.first.to_s == k.to_s
+                #puts "**** Command matches - evaluating action"
+                #puts "removing arg"
+                @last_arg = @command_array.shift
+                return eval_action(@command_hash[k])
+              end
+            when "Regexp"
+              #puts "Command is a regexp"
+              if @command_array.first =~ k
+                #puts "**** Command matches - evaluating action"
+                #puts "removing arg"
+                @last_arg = @command_array.shift
+                return eval_action(@command_hash[k])
+              end
+            when "Array"
+              #puts "Command is a array"
+              if eval_command_array(k)
+                #puts "removing arg"
+                @last_arg =  @command_array.shift
+                return eval_action(@command_hash[k])
+              end
+            else
+              #puts "Raise error, invalid type"
+          end
+        end
+
+        # We did not find a match, we call :else
+        #puts "No match for #{@command_array.first}"
+        if @command_hash[:else]
+          #puts "No command specified using calling (else)"
+          return eval_action(@command_hash[:else])
+        else
+          #puts "No (else) action defined"
+          slice_error("System Error: no else action for slice")
+          return
+        end
+
+      end
+
+      def eval_command_array(command_array)
+        command_array.each do
+        |command_item|
+          case command_item.class.to_s
+            when "String", nil
+              #puts "Comparing #{@command_array.first.to_s} to #{command_item.to_s}(String)"
+              return true if @command_array.first.to_s == command_item
+            when "Regexp"
+              #puts "Comparing #{@command_array.first} to #{command_item.to_s}(Regexp)"
+              return true if @command_array.first =~ command_item
+            else
+
+          end
+        end
+        false
+      end
+
+
+      def eval_action(command_action)
+        case command_action.class.to_s
+          when "Symbol"
+            #puts "Action is a Symbol"
+            #puts "Calling command (#{command_action}) in command_hash"
+            #puts "inserting arg"
+            @command_array.unshift(command_action.to_s)
+            #puts @command_array.inspect
+            eval_command
+          when "String"
+            #puts "Action is a String"
+            #puts "Calling method in slice (#{command_action})"
+            self.send(command_action)
+          when "Hash"
+            #puts "Action is a Hash"
+            #puts "Iterating on Hash"
+            @command_hash = command_action
+            eval_command
+          else
+            #puts "Unknown command, throwing error"
+            #puts command_action.class.to_s
+            raise "InvalidActionSlice"
+
+        end
+      end
+
+
 
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
@@ -104,7 +249,11 @@ module ProjectRazor
         if @web_command
           puts JSON.dump(return_hash)
         else
-          available_commands(return_hash)
+          if @new_slice_style
+            list_help(return_hash)
+          else
+            available_commands(return_hash)
+          end
         end
         logger.error "Slice error: #{return_hash.inspect}"
       end
@@ -112,9 +261,9 @@ module ProjectRazor
       # Prints available commands to CLI for slice
       # @param [Hash] return_hash
       def available_commands(return_hash)
-        print "\nAvailable commands for [#{@slice_name}]:\n"
-        @slice_commands.each do
-        |k,y|
+        print "\nAvailable commands for [#@slice_name]:\n"
+        @slice_commands.each_key do
+        |k|
           print "[#{k}] ".yellow unless k == :default
         end
         print "\n\n"
@@ -126,10 +275,27 @@ module ProjectRazor
         end
       end
 
+      def list_help(return_hash = nil)
+        if return_hash != nil
+          print "[#{@slice_name.capitalize}] "
+          print "[#{return_hash["command"]}] ".red
+          print "<-#{return_hash["result"]}\n".yellow
+          #puts "\nCommand syntax:" + " #{@slice_commands_help[@command]}".red + "\n" unless @slice_commands_help[@command] == nil
+        end
+        @command_hash[:help] = "n/a" unless @command_hash[:help]
+        if @command_help_text
+          puts "\nCommand help:  " +  @command_help_text
+        else
+          puts "\nCommand help:  " +  @command_hash[:help]
+        end
+      end
+
       # Initializes [ProjectRazor::Data] in not already instantiated
       def setup_data
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
+
+
     end
   end
 end

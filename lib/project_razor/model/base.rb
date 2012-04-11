@@ -12,7 +12,7 @@ module ProjectRazor
     class Base < ProjectRazor::Object
       attr_accessor :name
       attr_accessor :label
-      attr_accessor :model_type
+      attr_accessor :type
       attr_accessor :description
       attr_accessor :hidden
       attr_accessor :callback
@@ -27,7 +27,7 @@ module ProjectRazor
 
         @name = "model_base"
         @hidden = true
-        @model_type = :base
+        @type = :base
         @description = "Base model type"
 
 

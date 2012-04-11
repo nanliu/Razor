@@ -12,7 +12,7 @@ module ProjectRazor
         super(nil)
 
         @hidden = :true
-        @policy_type = :hidden
+        @type = :hidden
         @description = "Default MK boot object. Hidden"
 
         @data = ProjectRazor::Data.new
