@@ -437,9 +437,17 @@ module ProjectRazor
           |col, ci|
             max_col = print_array.collect {|x| x[ci].length}.max
             if li == 0
-              line_string << "#{col.center(max_col)}  ".send(header_color)
+              if header_color
+                line_string << "#{col.center(max_col)}  ".send(header_color)
+              else
+                line_string << "#{col.center(max_col)}  "
+              end
             else
-              line_string << "#{col.ljust(max_col)}  ".send(line_colors[li-1])
+              if line_colors[li-1]
+                line_string << "#{col.ljust(max_col)}  ".send(line_colors[li-1])
+              else
+                line_string << "#{col.ljust(max_col)}  "
+              end
             end
           end
           table << line_string + "\n"
