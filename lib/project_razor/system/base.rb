@@ -29,14 +29,6 @@ module ProjectRazor
       end
 
 
-      def hand_off
-
-      end
-
-      def hand_off_complete?
-
-      end
-
 
       def print_header
         return "Name", "Description", "Type", "Servers", "UUID"
