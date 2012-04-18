@@ -161,7 +161,7 @@ module ProjectRazor
       # @return [Symbol] the value for the color that should be used to print the column
       #     headings when printing an array of Bmc objects
       def header_color
-        :white
+        #:blue
       end
 
     end
