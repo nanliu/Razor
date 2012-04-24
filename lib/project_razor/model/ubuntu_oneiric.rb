@@ -14,46 +14,39 @@ module ProjectRazor
     # @author Nicholas Weaver
     # @abstract
     class UbuntuOneiricMinimal < ProjectRazor::Model::Base
+      include(ProjectRazor::Logging)
 
       # Assigned image
       attr_accessor :image_uuid
-
       # Metadata
       attr_accessor :hostname
-
       # Compatible Image Prefix
       attr_accessor :image_prefix
 
-
       def initialize(hash)
         super(hash)
-
         # Static config
         @hidden = false
         @type = :linux_deploy
         @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
-
         # Metadata vars
         @hostname = nil
-
         # State / must have a starting state
         @current_state = :init
-
         # Image UUID
         @image_uuid = true
-
         # Image prefix we can attach
         @image_prefix = "os"
-
-
-
+        # Enable agent systems for this model
+        @system_type = :agent
+        @final_state = :os_complete
         from_hash(hash) unless hash == nil
       end
 
       def req_metadata_hash
         {
-            "@hostname" => {:default => "",
+            "@hostname" => {:default => "nick01",
                             :example => "hostname.example.org",
                             :validation => '^[\w.]+$',
                             :required => true,
@@ -63,37 +56,82 @@ module ProjectRazor
 
       def callback
         {"preseed" => :preseed_call,
-         "postinstall" => :postinstall,}
+         "postinstall" => :postinstall_call,}
       end
 
-      def postinstall(args_array, node, policy_uuid)
-        @node_bound = node
+      def system_agent_handoff
+        # Ubuntu support agent-based systems that support Linux
+        logger.error "Reached system agent call - no system method defined"
+        @current_state = :system_fail
+        fsm_log(:state => @current_state,
+                :old_state => :os_complete,
+                :action => :system_agent_handoff,
+                :method => :system,
+                :node_uuid => node_bound.uuid,
+                :timestamp => Time.now.to_i)
+        false
+      end
 
-        @arg = args_array.shift
+      def preseed_call
+        @node_bound = @node
+        @arg = @args_array.shift
+        case @arg
+          when  "start"
+            fsm_action(:preseed_start, :preseed)
+            return "ok"
+          when "end"
+            fsm_action(:preseed_end, :preseed)
+            return "ok"
+          when "file"
+            fsm_action(:preseed_file, :preseed)
+            return generate_preseed(@policy_uuid)
+          else
+            return "error"
+        end
+      end
 
+      def postinstall_call
+        @node_bound = @node
+        @arg = @args_array.shift
         case @arg
           when "inject"
             fsm_action(:postinstall_inject, :postinstall)
-            return os_boot_script(policy_uuid)
+            return os_boot_script(@policy_uuid)
           when "boot"
             fsm_action(:os_boot, :postinstall)
-            return os_complete_script(node)
+            return os_complete_script(@node)
+          when "source_fix"
+            fsm_action(:source_fix, :postinstall)
+            return
           else
+            fsm_action(@arg.to_sym, :postinstall)
             return
         end
-
-
       end
-
 
       def os_boot_script(policy_uuid)
         "#!/bin/bash
-curl #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/boot | sh
+
+# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
+sed -i '4 i\\
+192.168.99.50   puppet learn puppet.localhost learn.localhost' /etc/hosts
+
+curl #{callback_url("postinstall", "added_puppet_hosts")}
+
+hostname node#{@node_bound.uuid}.razorlab.local
+curl #{callback_url("postinstall", "set_hostname")}
+
+sed -i 's_#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os/#{@image_uuid}_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && #{callback_url("postinstall", "sources_fix")}
+apt-get -y update && curl #{callback_url("postinstall", "apt_get_update")}
+apt-get -y upgrade && curl #{callback_url("postinstall", "apt_get_upgrade")}
+apt-get -y install rubygems && curl #{callback_url("postinstall", "apt_get_ruby")}
+
+curl #{callback_url("postinstall", "boot")} | sh
 "
       end
 
       def os_complete_script(node)
-"#!/bin/bash
+        "#!/bin/bash
 echo Razor policy successfully applied > /tmp/razor_complete.log
 echo Model #{@label} - #{@description} >> /tmp/razor_complete.log
 echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
@@ -105,31 +143,9 @@ sed -i '/razor_postinstall/d' /etc/rc.local
 "
       end
 
-      def preseed_call(args_array, node, policy_uuid)
-        @node_bound = node
-        @arg = args_array.shift
-        case @arg
-          when  "start"
-            fsm_action(:preseed_start, :preseed)
-            return "ok"
-          when "end"
-            fsm_action(:preseed_end, :preseed)
-            return "ok"
-          when "file"
-            fsm_action(:preseed_file, :preseed)
-            return generate_preseed(policy_uuid)
-          else
-            return "error"
-        end
-      end
-
-
-
-
       def nl(s)
         s + "\n"
       end
-
 
       # Defines our FSM for this model
       #  For state => {action => state, ..}
@@ -154,12 +170,16 @@ sed -i '/razor_postinstall/d' /etc/rc.local
             :postinstall => {:mk_call => :postinstall,
                              :boot_call => :postinstall,
                              :preseed_end => :postinstall,
+                             :source_fix => :postinstall,
+                             :apt_get_update => :postinstall,
+                             :apt_get_upgrade => :postinstall,
+                             :apt_get_ruby => :postinstall,
                              :postinstall_inject => :postinstall,
                              :os_boot => :os_complete,
                              :post_error => :error_catch,
                              :post_timeout => :timeout_error,
                              :error => :error_catch,
-                             :else => :error_catch},
+                             :else => :postinstall},
             :os_complete => {:mk_call => :os_complete,
                              :boot_call => :os_complete,
                              :else => :os_complete,
@@ -175,34 +195,27 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         }
       end
 
-
       def mk_call(node, policy_uuid)
         @node_bound = node
-
-
         case @current_state
-
           # We need to reboot
-          when :init, :preinstall, :postinstall, :os_validate, :os_complete
+          when :init, :preinstall, :postinstall, :os_validate, :os_complete, :system_check, :system_fail, :system_success
             ret = [:reboot, {}]
           when :timeout_error, :error_catch
             ret = [:acknowledge, {}]
           else
             ret = [:acknowledge, {}]
         end
-
         fsm_action(:mk_call, :mk_call)
         ret
       end
 
       def boot_call(node, policy_uuid)
         @node_bound = node
-
         case @current_state
-
           when :init, :preinstall
             ret = start_install(node, policy_uuid)
-          when :postinstall, :os_complete
+          when :postinstall, :os_complete, :system_check, :system_fail, :system_success
             ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
@@ -211,7 +224,6 @@ sed -i '/razor_postinstall/d' /etc/rc.local
             engine = ProjectRazor::Engine.instance
             ret = engine.default_mk_boot(node.uuid)
         end
-
         fsm_action(:boot_call, :boot_call)
         ret
       end
@@ -246,7 +258,6 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         ip
       end
 
-
       def kernel_args(policy_uuid)
         ka = ""
         ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/file "
@@ -276,8 +287,6 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
       end
 
-
-
       def generate_preseed(policy_uuid)
         "d-i console-setup/ask_detect boolean false
 
@@ -288,7 +297,7 @@ d-i netcfg/choose_interface select auto
 
 d-i netcfg/get_hostname string #{@hostname}
 d-i netcfg/get_domain string razorlab.local
-
+d-i netcfg/no_default_route boolean true
 
 d-i mirror/protocol string http
 d-i mirror/country string manual
@@ -313,8 +322,6 @@ d-i partman-lvm/device_remove_lvm boolean true
 
 d-i partman-md/device_remove_md boolean true
 
-d-i partman-lvm/confirm boolean true
-d-i partman-lvm/confirm_nooverwrite boolean true
 
 
 d-i partman-auto-lvm/guided_size string max
@@ -324,6 +331,8 @@ d-i partman-auto/choose_recipe select atomic
 
 d-i partman/default_filesystem string ext4
 
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
 
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
@@ -363,7 +372,7 @@ d-i apt-setup/backports boolean true
 
 
 
-d-i pkgsel/include string openssh-server build-essential curl
+d-i pkgsel/include string ruby openssh-server build-essential curl
 
 
 d-i grub-installer/only_debian boolean true

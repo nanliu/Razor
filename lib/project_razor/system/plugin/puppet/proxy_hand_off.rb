@@ -10,6 +10,10 @@ module ProjectRazor::System::Plugin::Puppet
   # Puppet plugin logic for handling hand over to Puppet for proxy devices
   # @author Nicholas Weaver
   class ProxyHandOff
-    #
+
+    def get_hand_off_script
+
+    end
+
   end
 end

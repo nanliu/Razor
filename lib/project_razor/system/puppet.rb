@@ -2,7 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 # Our puppet plugin which contains the agent & device proxy classes used for hand off
-require "project_razor/system/plugin/puppet"
+#require "project_razor/system/plugin/puppet"
 
 # Root namespace for ProjectRazor
 # @author Nicholas Weaver

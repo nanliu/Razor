@@ -12,6 +12,12 @@ module ProjectRazor::System::Plugin::Puppet
   # @author Dan Bode
   # @author Nicholas Weaver
   class AgentHandOff
-    #
+
+
+    def get_hand_off_script
+
+    end
+
+
   end
 end

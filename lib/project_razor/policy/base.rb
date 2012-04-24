@@ -6,9 +6,12 @@
 module ProjectRazor
   module Policy
     class Base< ProjectRazor::Object
+      include(ProjectRazor::Logging)
+
       attr_accessor :label
       attr_accessor :line_number
       attr_accessor :model
+      attr_accessor :system
       attr_accessor :tags
       attr_reader :hidden
       attr_reader :type
@@ -24,20 +27,14 @@ module ProjectRazor
       # @param hash [Hash]
       def initialize(hash)
         super()
-
         @tags = []
         @hidden = :true
         @type = :hidden
         @description = "Base policy rule object. Hidden"
-
         @node_uuid = nil
         @bind_timestamp = nil
         @bound = false
-
-
-
         from_hash(hash) unless hash == nil
-
         # If our policy is bound it is stored in a different collection
         if @bound
           @_collection = :bound_policy

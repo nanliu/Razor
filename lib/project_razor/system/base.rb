@@ -7,7 +7,7 @@
 module ProjectRazor
   module System
 
-    # Root namespace for Systems defined in ProjectRazor for node handoff
+    # Root namespace for Systems defined in ProjectRazor for node hand off
     # @author Nicholas Weaver
     # @abstract
     class Base < ProjectRazor::Object
@@ -28,7 +28,19 @@ module ProjectRazor
         from_hash(hash) if hash
       end
 
+      # Method call for handing nodes off to System instances
+      def system_init_hand_off(options = {})
+        # return false because the Base object does nothing
+        # Child objects do not need to call super
+        false
+      end
 
+      # Method call for validating that a System instance successfully received the node
+      def validate_system_hand_off(options = {})
+        # return false because the Base object does nothing
+        # Child objects do not need to call super
+        false
+      end
 
       def print_header
         return "Name", "Description", "Type", "Servers", "UUID"
@@ -45,9 +57,6 @@ module ProjectRazor
       def header_color
         :red_on_black
       end
-
-
-
     end
   end
 end
