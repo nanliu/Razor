@@ -49,6 +49,7 @@ module ProjectRazor
       def bind_me(node)
         if node
           @bound = true
+          @uuid = create_uuid
           @_collection = :bound_policy
           @bind_timestamp = Time.now.to_i
           @node_uuid = node.uuid
@@ -99,8 +100,6 @@ module ProjectRazor
       def header_color
         :red_on_black
       end
-
-
 
     end
   end
