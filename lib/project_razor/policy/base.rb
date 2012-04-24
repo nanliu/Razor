@@ -82,11 +82,12 @@ module ProjectRazor
 
 
       def print_header
-        return "#", "Label", "Type", "Tags", "Model Label", "UUID"
+        return "#", "Label", "Type", "Tags", "Model Label", "System Name", "UUID"
       end
 
       def print_items
-        return @line_number.to_s, @label, @policy_type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, @uuid
+        system_name = @system ? @system.name : "none"
+        return @line_number.to_s, @label, @type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, system_name, @uuid
       end
 
       def line_color

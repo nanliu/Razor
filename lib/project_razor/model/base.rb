@@ -120,7 +120,7 @@ module ProjectRazor
       end
 
       def print_items
-        return @label, @model_type.to_s, @description, @uuid
+        return @label, @type.to_s, @description, @uuid
       end
 
       def line_color

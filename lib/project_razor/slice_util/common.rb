@@ -434,6 +434,9 @@ module ProjectRazor
       def print_object_array(object_array, title = nil)
         unless @web_command
           puts title if title
+          unless object_array.count > 0
+            puts "< none >".red
+          end
           unless @verbose
             print_array = []
             header = []
