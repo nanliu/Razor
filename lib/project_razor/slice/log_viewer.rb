@@ -121,35 +121,35 @@ module ProjectRazor
         # define a couple of "help strings" (for the tail and filter commands)
         tail_help_str = "razor logviewer tail [NLINES] [filter EXPR]"
         filter_help_str = "razor logviewer filter EXPR [tail [NLINES]]"
+        general_help_str = "razor logviewer [tail [NLINES]] [filter EXPR]"
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:tail => { /[0-9]+/ => {:default => "tail_razor_log",
-                                                   :filter => { /{.*}/ => "tail_then_filter_razor_log",
-                                                                :default => :help,
-                                                                :else => :help,
-                                                                :help => tail_help_str},
-                                                   :help => "razor logviewer tail NLINES [filter EXPR]"},
-                                      :default => "tail_razor_log",
-                                      :else => {:filter => { /{.*}/ => "tail_then_filter_razor_log",
-                                                             :default => :help,
-                                                             :else => :help,
-                                                             :help => tail_help_str},
-                                                :default => "tail_razor_log",
-                                                :else => :help,
-                                                :help => tail_help_str},
-                                      :help => tail_help_str},
-                           :filter => { /{.*}/ => {:tail => { /[0-9]+/ => "filter_then_tail_razor_log",
-                                                              :else => :help,
-                                                              :default => "filter_then_tail_razor_log",
-                                                              :help => filter_help_str},
-                                                   :default => "filter_razor_log",
+        @slice_commands = {:tail => { /^[0-9]+$/ => {:default => "tail_razor_log",
+                                                     :filter => { /^{.*}$/ => "tail_then_filter_razor_log",
+                                                                  :default => :help,
+                                                                  :else => :help,
+                                                                  :help => tail_help_str},
+                                                     :else => :help,
+                                                     :help => tail_help_str},
+                                      :filter => { /^{.*}$/ => "tail_then_filter_razor_log",
+                                                   :default => :help,
                                                    :else => :help,
-                                                   :help => filter_help_str},
+                                                   :help => tail_help_str},
+                                      :default => "tail_razor_log",
+                                      :else => :help,
+                                      :help => tail_help_str},
+                           :filter => { /^{.*}$/ => {:tail => { /^[0-9]+$/ => "filter_then_tail_razor_log",
+                                                                :else => :help,
+                                                                :default => "filter_then_tail_razor_log",
+                                                                :help => filter_help_str},
+                                                     :default => "filter_razor_log",
+                                                     :else => :help,
+                                                     :help => filter_help_str},
                                         :default => :help,
                                         :else => :help,
                                         :help => filter_help_str},
                            :default => "view_razor_log",
                            :else => :help,
-                           :help => "razor logviewer [tail [NLINES]] [filter EXPR]"
+                           :help => general_help_str
         }
         @slice_name = "Logviewer"
         @logfile = File.join(get_logfile_path, "project_razor.log")
@@ -243,11 +243,27 @@ module ProjectRazor
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
         else
-          # then, peek into the first element down in the stack of previous arguments
+          # then, peek into the second element down in the stack of previous arguments
           # (which should be the number of lines to tail before filtering)
-          num_lines_tail = @prev_args.peek(1)
+          num_lines_tail_str = @prev_args.peek(2)
+          num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
           # and grab the next argument (which should be the filter expression)
-          puts "tail #{num_lines_tail} from the razor log, then apply a filter...not yet implemented"
+          filter_expr_string = @prev_args.look
+          @prev_args.push(filter_expr_string) if filter_expr_string
+          parseable, log_level_match_str, elapsed_time_str,
+              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
+          if parseable
+            puts "tail #{(num_lines_tail ? num_lines_tail : 10)} from the razor log, then apply a filter to the tail"
+            puts "filter razor log using the following criteria (then print the results):"
+            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
+            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
+            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
+            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
+            puts "this method is not yet implemented..."
+          else
+            # if get here, it's an error (the string passed in wasn't a JSON string)
+            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+          end
         end
       end
 
@@ -259,17 +275,26 @@ module ProjectRazor
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
         else
-          # then, peek into the first element down in the stack of previous arguments
+          # then, peek into the second element down in the stack of previous arguments
           # (which should be the expression to use as a filter on the log before tailing
-          # the result)
-          filter_expr_string = @prev_args.peek(1)
+          # the result); note that if that string is "filter", then no value was supplied
+          # for the "tail" part of this command (we'll be using the default number of lines
+          # for the tail prat of hte command) and we should use the first element down in
+          # the stack as the filter expression instead.
+          filter_expr_string = @prev_args.peek(2)
+          filter_expr_string = @prev_args.peek(1) if filter_expr_string == "filter"
+          # and grab the top argument from the stack of previous arguments (which should
+          # be the number of lines to tail).  If the previous argument turns out to be
+          # "tail" then no number of lines was included, so set the nlines_tail to nil and move on
+          nlines_tail_str = @prev_args.look
+          nlines_tail = (nlines_tail_str == "tail" ? nil : nlines_tail_str.to_i)
           # now, parse the filter_expr_string to get the parts (should be a JSON string with
           # key-value pairs where the values are regular expressions and the keys include one or more
           # of the following:  log_level, elapsed_time, class_name, or pattern)
           parseable, log_level_match_str, elapsed_time_str,
               class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
           if parseable
-            puts "filter razor log using the following criteria (then tail the result):"
+            puts "filter razor log using the following criteria (then tail #{(nlines_tail ? nlines_tail : 10)} lines from the result):"
             puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
             puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
             puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str

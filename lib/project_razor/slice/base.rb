@@ -33,7 +33,8 @@ class Stack
   # if the 'n' value that is passed is deeper than the stack, it's
   # an error (and will result in an IndexError being thrown)
   def peek(n = 0)
-    @array[n]
+    stack_idx = -(n+1)
+    @array[stack_idx]
   end
 
 end
