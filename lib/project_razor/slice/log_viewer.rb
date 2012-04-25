@@ -118,19 +118,38 @@ module ProjectRazor
         super(args)
         @new_slice_style = true # switch to new slice style
 
-        # define a regular expression to use for matching with JSON strings
-
+        # define a couple of "help strings" (for the tail and filter commands)
+        tail_help_str = "razor logviewer tail [NLINES] [filter EXPR]"
+        filter_help_str = "razor logviewer filter EXPR [tail [NLINES]]"
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:tail => { /[0-9]+/ => {:default => "tail_razor_log",
-                                                   :filter => "tail_then_filter_razor_log",
-                                                   :help => "razor logviewer tail [filter filterexp]"}},
-
-                           :filter => { /{.*}/ => {:default => "filter_razor_log",
-                                                   :tail => "filter_then_tail_razor_log",
-                                                   :help => "razor logviewer filter EXPR [tail NLINES]"}},
+                                                   :filter => { /{.*}/ => "tail_then_filter_razor_log",
+                                                                :default => :help,
+                                                                :else => :help,
+                                                                :help => tail_help_str},
+                                                   :help => "razor logviewer tail NLINES [filter EXPR]"},
+                                      :default => "tail_razor_log",
+                                      :else => {:filter => { /{.*}/ => "tail_then_filter_razor_log",
+                                                             :default => :help,
+                                                             :else => :help,
+                                                             :help => tail_help_str},
+                                                :default => "tail_razor_log",
+                                                :else => :help,
+                                                :help => tail_help_str},
+                                      :help => tail_help_str},
+                           :filter => { /{.*}/ => {:tail => { /[0-9]+/ => "filter_then_tail_razor_log",
+                                                              :else => :help,
+                                                              :default => "filter_then_tail_razor_log",
+                                                              :help => filter_help_str},
+                                                   :default => "filter_razor_log",
+                                                   :else => :help,
+                                                   :help => filter_help_str},
+                                        :default => :help,
+                                        :else => :help,
+                                        :help => filter_help_str},
                            :default => "view_razor_log",
                            :else => :help,
-                           :help => "razor logviewer [tail nlines] [filter regexp]"
+                           :help => "razor logviewer [tail [NLINES]] [filter EXPR]"
         }
         @slice_name = "Logviewer"
         @logfile = File.join(get_logfile_path, "project_razor.log")
@@ -150,60 +169,142 @@ module ProjectRazor
         File.join(logfile_path_parts)
       end
 
-      # Returns the contents from the current razor logfile
+      # Prints the contents from the current razor logfile to the command line
       def view_razor_log
-
         if @web_command
-
-          # if it's a web command, grab the logfile contents and return them as a JSON string
-
+          # if it's a web command, return an error indicating that this method is not
+          # yet implemented as a web command.  We'll probably have to work out a
+          # separate mechanism for feeding this information back to the Node.js
+          # instances as an ATOM feed of some sort
         else
-
-          # else, just read that logfile and print the contents to the command line
+          # else, just read the logfile and print the contents to the command line
           File.open(@logfile, 'r').each_chunk { |chunk|
             print chunk
           }
-
         end
       end
 
+      # Prints the tail of the current razor logfile to the command line
       def tail_razor_log
-        begin
-          num_lines_tail = @last_arg.to_i
-        rescue => e
-          logger.error e.message
-        end
-        File.open(@logfile) { |file|
-          tail_of_file = file.tail(num_lines_tail)
+        if @web_command
+          # if it's a web command, return an error indicating that this method is not
+          # yet implemented as a web command.  We'll probably have to work out a
+          # separate mechanism for feeding this information back to the Node.js
+          # instances as an ATOM feed of some sort
+        else
+          # else, just read and print the tail of the logfile to the command line
+          begin
+            last_arg = @prev_args.look
+            num_lines_tail = nil
+            # if the last argument is an integer, us it as the number of lines
+            if /[0-9]+/.match(last_arg)
+              num_lines_tail = last_arg.to_i
+            end
+          rescue => e
+            logger.error e.message
+          end
+          tail_of_file = tail_of_file_as_array(num_lines_tail)
           tail_of_file.each { |line|
             puts line
           }
-        }
-
+        end
       end
 
+      # filters the current razor logfile, printing all matching lines
+      def filter_razor_log
+        if @web_command
+          # if it's a web command, return an error indicating that this method is not
+          # yet implemented as a web command.  We'll probably have to work out a
+          # separate mechanism for feeding this information back to the Node.js
+          # instances as an ATOM feed of some sort
+        else
+          filter_expr_string = @prev_args.look
+          parseable, log_level_match_str, elapsed_time_str,
+              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
+          if parseable
+            puts "filter razor log using the following criteria (then print the results):"
+            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
+            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
+            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
+            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
+            puts "this method is not yet implemented..."
+          else
+            # if get here, it's an error (the string passed in wasn't a JSON string)
+            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+          end
+        end
+      end
+
+      # tails the current razor logfile, then filters the result
       def tail_then_filter_razor_log
-        # then, peek into the first element down in the stack of previous arguments
-        # (which should be the number of lines to tail before filtering)
-        num_lines_tail = @prev_args.peek(1)
-        # and grab the next argument (which should be the filter expression)
-        puts "tail #{num_lines_tail} from the razor log, then apply a filter...not yet implemented"
+        if @web_command
+          # if it's a web command, return an error indicating that this method is not
+          # yet implemented as a web command.  We'll probably have to work out a
+          # separate mechanism for feeding this information back to the Node.js
+          # instances as an ATOM feed of some sort
+        else
+          # then, peek into the first element down in the stack of previous arguments
+          # (which should be the number of lines to tail before filtering)
+          num_lines_tail = @prev_args.peek(1)
+          # and grab the next argument (which should be the filter expression)
+          puts "tail #{num_lines_tail} from the razor log, then apply a filter...not yet implemented"
+        end
       end
 
+      # filters the current razor logfile, then tails the result
       def filter_then_tail_razor_log
-        # then, peek into the first element down in the stack of previous arguments
-        # (which should be the expression to use as a filter on the log before tailing
-        # the result)
-        filter_expression_str = @prev_args.peek(1)
-        # now, parse the filter_expression_str to get the parts (should be a JSON string with
+        if @web_command
+          # if it's a web command, return an error indicating that this method is not
+          # yet implemented as a web command.  We'll probably have to work out a
+          # separate mechanism for feeding this information back to the Node.js
+          # instances as an ATOM feed of some sort
+        else
+          # then, peek into the first element down in the stack of previous arguments
+          # (which should be the expression to use as a filter on the log before tailing
+          # the result)
+          filter_expr_string = @prev_args.peek(1)
+          # now, parse the filter_expr_string to get the parts (should be a JSON string with
+          # key-value pairs where the values are regular expressions and the keys include one or more
+          # of the following:  log_level, elapsed_time, class_name, or pattern)
+          parseable, log_level_match_str, elapsed_time_str,
+              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
+          if parseable
+            puts "filter razor log using the following criteria (then tail the result):"
+            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
+            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
+            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
+            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
+            puts "this method is not yet implemented..."
+          else
+            # if get here, it's an error (the string passed in wasn't a JSON string)
+            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+          end
+        end
+      end
+
+      private
+
+      # gets the tail of the current logfile as an array of strings
+      def tail_of_file_as_array(num_lines_tail)
+        tail_of_file = []
+        File.open(@logfile) { |file|
+          tail_of_file = file.tail(num_lines_tail)
+        }
+        tail_of_file
+      end
+
+      # parses the input filter_expr_string and returns an array of the various types
+      # of filter criteria that could be included along with a flag indicating whether
+      # or not the input filter_expr_string was a valid JSON string
+      def get_filter_criteria(filter_expr_string)
+        # now, parse the filter_expr_string to get the parts (should be a JSON string with
         # key-value pairs where the values are regular expressions and the keys include one or more
         # of the following:  log_level, elapsed_time, class_name, or pattern)
-        if JSON.is_json?(filter_expression_str)
-          log_level_match_str = nil
-          elapsed_time_str = nil
-          class_name_match_str = nil
-          pattern_match_str = nil
-          match_criteria = JSON.parse(filter_expression_str)
+        log_level_match_str = elapsed_time_str = class_name_match_str = pattern_match_str = nil
+        parseable = false
+        if JSON.is_json?(filter_expr_string)
+          parseable = true
+          match_criteria = JSON.parse(filter_expr_string)
           match_criteria.each { |key, value|
             case key
               when "log_level"
@@ -215,124 +316,15 @@ module ProjectRazor
               when "pattern"
                 pattern_match_str = value
               else
-                puts "Unrecognized key in filter expression: #{key}"
-                puts "\tvalid values include 'log_level', 'elapsed_time', 'class_name', or 'pattern'"
+                puts "Unrecognized key in filter expression: '#{key}' (ignored); valid values"
+                puts "\tare 'log_level', 'elapsed_time', 'class_name', or 'pattern'"
             end
           }
-          # and grab the next argument (which should be the number of lines to tail from the result)
-          puts "filter razor log using the following criteria (then tail the result):"
-          puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
-          puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
-          puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
-          puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
-          puts "this method is not yet implemented..."
-        else
-          # if get here, it's an error (the string passed in wasn't a JSON string)
-          puts "The filter expression #{filter_expression_str} is not a JSON string"
         end
-
+        # return the results to the caller
+        [parseable, log_level_match_str, elapsed_time_str, class_name_match_str, pattern_match_str]
       end
-
-      # Returns the system types available
-      def get_system_types
-        # We use the common method in Utility to fetch object types by providing Namespace prefix
-        print_object_array get_types_as_object_types(SYSTEM_PREFIX), "\nPossible System Types:"
-      end
-
-      #def get_system_with_uuid
-      #  @command_help_text = "razor system get all|type|(uuid)"
-      #  @arg = @command_array.shift
-      #  system = get_object("system instances", :systems, @arg)
-      #  case system
-      #    when nil
-      #      slice_error("Cannot Find System with UUID: [#@arg]")
-      #    else
-      #      print_object_array [system]
-      #  end
-      #end
-
-      #def add_system
-      #  # Set the command we have selected
-      #  @command =:add
-      #  # Set out help text
-      #  @command_help_text = "razor system " + "(system type) (Name) (Description) [(server hostname),{server hostname}]".yellow
-      #  # If a REST call we need to populate the values from the provided JSON string
-      #  if @web_command
-      #    # Grab next arg as json string var
-      #    json_string = @command_array.first
-      #    # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-      #    if is_valid_json?(json_string)
-      #      # Grab vars as hash using sanitize to strip the @ prefix if used
-      #      @vars_hash = sanitize_hash(JSON.parse(json_string))
-      #      # System type (must match a proper system type)
-      #      @type = @vars_hash['type']
-      #      # System Name (user defined)
-      #      @name = @vars_hash['name']
-      #      # System User Description (user defined)
-      #      @user_description = @vars_hash['description']
-      #      # System Servers (user defined comma-delimited list of servers, must be at list one)
-      #      @servers = @vars_hash['servers']
-      #    else
-      #      #Same vars as above but pulled from CLI arg / Web PATH
-      #      @type, @name, @user_description, @servers = *@command_array
-      #    end
-      #  end
-      #  @type, @name, @user_description, @servers = *@command_array unless @type || @name || @user_description || @servers
-      #  # Validate our args are here
-      #  return slice_error("Must Provide System Type [type]") unless validate_arg(@type)
-      #  return slice_error("Must Provide System Name [name]") unless validate_arg(@name)
-      #  return slice_error("Must Provide System Description [description]") unless validate_arg(@user_description)
-      #  return slice_error("Must Provide System Servers [servers]") unless validate_arg(@servers)
-      #  # Convert our servers var to an Array if it is not one already
-      #  @servers = @servers.split(",") unless @servers.respond_to?(:each)
-      #  return slice_error("Must Provide At Least One System Server [servers]") unless @servers.count > 0
-      #  # We use the [is_valid_type?] method from Utility to validate our type vs our object namespace prefix
-      #  unless is_valid_type?(SYSTEM_PREFIX, @type)
-      #    # Return error
-      #    slice_error("InvalidSystemType")
-      #    # Also print possible types if not a REST call
-      #    get_system_types unless @web_command
-      #    return
-      #  end
-      #  new_system = new_object_from_type_name(SYSTEM_PREFIX, @type)
-      #  new_system.name = @name
-      #  new_system.user_description = @user_description
-      #  new_system.servers = @servers
-      #  setup_data
-      #  @data.persist_object(new_system)
-      #  if new_system
-      #    @command_array.unshift(new_system.uuid)
-      #    get_system_with_uuid
-      #  else
-      #    slice_error("CouldNotSaveSystem")
-      #  end
-      #end
-
-      #def remove_system
-      #  @command_help_text = "razor system remove all|(uuid)"
-      #  # Grab the arg
-      #  @arg = @command_array.shift
-      #  case @arg
-      #    when "all" # if [all] we remove all instances
-      #      setup_data # setup the data object
-      #      @data.delete_all_objects(:systems) # remove all system instances
-      #      slice_success("All System deleted") # return success
-      #    when nil
-      #      slice_error("Command Error") # return error for no arg
-      #    else
-      #      system = get_object("system instances", :systems, @arg) # attempt to find system with uuid
-      #      case system
-      #        when nil
-      #          slice_error("Cannot Find System with UUID: [#@arg]") # error when it is invalid
-      #        else
-      #          setup_data
-      #          @data.delete_object_by_uuid(:systems, @arg)
-      #          slice_success("System deleted")
-      #      end
-      #  end
-      #end
 
     end
   end
 end
-
