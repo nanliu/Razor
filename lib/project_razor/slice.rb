@@ -13,7 +13,7 @@ require "project_razor/slice/imagesvc"
 require "project_razor/slice/policy"
 require "project_razor/slice/tag_rule"
 require "project_razor/slice/tag_matcher"
-
+require "project_razor/slice/log_viewer"
 
 module Slice
   # To change this template use File | Settings | File Templates.
