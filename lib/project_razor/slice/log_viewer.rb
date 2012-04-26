@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "json"
+require "time"
 require "pp"
 
 # Root namespace for LogViewer objects
@@ -110,6 +111,14 @@ module ProjectRazor
     # Used for system management
     # @author Nicholas Weaver
     class Logviewer < ProjectRazor::Slice::Base
+
+      # this regular expression should parse out the timestamp for the
+      # message, the log-level, the class-name, the method-name, and the
+      # log-message itself into the first to fifth elements of the match_data
+      # value returned by a log_line_regexp() call with the input line as
+      # an argument to that call (the zero'th element will contain the entire
+      # section of the line that matches if there is a match)
+      LOG_LINE_REGEXP = /^[A-Z]\,\s+\[([^\s]+)\s+\#[0-9]+\]\s+([A-Z]+)\s+\-\-\s+([^\s\#]+)\#([^\:]+)\:\s+(.*)$/
 
       # Initializes ProjectRazor::Slice::System including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
@@ -242,10 +251,37 @@ module ProjectRazor
               # initialize a few variables
               incomplete_last_line = false
               prev_line = ""
+              last_complete_line = ""
+              past_time = false
+              # parse the elapsed_time_str (if valid) and determine the cutoff time to use
+              # for printing log file entries
+              cutoff_time = nil
+              match_data = /([0-9]+)(s|m|h|d)?/.match(elapsed_time_str)
+              if match_data
+                match_on_time = true
+                case match_data[2]
+                  when nil
+                    offset = match_data[1].to_i
+                  when "s"
+                    offset = match_data[1].to_i
+                  when "m"
+                    offset = match_data[1].to_i * 60
+                  when "h"
+                    offset = match_data[1].to_i * 3600
+                  when "d"
+                    offset = match_data[1].to_i * 3600 * 24
+                  else
+                    logger.error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
+                    slice_error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
+                end
+                cutoff_time = Time.now - offset
+              end
+
               # and loop through the file in chunks, parsing each chunk and filtering out
               # the lines that don't match the criteria parsed from the filter expresssion
               # passed into the command (above)
               File.open(@logfile, 'r').each_chunk { |chunk|
+
                 line_array = []
 
                 # split the chunk into a line array using the newline character as a delimiter
@@ -259,28 +295,56 @@ module ProjectRazor
                 # test to see if this chunk ends with a newline or not, if not then the last
                 # line of this chunk is incomplete; will be important later on
                 incomplete_last_line = (chunk.end_with?("\n") ? false : true)
+                if incomplete_last_line
+                  prev_line = line_array[-1]
+                else
+                  prev_line = ""
+                end
+
                 # initialize a few variables, then loop through all of the lines in this chunk
                 filtered_chunk = ""
                 nlines_chunk = chunk.count("\n"); count = 0
+
+                # get the index of the last complete line from the chunk we just read
+                if cutoff_time && !past_time && incomplete_last_line
+                  last_complete_line = line_array[-2]
+                elsif cutoff_time && !past_time
+                  last_complete_line = line_array[-1]
+                end
+
+                # if the cutoff time wasn't specified as part of the search
+                # criteria or if we've already found a line that is past the
+                # time we're looking for, then we can continue, otherwise only
+                # continue if the last complete line in this chunk is after
+                # the specified cutoff time
+                next unless !cutoff_time || past_time || was_logged_after_time(last_complete_line, cutoff_time)
+
                 line_array.each { |line|
-                  if incomplete_last_line && count == nlines_chunk
 
-                    # if the last line is incomplete and we've already read in all of the complete
-                    # lines in the current chunk, then save this one as the 'prev_line' (will be)
-                    # used outputting the next chunk
-                    prev_line = line
+                  next if incomplete_last_line && count == nlines_chunk
 
-                  else
-
-                    # otherwise, grab add the line to the filtered_chunk if it matches and
-                    # increment our counter
-                    filtered_chunk << line + "\n" if line_matches_criteria(line, log_level_match, class_name_match,
-                                                                           method_name_match, log_message_match)
-                    count += 1
-
+                  # if we haven't found a line after the cutoff time yet, then check to see
+                  # if the timestamp of this line is after the cutoff time.  If so, then we'll
+                  # set "past_time" to true (to avoid further uneccesary time checks) and
+                  # start adding matching lines (if any) to our filtered_chunk.  If not, then
+                  # move on to the next line
+                  unless past_time
+                    next unless was_logged_after_time(line, cutoff_time)
+                    past_time = true
                   end
+
+                  # otherwise, grab add the line to the filtered_chunk if it matches and
+                  # increment our counter
+                  if line_matches_criteria(line, log_level_match, class_name_match,
+                                           method_name_match, log_message_match)
+                    filtered_chunk << line + "\n"
+                  end
+                  count += 1
+
                 }
-                print filtered_chunk
+
+                print filtered_chunk if filtered_chunk.length > 0
+
               }
             else
               # if get here, it's an error (the string passed in wasn't a JSON string)
@@ -418,14 +482,7 @@ module ProjectRazor
       # used to determine if a line matches the current filter criteria
       def line_matches_criteria(line_to_test, log_level_match, class_name_match,
           method_name_match, log_message)
-        # this regular expression should parse out the timestamp for the
-        # message, the log-level, the class-name, the method-name, and the
-        # log-message itself into the first to fifth elements of the match_data
-        # value returned by a log_line_regexp() call with the input line as
-        # an argument to that call (the zero'th element will contain the entire
-        # section of the line that matches if there is a match)
-        log_line_regexp = /^[A-Z]\,\s+\[([^\s]+)\s+\#[0-9]+\]\s+([A-Z]+)\s+\-\-\s+([^\s\#]+)\#([^\:]+)\:\s+(.*)$/
-        match_data = log_line_regexp.match(line_to_test)
+        match_data = LOG_LINE_REGEXP.match(line_to_test)
         # if the match_data value is nil, then the parsing failed and there is no match
         # with this line, so return false
         return false unless match_data
@@ -441,8 +498,15 @@ module ProjectRazor
       end
 
       # used to determine if a line falls prior to a particular time
-      def was_logged_before_time(line, cutoff_time)
-
+      def was_logged_after_time(line_to_test, cutoff_time)
+        match_data = LOG_LINE_REGEXP.match(line_to_test)
+        # if the line doesn't match the regular expression for our log lines, then we have
+        # no way to test and see if it occurs after the specified time.  As such, return false
+        return false unless match_data
+        log_line_time = Time.parse(match_data[1])
+        # return a boolean indicating whether or not the time in the log line is greater than
+        # or equal to the cutoff time
+        log_line_time >= cutoff_time
       end
 
     end
