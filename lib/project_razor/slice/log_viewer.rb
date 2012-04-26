@@ -471,7 +471,7 @@ module ProjectRazor
                 log_message_match = Regexp.new(value)
               else
                 logger.warn "Unrecognized key in filter expression: '#{key}' (ignored); valid values" +
-                                "are 'log_level', 'elapsed_time', 'class_name', or 'log_message'"
+                                "are 'log_level', 'elapsed_time', 'class_name', 'method_name', or 'log_message'"
             end
           }
         end
