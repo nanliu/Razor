@@ -176,11 +176,18 @@ module ProjectRazor
           # yet implemented as a web command.  We'll probably have to work out a
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
+          slice_error("NotImplemented")
         else
           # else, just read the logfile and print the contents to the command line
-          File.open(@logfile, 'r').each_chunk { |chunk|
-            print chunk
-          }
+          begin
+            File.open(@logfile, 'r').each_chunk { |chunk|
+              print chunk
+            }
+          rescue => e
+            # if get to here, there was an issue reading the logfile, return the error
+            logger.error e.message
+            slice_error e.message
+          end
         end
       end
 
@@ -191,8 +198,10 @@ module ProjectRazor
           # yet implemented as a web command.  We'll probably have to work out a
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
+          slice_error("NotImplemented")
         else
           # else, just read and print the tail of the logfile to the command line
+          tail_of_file = []
           begin
             last_arg = @prev_args.look
             num_lines_tail = nil
@@ -200,10 +209,11 @@ module ProjectRazor
             if /[0-9]+/.match(last_arg)
               num_lines_tail = last_arg.to_i
             end
+            tail_of_file = tail_of_file_as_array(num_lines_tail)
           rescue => e
             logger.error e.message
+            slice_error e.message
           end
-          tail_of_file = tail_of_file_as_array(num_lines_tail)
           tail_of_file.each { |line|
             puts line
           }
@@ -217,20 +227,71 @@ module ProjectRazor
           # yet implemented as a web command.  We'll probably have to work out a
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
+          slice_error("NotImplemented")
         else
-          filter_expr_string = @prev_args.look
-          parseable, log_level_match_str, elapsed_time_str,
-              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
-          if parseable
-            puts "filter razor log using the following criteria (then print the results):"
-            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
-            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
-            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
-            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
-            puts "this method is not yet implemented..."
-          else
-            # if get here, it's an error (the string passed in wasn't a JSON string)
-            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+          begin
+            filter_expr_string = @prev_args.look
+            parseable, log_level_match, elapsed_time_str, class_name_match,
+                method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
+            if parseable
+              #puts "log_level_match = #{PP.pp(log_level_match, "")}"
+              #puts "elapsed_time_str = #{PP.pp(elapsed_time_str, "")}"
+              #puts "class_name_match = #{PP.pp(class_name_match, "")}"
+              #puts "method_name_match = #{PP.pp(method_name_match, "")}"
+              #puts "log_message_match = #{PP.pp(log_message_match, "")}"
+              # initialize a few variables
+              incomplete_last_line = false
+              prev_line = ""
+              # and loop through the file in chunks, parsing each chunk and filtering out
+              # the lines that don't match the criteria parsed from the filter expresssion
+              # passed into the command (above)
+              File.open(@logfile, 'r').each_chunk { |chunk|
+                line_array = []
+
+                # split the chunk into a line array using the newline character as a delimiter
+                line_array.concat(chunk.split("\n"))
+                # if the last chunk had an incomplete last line, then add it to the start
+                # of the first element of the line_array
+                if incomplete_last_line
+                  line_array[0] = prev_line + line_array[0]
+                end
+
+                # test to see if this chunk ends with a newline or not, if not then the last
+                # line of this chunk is incomplete; will be important later on
+                incomplete_last_line = (chunk.end_with?("\n") ? false : true)
+                # initialize a few variables, then loop through all of the lines in this chunk
+                filtered_chunk = ""
+                nlines_chunk = chunk.count("\n"); count = 0
+                line_array.each { |line|
+                  if incomplete_last_line && count == nlines_chunk
+
+                    # if the last line is incomplete and we've already read in all of the complete
+                    # lines in the current chunk, then save this one as the 'prev_line' (will be)
+                    # used outputting the next chunk
+                    prev_line = line
+
+                  else
+
+                    # otherwise, grab add the line to the filtered_chunk if it matches and
+                    # increment our counter
+                    filtered_chunk << line + "\n" if line_matches_criteria(line, log_level_match, class_name_match,
+                                                                           method_name_match, log_message_match)
+                    count += 1
+
+                  end
+                }
+                print filtered_chunk
+              }
+            else
+              # if get here, it's an error (the string passed in wasn't a JSON string)
+              logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
+              slice_error "The filter expression '#{filter_expr_string}' is not a JSON string"
+            end
+          rescue => e
+            # if get to here, there was an issue parsing the filter criteria or
+            # reading the logfile, return that error
+            logger.error e.message
+            slice_error e.message
           end
         end
       end
@@ -242,27 +303,31 @@ module ProjectRazor
           # yet implemented as a web command.  We'll probably have to work out a
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
+          slice_error("NotImplemented")
         else
           # then, peek into the second element down in the stack of previous arguments
-          # (which should be the number of lines to tail before filtering)
+          # (which should be the number of lines to tail before filtering).  Note:  if no
+          # NLINES argument was specified in the command, then the second element down in
+          # the stack will actually be the string "tail" ()rather than the number of lines
+          # to tail off of the file before filtering).  In that case, we ensure that the
+          # num_lines_tail value is set to nil rather than attempting to convert the string
+          # "tail" into an integer (all other error conditions should be handled in the
+          # logic of the @slice_commands hash defined above)
           num_lines_tail_str = @prev_args.peek(2)
           num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
-          # and grab the next argument (which should be the filter expression)
+          # and grab the argument at the top of the prev_args stack (which should be the
+          # filter expression)
           filter_expr_string = @prev_args.look
           @prev_args.push(filter_expr_string) if filter_expr_string
-          parseable, log_level_match_str, elapsed_time_str,
-              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
+          parseable, log_level_match, elapsed_time_str, class_name_match,
+              method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
           if parseable
             puts "tail #{(num_lines_tail ? num_lines_tail : 10)} from the razor log, then apply a filter to the tail"
-            puts "filter razor log using the following criteria (then print the results):"
-            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
-            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
-            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
-            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
             puts "this method is not yet implemented..."
           else
             # if get here, it's an error (the string passed in wasn't a JSON string)
-            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+            logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
+            slice_error "The filter expression '#{filter_expr_string}' is not a JSON string"
           end
         end
       end
@@ -274,13 +339,14 @@ module ProjectRazor
           # yet implemented as a web command.  We'll probably have to work out a
           # separate mechanism for feeding this information back to the Node.js
           # instances as an ATOM feed of some sort
+          slice_error("NotImplemented")
         else
           # then, peek into the second element down in the stack of previous arguments
           # (which should be the expression to use as a filter on the log before tailing
-          # the result); note that if that string is "filter", then no value was supplied
-          # for the "tail" part of this command (we'll be using the default number of lines
-          # for the tail prat of hte command) and we should use the first element down in
-          # the stack as the filter expression instead.
+          # the result).  Note:  if the second element down in the stack is the string
+          # "filter", then no value was supplied for the "tail" part of this command.
+          # In that case, we'll just use the first element down in the stack as the
+          # filter_expr_string value instead.
           filter_expr_string = @prev_args.peek(2)
           filter_expr_string = @prev_args.peek(1) if filter_expr_string == "filter"
           # and grab the top argument from the stack of previous arguments (which should
@@ -291,24 +357,20 @@ module ProjectRazor
           # now, parse the filter_expr_string to get the parts (should be a JSON string with
           # key-value pairs where the values are regular expressions and the keys include one or more
           # of the following:  log_level, elapsed_time, class_name, or pattern)
-          parseable, log_level_match_str, elapsed_time_str,
-              class_name_match_str, pattern_match_str = get_filter_criteria(filter_expr_string)
+          parseable, log_level_match, elapsed_time_str, class_name_match,
+              method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
           if parseable
             puts "filter razor log using the following criteria (then tail #{(nlines_tail ? nlines_tail : 10)} lines from the result):"
-            puts "\tlog_level => #{PP.pp(log_level_match_str, "")}" if log_level_match_str
-            puts "\telapsed_time => #{PP.pp(elapsed_time_str, "")}" if elapsed_time_str
-            puts "\tclass_name => #{PP.pp(class_name_match_str, "")}" if class_name_match_str
-            puts "\tpattern => #{PP.pp(pattern_match_str, "")}" if pattern_match_str
             puts "this method is not yet implemented..."
           else
             # if get here, it's an error (the string passed in wasn't a JSON string)
-            puts "The filter expression '#{filter_expr_string}' is not a JSON string"
+            logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
+            slice_error "The filter expression '#{filter_expr_string}' is not a JSON string"
           end
         end
       end
 
       private
-
       # gets the tail of the current logfile as an array of strings
       def tail_of_file_as_array(num_lines_tail)
         tail_of_file = []
@@ -325,7 +387,8 @@ module ProjectRazor
         # now, parse the filter_expr_string to get the parts (should be a JSON string with
         # key-value pairs where the values are regular expressions and the keys include one or more
         # of the following:  log_level, elapsed_time, class_name, or pattern)
-        log_level_match_str = elapsed_time_str = class_name_match_str = pattern_match_str = nil
+        log_level_match = elapsed_time_str = class_name_match = nil
+        method_name_match = log_message_match = nil
         parseable = false
         if JSON.is_json?(filter_expr_string)
           parseable = true
@@ -333,21 +396,53 @@ module ProjectRazor
           match_criteria.each { |key, value|
             case key
               when "log_level"
-                log_level_match_str = value
+                log_level_match = Regexp.new(value)
               when "elapsed_time"
                 elapsed_time_str = value
               when "class_name"
-                class_name_match_str = value
-              when "pattern"
-                pattern_match_str = value
+                class_name_match = Regexp.new(value)
+              when "method_name"
+                method_name_match = Regexp.new(value)
+              when "log_message"
+                log_message_match = Regexp.new(value)
               else
-                puts "Unrecognized key in filter expression: '#{key}' (ignored); valid values"
-                puts "\tare 'log_level', 'elapsed_time', 'class_name', or 'pattern'"
+                logger.warn "Unrecognized key in filter expression: '#{key}' (ignored); valid values" +
+                                "are 'log_level', 'elapsed_time', 'class_name', or 'log_message'"
             end
           }
         end
         # return the results to the caller
-        [parseable, log_level_match_str, elapsed_time_str, class_name_match_str, pattern_match_str]
+        [parseable, log_level_match, elapsed_time_str, class_name_match, method_name_match, log_message_match]
+      end
+
+      # used to determine if a line matches the current filter criteria
+      def line_matches_criteria(line_to_test, log_level_match, class_name_match,
+          method_name_match, log_message)
+        # this regular expression should parse out the timestamp for the
+        # message, the log-level, the class-name, the method-name, and the
+        # log-message itself into the first to fifth elements of the match_data
+        # value returned by a log_line_regexp() call with the input line as
+        # an argument to that call (the zero'th element will contain the entire
+        # section of the line that matches if there is a match)
+        log_line_regexp = /^[A-Z]\,\s+\[([^\s]+)\s+\#[0-9]+\]\s+([A-Z]+)\s+\-\-\s+([^\s\#]+)\#([^\:]+)\:\s+(.*)$/
+        match_data = log_line_regexp.match(line_to_test)
+        # if the match_data value is nil, then the parsing failed and there is no match
+        # with this line, so return false
+        return false unless match_data
+        # check to see if the current line matches our criteria (if one of the criteria
+        # is nil, anything is assumed to match that criteria)
+        if (!log_level_match || log_level_match.match(match_data[2])) &&
+            (!class_name_match || class_name_match.match(match_data[3])) &&
+            (!method_name_match || method_name_match.match(match_data[4])) &&
+            (!log_message || log_message.match(match_data[5]))
+          return true
+        end
+        false
+      end
+
+      # used to determine if a line falls prior to a particular time
+      def was_logged_before_time(line, cutoff_time)
+
       end
 
     end
