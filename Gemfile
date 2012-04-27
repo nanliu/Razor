@@ -1,6 +1,7 @@
 # A sample Gemfile
 source "http://rubygems.org"
 
+gem "rake"
 gem "mongo"
 gem "bson"
 gem "bson_ext"
