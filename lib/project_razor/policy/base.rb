@@ -45,6 +45,10 @@ module ProjectRazor
 
       def bind_me(node)
         if node
+
+          @model.counter = @model.counter + 1 # increment model counter
+          self.update_self # save increment
+
           @bound = true
           @_collection = :bound_policy
           @bind_timestamp = Time.now.to_i
@@ -82,12 +86,12 @@ module ProjectRazor
 
 
       def print_header
-        return "#", "Label", "Type", "Tags", "Model Label", "System Name", "UUID"
+        return "#", "Label", "Type", "Tags", "Model Label", "System Name", "Count", "UUID"
       end
 
       def print_items
         system_name = @system ? @system.name : "none"
-        return @line_number.to_s, @label, @type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, system_name, @uuid
+        return @line_number.to_s, @label, @type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, system_name, @model.counter.to_s, @uuid
       end
 
       def line_color

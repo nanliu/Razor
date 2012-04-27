@@ -1,10 +1,10 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
+require "erb"
 
 # TODO - timing between state changes
 # TODO - timeout values for a state
-# TODO - Model sequence log (collection)
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
@@ -31,7 +31,7 @@ module ProjectRazor
         @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
         # Metadata vars
-        @hostname = nil
+        @hostname_prefix = nil
         # State / must have a starting state
         @current_state = :init
         # Image UUID
@@ -46,11 +46,16 @@ module ProjectRazor
 
       def req_metadata_hash
         {
-            "@hostname" => {:default => "nick01",
-                            :example => "hostname.example.org",
-                            :validation => '^[\w.]+$',
+            "@hostname_prefix" => {:default => "node",
+                            :example => "node",
+                            :validation => '^[\w]+$',
                             :required => true,
-                            :description => "node hostname"}
+                            :description => "node hostname prefix (will append node number"},
+            "@root_password" => {:default => "test123",
+                            :example => "P@ssword!",
+                            :validation => '^[\S]{8,}',
+                            :required => true,
+                            :description => "root password (> 8 characters)"},
         }
       end
 
@@ -61,15 +66,40 @@ module ProjectRazor
 
       def system_agent_handoff
         # Ubuntu support agent-based systems that support Linux
-        logger.error "Reached system agent call - no system method defined"
-        @current_state = :system_fail
+
+        logger.debug "System agent called for: #{@system.name}"
+
+        # We need to send username & password to system agent method
+        # We also need to send our Node's metadata (attributes_hash).
+
+        options = {}
+
+        options[:username] = "root" # For this model it is root
+        logger.debug "username: #{options[:username]}"
+        options[:password] = @root_password
+        logger.debug "password: #{options[:password]}"
+        options[:metadata] = node_metadata
+        options[:hostname] = hostname
+        logger.debug "hostname: #{options[:hostname]}"
+        unless @node_ip
+          logger.error "Node IP address isn't known"
+          @current_state = :system_fail
+          fsm_log(:state => @current_state,
+                  :old_state => :os_complete,
+                  :action => :system_agent_handoff,
+                  :method => :system,
+                  :node_uuid => @node_bound.uuid,
+                  :timestamp => Time.now.to_i)
+        end
+        options[:ipaddress] = @node_ip
+        logger.debug "ip address: #{options[:ipaddress]}"
+        @current_state = @system.agent_hand_off(options)
         fsm_log(:state => @current_state,
                 :old_state => :os_complete,
                 :action => :system_agent_handoff,
                 :method => :system,
-                :node_uuid => node_bound.uuid,
+                :node_uuid => @node_bound.uuid,
                 :timestamp => Time.now.to_i)
-        false
       end
 
       def preseed_call
@@ -103,44 +133,29 @@ module ProjectRazor
           when "source_fix"
             fsm_action(:source_fix, :postinstall)
             return
+          when "send_ips"
+            #fsm_action(:source_fix, :postinstall)
+            # Grab IP string
+            @ip_string = @args_array.shift
+            logger.debug "Node IP String: #{@ip_string}"
+            @node_ip = @ip_string if @ip_string =~ /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
+            return
           else
             fsm_action(@arg.to_sym, :postinstall)
             return
         end
       end
 
+
+
       def os_boot_script(policy_uuid)
-        "#!/bin/bash
-
-# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
-sed -i '4 i\\
-192.168.99.50   puppet learn puppet.localhost learn.localhost' /etc/hosts
-
-curl #{callback_url("postinstall", "added_puppet_hosts")}
-
-hostname node#{@node_bound.uuid}.razorlab.local
-curl #{callback_url("postinstall", "set_hostname")}
-
-sed -i 's_#{config.image_svc_host}:#{config.image_svc_port}/razor/image/os/#{@image_uuid}_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && #{callback_url("postinstall", "sources_fix")}
-apt-get -y update && curl #{callback_url("postinstall", "apt_get_update")}
-apt-get -y upgrade && curl #{callback_url("postinstall", "apt_get_upgrade")}
-apt-get -y install rubygems && curl #{callback_url("postinstall", "apt_get_ruby")}
-
-curl #{callback_url("postinstall", "boot")} | sh
-"
+        os_boot = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_boot.erb")
+        ERB.new(File.read(os_boot)).result(binding)
       end
 
       def os_complete_script(node)
-        "#!/bin/bash
-echo Razor policy successfully applied > /tmp/razor_complete.log
-echo Model #{@label} - #{@description} >> /tmp/razor_complete.log
-echo Image UUID #{@image_uuid} >> /tmp/razor_complete.log
-echo Node UUID: #{node.uuid} >> /tmp/razor_complete.log
-
-hostname #{@hostname}
-echo #{@hostname} >> /etc/hostname
-sed -i '/razor_postinstall/d' /etc/rc.local
-"
+        os_complete = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_complete.erb")
+        ERB.new(File.read(os_complete)).result(binding)
       end
 
       def nl(s)
@@ -149,7 +164,7 @@ sed -i '/razor_postinstall/d' /etc/rc.local
 
       # Defines our FSM for this model
       #  For state => {action => state, ..}
-      def fsm
+      def fsm_tree
         {
             :init => {:mk_call => :init,
                       :boot_call => :init,
@@ -267,6 +282,10 @@ sed -i '/razor_postinstall/d' /etc/rc.local
         ka
       end
 
+      def hostname
+        "#{@hostname_prefix}#{@counter.to_s}"
+      end
+
       def kernel_path
         "install/netboot/ubuntu-installer/amd64/linux"
       end
@@ -288,111 +307,8 @@ sed -i '/razor_postinstall/d' /etc/rc.local
       end
 
       def generate_preseed(policy_uuid)
-        "d-i console-setup/ask_detect boolean false
-
-d-i keyboard-configuration/layoutcode string us
-
-d-i netcfg/choose_interface select auto
-
-
-d-i netcfg/get_hostname string #{@hostname}
-d-i netcfg/get_domain string razorlab.local
-d-i netcfg/no_default_route boolean true
-
-d-i mirror/protocol string http
-d-i mirror/country string manual
-d-i mirror/http/hostname string #{config.image_svc_host}:#{config.image_svc_port}
-d-i mirror/http/directory string /razor/image/os/#{@image_uuid}
-d-i mirror/http/proxy string
-
-
-d-i clock-setup/utc boolean true
-
-d-i time/zone string US/Central
-
-
-d-i clock-setup/ntp boolean true
-
-
-
-d-i partman-auto/disk string /dev/sda
-
-d-i partman-auto/method string lvm
-d-i partman-lvm/device_remove_lvm boolean true
-
-d-i partman-md/device_remove_md boolean true
-
-
-
-d-i partman-auto-lvm/guided_size string max
-
-d-i partman-auto/choose_recipe select atomic
-
-
-d-i partman/default_filesystem string ext4
-
-d-i partman-lvm/confirm boolean true
-d-i partman-lvm/confirm_nooverwrite boolean true
-
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
-
-
-d-i partman-md/confirm boolean true
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
-
-
-d-i passwd/root-login boolean true
-d-i passwd/make-user boolean true
-
-
-d-i passwd/root-password password test123
-d-i passwd/root-password-again password test123
-
-
-
-d-i passwd/user-fullname string User
-d-i passwd/username string user
-
-d-i passwd/user-password password insecure
-d-i passwd/user-password-again password insecure
-
-d-i user-setup/allow-password-weak boolean true
-
-
-
-d-i apt-setup/restricted boolean true
-d-i apt-setup/universe boolean true
-d-i apt-setup/backports boolean true
-
-
-
-d-i pkgsel/include string ruby openssh-server build-essential curl
-
-
-d-i grub-installer/only_debian boolean true
-
-d-i grub-installer/with_other_os boolean true
-
-d-i finish-install/reboot_in_progress note
-
-
-#Our callbacks
-d-i preseed/early_command string wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/start
-
-d-i preseed/late_command string \\
-    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/end; \\
-    wget #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh; \\
-    sed -i '/exit 0/d' /target/etc/rc.local; \\
-    echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \\
-    echo exit 0 >> /target/etc/rc.local; \\
-    chmod +x /target/usr/local/bin/razor_postinstall.sh
-"
+        preseed = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/preseed.erb")
+        ERB.new(File.read(preseed)).result(binding)
       end
     end
   end

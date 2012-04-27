@@ -28,11 +28,12 @@ module ProjectRazor
         from_hash(hash) if hash
       end
 
-      # Method call for handing nodes off to System instances
-      def system_init_hand_off(options = {})
-        # return false because the Base object does nothing
-        # Child objects do not need to call super
-        false
+      def agent_hand_off(options = {})
+
+      end
+
+      def proxy_hand_off(options = {})
+
       end
 
       # Method call for validating that a System instance successfully received the node
