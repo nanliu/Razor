@@ -6,9 +6,12 @@
 module ProjectRazor
   module Policy
     class Base< ProjectRazor::Object
+      include(ProjectRazor::Logging)
+
       attr_accessor :label
       attr_accessor :line_number
       attr_accessor :model
+      attr_accessor :system
       attr_accessor :tags
       attr_reader :hidden
       attr_reader :type
@@ -24,20 +27,14 @@ module ProjectRazor
       # @param hash [Hash]
       def initialize(hash)
         super()
-
         @tags = []
         @hidden = :true
         @type = :hidden
         @description = "Base policy rule object. Hidden"
-
         @node_uuid = nil
         @bind_timestamp = nil
         @bound = false
-
-
-
         from_hash(hash) unless hash == nil
-
         # If our policy is bound it is stored in a different collection
         if @bound
           @_collection = :bound_policy
@@ -48,6 +45,10 @@ module ProjectRazor
 
       def bind_me(node)
         if node
+
+          @model.counter = @model.counter + 1 # increment model counter
+          self.update_self # save increment
+
           @bound = true
           @uuid = create_uuid
           @_collection = :bound_policy
@@ -86,11 +87,12 @@ module ProjectRazor
 
 
       def print_header
-        return "#", "Label", "Type", "Tags", "Model Label", "UUID"
+        return "#", "Label", "Type", "Tags", "Model Label", "System Name", "Count", "UUID"
       end
 
       def print_items
-        return @line_number.to_s, @label, @policy_type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, @uuid
+        system_name = @system ? @system.name : "none"
+        return @line_number.to_s, @label, @type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, system_name, @model.counter.to_s, @uuid
       end
 
       def line_color

@@ -23,10 +23,6 @@ module ProjectRazor
       $data.fetch_all_objects(:bound_policy)
     end
 
-
-
-
-
     #####################
 
     #####################
@@ -243,9 +239,9 @@ module ProjectRazor
     end
 
 
-    def state_checkin
-
-    end
+    #def state_checkin
+    #
+    #end
 
 
     def find_bound_policy(node)
@@ -270,17 +266,6 @@ module ProjectRazor
 
 
 
-
-
-
-    ######## Boot init section
-
-
-
-
-
-
-    ########
 
 
     ########
