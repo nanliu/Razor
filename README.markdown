@@ -35,13 +35,13 @@ Here's a list of dependency for razor module:
 
 Puppet master, add razor class to target node:
 
-   node razor_system {
-     include razor
-   }
+    node razor_system {
+      include razor
+    }
 
 Puppet apply, apply test manifests:
 
-   puppet apply razor/tests/init.pp
+    puppet apply razor/tests/init.pp
 
 ### Manual Prereqs:
 
@@ -57,6 +57,12 @@ Install the following software requirement for your platform:
 * Mongo database >= 2.0.X+
 
 ### Razor:
+
+Configure dhcpd configuration to retrieve pexlinux.0 from Razor system running tftp:
+MacOS Fusion 4: /Library/Preferences/VMware Fusion/vmnet8/dhcpd.conf
+
+    filename "pxelinux.0";
+    next-server ${razor_ipaddress};
 
 Execute start_node.sh to launch nodejs web service.
 
@@ -98,6 +104,3 @@ Start Razor API with:
     node razor.js
 
 ## Notes
-
-VMware Fusion:
-  configure dhcp configuration to forward tftp request to razor system:
