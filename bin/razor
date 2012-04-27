@@ -54,8 +54,10 @@ def call_razor_slice
   rescue => e
     raise if @debug
     print_header
-    print "\n [#{@namespace.capitalize}] ".red
-    print "<-#{e.message} \n".yellow
+    if @namespace
+      print "\n [#{@namespace.capitalize}] ".red
+      print "<-#{e.message} \n".yellow
+    end
   end
 end
 
@@ -112,7 +114,7 @@ if $0 == __FILE__
   @web_command = false
 
   if ARGV.count > 0
-    while ARGV[0].start_with?("-")
+    while ARGV[0] && ARGV[0].start_with?("-")
       switch = ARGV.shift
       case switch
         when "-w"
@@ -121,6 +123,18 @@ if $0 == __FILE__
           @debug = true
         when "--verbose"
           @verbose = true
+        when "--no-color-out"
+          # if this flag is set, override the default behavior of the underlying "colorize" method
+          # from the "Colored" module so that it just returns the string that was passed into it
+          # (this will have the effect of turning off any color that might be included in any of
+          # the output statements involving Strings in Razor)
+          module Colored
+            extend self
+            def colorize(string, options = {})
+              string
+            end
+          end
+          String.send(:include, Colored)
         else
           #
       end
