@@ -243,39 +243,13 @@ module ProjectRazor
             parseable, log_level_match, elapsed_time_str, class_name_match,
                 method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
             if parseable
-              #puts "log_level_match = #{PP.pp(log_level_match, "")}"
-              #puts "elapsed_time_str = #{PP.pp(elapsed_time_str, "")}"
-              #puts "class_name_match = #{PP.pp(class_name_match, "")}"
-              #puts "method_name_match = #{PP.pp(method_name_match, "")}"
-              #puts "log_message_match = #{PP.pp(log_message_match, "")}"
               # initialize a few variables
               incomplete_last_line = false
               prev_line = ""
               last_complete_line = ""
               past_time = false
-              # parse the elapsed_time_str (if valid) and determine the cutoff time to use
-              # for printing log file entries
-              cutoff_time = nil
-              match_data = /([0-9]+)(s|m|h|d)?/.match(elapsed_time_str)
-              if match_data
-                match_on_time = true
-                case match_data[2]
-                  when nil
-                    offset = match_data[1].to_i
-                  when "s"
-                    offset = match_data[1].to_i
-                  when "m"
-                    offset = match_data[1].to_i * 60
-                  when "h"
-                    offset = match_data[1].to_i * 3600
-                  when "d"
-                    offset = match_data[1].to_i * 3600 * 24
-                  else
-                    logger.error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
-                    slice_error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
-                end
-                cutoff_time = Time.now - offset
-              end
+              # determine the cutoff time to use for printing log file entries
+              cutoff_time = get_cutoff_time(elapsed_time_str)
 
               # and loop through the file in chunks, parsing each chunk and filtering out
               # the lines that don't match the criteria parsed from the filter expresssion
@@ -378,20 +352,34 @@ module ProjectRazor
           # "tail" into an integer (all other error conditions should be handled in the
           # logic of the @slice_commands hash defined above)
           num_lines_tail_str = @prev_args.peek(2)
-          num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
           # and grab the argument at the top of the prev_args stack (which should be the
           # filter expression)
           filter_expr_string = @prev_args.look
           @prev_args.push(filter_expr_string) if filter_expr_string
-          parseable, log_level_match, elapsed_time_str, class_name_match,
-              method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
-          if parseable
-            puts "tail #{(num_lines_tail ? num_lines_tail : 10)} from the razor log, then apply a filter to the tail"
-            puts "this method is not yet implemented..."
-          else
-            # if get here, it's an error (the string passed in wasn't a JSON string)
-            logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
-            slice_error "The filter expression '#{filter_expr_string}' is not a JSON string"
+          begin
+            parseable, log_level_match, elapsed_time_str, class_name_match,
+                method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
+            if parseable
+              num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
+              tail_of_file = tail_of_file_as_array(num_lines_tail)
+              # determine the cutoff time to use for printing log file entries
+              cutoff_time = get_cutoff_time(elapsed_time_str)
+              past_time = false
+              # loop through the tailed lines, extracting the lines that match
+              tail_of_file.each { |line|
+                next unless !cutoff_time || past_time || was_logged_after_time(line, cutoff_time)
+                past_time = true if !cutoff_time && !past_time
+                puts line if line_matches_criteria(line, log_level_match, class_name_match,
+                                                   method_name_match, log_message_match)
+              }
+            else
+              # if get here, it's an error (the string passed in wasn't a JSON string)
+              logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
+              slice_error "The filter expression '#{filter_expr_string}' is not a JSON string"
+            end
+          rescue => e
+            logger.error e.message
+            slice_error e.message
           end
         end
       end
@@ -479,7 +467,34 @@ module ProjectRazor
         [parseable, log_level_match, elapsed_time_str, class_name_match, method_name_match, log_message_match]
       end
 
-      # used to determine if a line matches the current filter criteria
+      def get_cutoff_time(elapsed_time_str)
+        match_data = /([0-9]+)(s|m|h|d)?/.match(elapsed_time_str)
+        if match_data
+          match_on_time = true
+          case match_data[2]
+            when nil
+              offset = match_data[1].to_i
+            when "s"
+              offset = match_data[1].to_i
+            when "m"
+              offset = match_data[1].to_i * 60
+            when "h"
+              offset = match_data[1].to_i * 3600
+            when "d"
+              offset = match_data[1].to_i * 3600 * 24
+            else
+              logger.error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
+              slice_error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
+          end
+          return (Time.now - offset)
+        end
+        return nil
+      end
+
+      # used to determine if a line matches the input filter criteria (regular expressions
+      # for the log_level, class_name, method_name, or log_message that are parsed from the line
+      # using a regular expression).  If any of the regular expressions are nil, then they
+      # represent a wildcarded value (any of that type of field will match)
       def line_matches_criteria(line_to_test, log_level_match, class_name_match,
           method_name_match, log_message)
         match_data = LOG_LINE_REGEXP.match(line_to_test)
@@ -497,8 +512,9 @@ module ProjectRazor
         false
       end
 
-      # used to determine if a line falls prior to a particular time
+      # used to determine if a line from the logfile is after the cutoff_time
       def was_logged_after_time(line_to_test, cutoff_time)
+        return true unless cutoff_time
         match_data = LOG_LINE_REGEXP.match(line_to_test)
         # if the line doesn't match the regular expression for our log lines, then we have
         # no way to test and see if it occurs after the specified time.  As such, return false
