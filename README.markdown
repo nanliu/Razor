@@ -18,26 +18,47 @@ DevOps-style tool sets.
 
 ## Installation
 
-### Node.js:
-[Node.js install with package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)
+Razor requires tftp and dhcp service. The razor client will contact the same
+server providing tftp files, so both service must reside on the same server.
 
-[Node Package Manager(NPM)](http://npmjs.org/)
+### Puppet Prereqs:
 
-[Express install via NPM](http://expressjs.com/guide.html)
+Puppet razor module will perform the installation of dependency on Debian Wheezy system:
 
-### Database
+https://github.com/puppetlabs/puppet-razor
 
-#### Mongo
+Here's a list of dependency for razor module:
 
-Requires MongoDB 2.0.X+
+* [Node.js module](https://github.com/nanliu/puppet-nodejs)
+* [Mongodb module](https://github.com/nanliu/puppet-mongodb)
+* [tftp module](https://github.com/nanliu/puppet-tftp)
 
-## Prereqs
+Puppet master, add razor class to target node:
+
+   node razor_system {
+     include razor
+   }
+
+Puppet apply, apply test manifests:
+
+   puppet apply razor/tests/init.pp
+
+### Manual Prereqs:
+
+Install the following software requirement for your platform:
 
 * Ruby >= 1.9.3
 * Assorted gems - see (Gemfile)
 * Node.js >= 0.6.10
+[Node.js install with package manager](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)
 * Node.js Express package
- 
+[Node Package Manager(NPM)](http://npmjs.org/)
+[Express install via NPM](http://expressjs.com/guide.html)
+* Mongo database >= 2.0.X+
+
+### Razor:
+
+Execute start_node.sh to launch nodejs web service.
 
 ## Environment Variables
 * $RAZOR_HOME
@@ -59,7 +80,6 @@ Requires MongoDB 2.0.X+
     >> 4 = Fatal
     >> 5 = Unknown
 
-
 ## Directory structure
     ./bin - control scripts
     ./conf - configuration YAML files
@@ -77,6 +97,7 @@ Start Razor API with:
     cd $RAZOR_HOME/bin/node
     node razor.js
 
-
 ## Notes
 
+VMware Fusion:
+  configure dhcp configuration to forward tftp request to razor system:
