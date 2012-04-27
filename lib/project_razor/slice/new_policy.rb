@@ -159,9 +159,9 @@ module ProjectRazor
         new_policy.model = @model_config
         new_policy.system = @system
         new_policy.tags = @tags
-        setup_data
-        @data.persist_object(new_policy)
-        if new_policy
+
+        policy_rules = ProjectRazor::PolicyRules.instance
+        if policy_rules.add(new_policy)
           @command_array.unshift(new_policy.uuid)
           get_policy_with_uuid
         else
