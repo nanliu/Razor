@@ -441,19 +441,22 @@ module ProjectRazor
             print_array = []
             header = []
             line_colors = []
-
             header_color = :white
 
-            object_array.each do
-            |obj|
-              print_array << obj.print_items
-              header = obj.print_header
-              line_colors << obj.line_color
-              header_color = obj.header_color
+            if object_array.count == 1
+              puts print_single_item(object_array.first)
+            else
+              object_array.each do
+              |obj|
+                print_array << obj.print_items
+                header = obj.print_header
+                line_colors << obj.line_color
+                header_color = obj.header_color
+              end
+              # If we have more than one item we use table view, otherwise use item view
+              print_array.unshift header if header != []
+              puts print_table(print_array, line_colors, header_color)
             end
-
-            print_array.unshift header if header != []
-            puts print_table(print_array, line_colors, header_color)
           else
             object_array.each do
             |obj|
@@ -474,6 +477,30 @@ module ProjectRazor
         end
       end
 
+      def print_single_item(obj)
+        print_array = []
+        header = []
+        line_color = []
+        print_output = ""
+        header_color = :white
+
+        if obj.respond_to?(:print_item) && obj.respond_to?(:print_item_header)
+          print_array = obj.print_item
+          header = obj.print_item_header
+        else
+          print_array = obj.print_items
+          header = obj.print_header
+        end
+        line_color = obj.line_color
+        header_color = obj.header_color
+        print_array.each_with_index do
+          |val, index|
+          print_output << " " + "#{header[index]}".send(header_color)
+          print_output << " => "
+          print_output << " " + "#{val}".send(line_color) + "\n"
+        end
+        print_output
+      end
 
       def print_table(print_array, line_colors, header_color)
         table = ""
