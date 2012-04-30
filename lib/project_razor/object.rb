@@ -69,6 +69,16 @@ class ProjectRazor::Object
         @print_items = print_items
         @line_color = line_color
         @header_color = header_color
+
+        @print_items.map! do
+          |pi|
+          case pi
+            when nil, ""
+              "n/a"
+            else
+              pi
+          end
+        end
       end
       attr_reader :print_header, :print_items, :line_color, :header_color
     end

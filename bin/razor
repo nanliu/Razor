@@ -124,13 +124,13 @@ if $0 == __FILE__
     while ARGV[0] && ARGV[0].start_with?("-")
       switch = ARGV.shift
       case switch
-        when "-w"
+        when "--web-command", "-w"
           @web_command = true
-        when "--debug"
+        when "--debug", "-d"
           @debug = true
-        when "--verbose"
+        when "--verbose", "-v"
           @verbose = true
-        when "--no-color-out"
+        when "--no-color-out","-nc"
           # if this flag is set, override the default behavior of the underlying "colorize" method
           # from the "Colored" module so that it just returns the string that was passed into it
           # (this will have the effect of turning off any color that might be included in any of

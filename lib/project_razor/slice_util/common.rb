@@ -431,7 +431,9 @@ module ProjectRazor
 
 
 
-      def print_object_array(object_array, title = nil)
+      def print_object_array(object_array, title = nil, options = {})
+        # This is for backwards compatibility
+        title = options[:title] unless title
         unless @web_command
           puts title if title
           unless object_array.count > 0
@@ -443,7 +445,7 @@ module ProjectRazor
             line_colors = []
             header_color = :white
 
-            if object_array.count == 1
+            if object_array.count == 1 && options[:style] != :table
               puts print_single_item(object_array.first)
             else
               object_array.each do
