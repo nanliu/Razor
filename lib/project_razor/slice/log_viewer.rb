@@ -39,7 +39,7 @@ class File
   # the file (defaults to DEFAULT_NLINES_TAIL lines if not included in the method call)
   # @return [Array]  the last N lines from the file, where N is the input argument
   # (or the entire file if the number of lines is less than N)
-  def tail(num_lines=DEFAULT_NLINES_TAIL)
+  def tail(num_lines=DEFAULT_NLINES_TAIL, filter_expression = nil, cutoff_time = nil)
     # if the number of lines passed in is nil, use the default value instead
     num_lines = DEFAULT_NLINES_TAIL unless num_lines
     # initialize a few variables
@@ -53,39 +53,92 @@ class File
     else
       next_buffer_size = size
     end
-    chunks = []
     lines = 0
-    # As long as we haven't read the number of lines requested
-    # and we haven't read the entire file, loop through the file
-    # and read it in chunks
+    # this flag is only set if a cutoff time is included
+    first_line_earlier_than_cutoff = false
+    # and this array is used to hold the "matching lines" that are read
+    # from the file
+    matching_lines = []
     begin
-      # seek to the appropriate position to read the next chunk, then
-      # read it
-      seek(idx)
-      chunk = read(next_buffer_size)
-      # count the number of lines in the chunk we just read and add that
-      # chunk to the buffer; while we are at it, determine how many bytes
-      # were just read and increment the total number of bytes read
-      lines += chunk.count("\n")
-      chunks.unshift chunk
-      bytes_read += chunk.size
-      # if there is more than a buffer prior to the chunk we just read, then
-      # shift back by an entire buffer for the next read, otherwise just
-      # move back to the start of the file and set the next_buffer_size
-      # appropriately
-      if idx > BUFFER_SIZE
-        next_buffer_size = BUFFER_SIZE
-        idx -= BUFFER_SIZE
+      # As long as we haven't read the number of lines requested
+      # and we haven't read the entire file, loop through the file
+      # and read it in chunks
+      chunks = []
+      begin
+        # seek to the appropriate position to read the next chunk, then
+        # read it
+        seek(idx)
+        chunk = read(next_buffer_size)
+        # count the number of lines in the chunk we just read and add that
+        # chunk to the buffer; while we are at it, determine how many bytes
+        # were just read and increment the total number of bytes read
+        lines += chunk.count("\n")
+        chunks.unshift chunk
+        bytes_read += chunk.size
+        # if there is more than a buffer prior to the chunk we just read, then
+        # shift back by an entire buffer for the next read, otherwise just
+        # move back to the start of the file and set the next_buffer_size
+        # appropriately
+        if idx > BUFFER_SIZE
+          next_buffer_size = BUFFER_SIZE
+          idx -= BUFFER_SIZE
+        else
+          next_buffer_size = idx
+          idx = 0
+        end
+        # loop until this chunk contains enough lines to satisfy the requested
+        # tail size (note; this may not be enough if a filter criteria was included
+        # that filters out some of these lines, but it's a start)
+      end while lines < ( num_lines + 1 ) && bytes_read < size
+      # now that we've got enough "raw lines" to (potentially)satisfy the requested
+      # number of lines (or the entire file has been read into the buffer), concatenate
+      # the array of chunks and split the result into lines
+      tail_of_file = chunks.join('')
+      chunk_lines = tail_of_file.split(/\n/)
+      # if a filter expression was included, use that to select out only matching lines
+      # from the lines found so far, else just add all of the chunk lines found
+      # to the "matching_lines" array (in which case we should be done)
+      if filter_expression
+        # note; if a filter expression is included, this may result in fewer lines
+        # than were requested, in which case we have to repeat the procedure (above)
+        # until we find enough matching lines
+        match_data = []
+        chunk_lines.each { |line|
+          match_data = filter_expression.match(line)
+          break if match_data
+        }
+        next unless match_data
+        log_line_time = Time.parse(match_data[1]) if match_data
+        first_line_earlier_than_cutoff = (log_line_time < cutoff_time) if cutoff_time
+        # select out only the lines that match the input filter expression and have a time
+        # greater than or equal to the cutoff_time (if it was included)
+        chunk_matching_lines = chunk_lines.select { |line|
+          match_data = filter_expression.match(line)
+          after_cutoff = true
+          if match_data && cutoff_time
+            log_line_time = Time.parse(match_data[1])
+            after_cutoff = (log_line_time > cutoff_time)
+          end
+          (match_data && after_cutoff)
+        }
+        if matching_lines.size > 0 && chunk_matching_lines
+          matching_lines = chunk_matching_lines.concat(matching_lines)
+        elsif chunk_matching_lines
+          matching_lines.concat(chunk_matching_lines)
+        end
+        # reset the "lines" value to the number of lines we found that matched, then
+        # continue the loop (if that's not enough to satisfy the requested number of
+        # tailed lines)
+        lines = matching_lines.size
       else
-        next_buffer_size = idx
-        idx = 0
+        matching_lines.concat(chunk_lines)
       end
-    end while lines < ( num_lines + 1 ) && bytes_read < size
-    # now that we've got the number of lines we wanted (or have read the entire
-    # file into our buffer), parse it and extract the last "num_lines" lines from it
-    tail_of_file = chunks.join('')
-    ary = tail_of_file.split(/\n/)
-    lines_to_return = ary[-num_lines..-1]
+      # loop until we've found enough lines or have read the entire file
+    end while filter_expression && !first_line_earlier_than_cutoff && matching_lines.size < num_lines && bytes_read < size
+    if matching_lines.size < num_lines
+      return matching_lines
+    end
+    lines_to_return = matching_lines[-num_lines..-1]
   end
 
 end
@@ -240,8 +293,12 @@ module ProjectRazor
         else
           begin
             filter_expr_string = @prev_args.look
-            parseable, log_level_match, elapsed_time_str, class_name_match,
-                method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
+            parseable, log_level_str, elapsed_time_str, class_name_str,
+                method_name_str, log_message_str = get_filter_criteria(filter_expr_string)
+            log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+            class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+            method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+            log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
             if parseable
               # initialize a few variables
               incomplete_last_line = false
@@ -357,8 +414,12 @@ module ProjectRazor
           filter_expr_string = @prev_args.look
           @prev_args.push(filter_expr_string) if filter_expr_string
           begin
-            parseable, log_level_match, elapsed_time_str, class_name_match,
-                method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
+            parseable, log_level_str, elapsed_time_str, class_name_str,
+                method_name_str, log_message_str = get_filter_criteria(filter_expr_string)
+            log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+            class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+            method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+            log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
             if parseable
               num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
               tail_of_file = tail_of_file_as_array(num_lines_tail)
@@ -403,17 +464,28 @@ module ProjectRazor
           filter_expr_string = @prev_args.peek(1) if filter_expr_string == "filter"
           # and grab the top argument from the stack of previous arguments (which should
           # be the number of lines to tail).  If the previous argument turns out to be
-          # "tail" then no number of lines was included, so set the nlines_tail to nil and move on
-          nlines_tail_str = @prev_args.look
-          nlines_tail = (nlines_tail_str == "tail" ? nil : nlines_tail_str.to_i)
+          # "tail" then no number of lines was included, so set the num_lines_tail to nil and move on
+          num_lines_tail_str = @prev_args.look
+          num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
           # now, parse the filter_expr_string to get the parts (should be a JSON string with
           # key-value pairs where the values are regular expressions and the keys include one or more
           # of the following:  log_level, elapsed_time, class_name, or pattern)
-          parseable, log_level_match, elapsed_time_str, class_name_match,
-              method_name_match, log_message_match = get_filter_criteria(filter_expr_string)
+          parseable, log_level_str, elapsed_time_str, class_name_str,
+              method_name_str, log_message_str = get_filter_criteria(filter_expr_string)
+          filter_expression = get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
           if parseable
-            puts "filter razor log using the following criteria (then tail #{(nlines_tail ? nlines_tail : 10)} lines from the result):"
-            puts "this method is not yet implemented..."
+            # else, just read and print the tail of the logfile to the command line
+            tail_of_file = []
+            begin
+              cutoff_time = (elapsed_time_str ? get_cutoff_time(elapsed_time_str) : nil)
+              tail_of_file = tail_of_file_as_array(num_lines_tail, filter_expression, cutoff_time)
+            rescue => e
+              logger.error e.message
+              slice_error e.message
+            end
+            tail_of_file.each { |line|
+              puts line
+            }
           else
             # if get here, it's an error (the string passed in wasn't a JSON string)
             logger.error "The filter expression '#{filter_expr_string}' is not a JSON string"
@@ -424,10 +496,10 @@ module ProjectRazor
 
       private
       # gets the tail of the current logfile as an array of strings
-      def tail_of_file_as_array(num_lines_tail)
+      def tail_of_file_as_array(num_lines_tail, filter_expression = nil, cutoff_time = nil)
         tail_of_file = []
         File.open(@logfile) { |file|
-          tail_of_file = file.tail(num_lines_tail)
+          tail_of_file = file.tail(num_lines_tail, filter_expression, cutoff_time)
         }
         tail_of_file
       end
@@ -438,9 +510,9 @@ module ProjectRazor
       def get_filter_criteria(filter_expr_string)
         # now, parse the filter_expr_string to get the parts (should be a JSON string with
         # key-value pairs where the values are regular expressions and the keys include one or more
-        # of the following:  log_level, elapsed_time, class_name, or pattern)
-        log_level_match = elapsed_time_str = class_name_match = nil
-        method_name_match = log_message_match = nil
+        # of the following: log_level, elapsed_time, class_name, or pattern)
+        log_level_str = elapsed_time_str = class_name_str = nil
+        method_name_str = log_message_str = nil
         parseable = false
         if JSON.is_json?(filter_expr_string)
           parseable = true
@@ -448,15 +520,15 @@ module ProjectRazor
           match_criteria.each { |key, value|
             case key
               when "log_level"
-                log_level_match = Regexp.new(value)
+                log_level_str = value
               when "elapsed_time"
                 elapsed_time_str = value
               when "class_name"
-                class_name_match = Regexp.new(value)
+                class_name_str = value
               when "method_name"
-                method_name_match = Regexp.new(value)
+                method_name_str = value
               when "log_message"
-                log_message_match = Regexp.new(value)
+                log_message_str = value
               else
                 logger.warn "Unrecognized key in filter expression: '#{key}' (ignored); valid values" +
                                 "are 'log_level', 'elapsed_time', 'class_name', 'method_name', or 'log_message'"
@@ -464,7 +536,7 @@ module ProjectRazor
           }
         end
         # return the results to the caller
-        [parseable, log_level_match, elapsed_time_str, class_name_match, method_name_match, log_message_match]
+        [parseable, log_level_str, elapsed_time_str, class_name_str, method_name_str, log_message_str]
       end
 
       def get_cutoff_time(elapsed_time_str)
@@ -496,7 +568,7 @@ module ProjectRazor
       # using a regular expression).  If any of the regular expressions are nil, then they
       # represent a wildcarded value (any of that type of field will match)
       def line_matches_criteria(line_to_test, log_level_match, class_name_match,
-          method_name_match, log_message)
+          method_name_match, log_message_match)
         match_data = LOG_LINE_REGEXP.match(line_to_test)
         # if the match_data value is nil, then the parsing failed and there is no match
         # with this line, so return false
@@ -506,10 +578,21 @@ module ProjectRazor
         if (!log_level_match || log_level_match.match(match_data[2])) &&
             (!class_name_match || class_name_match.match(match_data[3])) &&
             (!method_name_match || method_name_match.match(match_data[4])) &&
-            (!log_message || log_message.match(match_data[5]))
+            (!log_message_match || log_message_match.match(match_data[5]))
           return true
         end
         false
+      end
+
+      # used to get a regular expression that can be used to select matching
+      # lines from the logfile based on the input filter criteria
+      def get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
+        regexp_string = '^[A-Z]\,\s+\[([^\s]+)\s+\#[0-9]+\]\s+LOG_LEVEL_STR\s+\-\-\s+CLASS_NAME_STR\#METHOD_STR\:\s+LOG_MESSAGE_STR$'
+        regexp_string["LOG_LEVEL_STR"] = (log_level_str ? "(.*#{log_level_str}.*)" : "[A-Z]+")
+        regexp_string["CLASS_NAME_STR"] = (class_name_str ? "(.*#{class_name_str}.*)" : "([^\s\#]+)")
+        regexp_string["METHOD_STR"] = (method_name_str ? "(.*#{method_name_str}.*)" : "([^\:]+)")
+        regexp_string["LOG_MESSAGE_STR"] = (log_message_str ? "(.*#{log_message_str}.*)" : "(.*)")
+        Regexp.new(regexp_string)
       end
 
       # used to determine if a line from the logfile is after the cutoff_time
