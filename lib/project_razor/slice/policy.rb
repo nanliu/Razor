@@ -21,16 +21,20 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
+        @hidden = false
         @new_slice_style = true # switch to new slice style
                                 # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:add => "add_policy",
                            :get => {["all", '{}', /^{.*}$/, nil] => "get_policy_all",
                                     [/type/,/^[Tt]$/] => "get_policy_types",
                                     [/^[Mm]odel/,/^[Mm]$/,"model_config","possible_models"] => {:default => "get_possible_model_configs",
-                                                                                       :help => "razor policy get [model|model_config] [all|(policy type)]",
-                                                                                       :else => "get_possible_model_configs"},
+                                                                                                :help => "razor policy get [model|model_config] [all|(policy type)]",
+                                                                                                :else => "get_possible_model_configs"},
                                     [/^[Bb]ound/,"bound_policy",/^[Bb]$/] => {["all", '{}', /^{.*}$/, nil] => "get_bound_policy_all",
-                                                                              [/^[Ll]og/,/^[Ll]$/] => "get_bound_log",
+                                                                              [/^[Ll]og/,/^[Ll]$/] => { :all => "get_bound_log_all",
+                                                                                                        :default => "get_bound_log_all",
+                                                                                                        :else => "get_bound_log"
+                                                                                                        },
                                                                               :default => "get_bound_policy_all",
                                                                               :help => "",
                                                                               :else => "get_bound_policy_with_uuid"},
@@ -223,6 +227,18 @@ module ProjectRazor
       end
 
 
+      def get_bound_log_all
+        bound_policies = get_object("bound_policy_instances", :bound_policy)
+        log_items = []
+        bound_policies.each do
+        |bp|
+          log_items = log_items | bp.print_log_all
+        end
+        log_items.sort! {|a,b| a.print_items[3] <=> b.print_items[3]}
+        log_items.each {|li| li.print_items[3] = Time.at(li.print_items[3]).strftime("%H:%M:%S")}
+        print_object_array(log_items, "All Bound Policy Logs:", :style => :table)
+      end
+
       def get_bound_log
         @command = :get_bound_log
         @command_help_text = "razor policy get bound[b] log (uuid)"
@@ -237,7 +253,7 @@ module ProjectRazor
           when nil
             slice_error("Cannot Find Bound Policy with UUID: [#@arg]")
           else
-            print_object_array bound_policy.print_log
+            print_object_array bound_policy.print_log, :style => :table
         end
       end
 

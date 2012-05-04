@@ -177,27 +177,70 @@ module ProjectRazor
         |log_entry|
           @first_time ||= Time.at(log_entry["timestamp"])
           @last_time ||= Time.at(log_entry["timestamp"])
-          @total_time_diff = (Time.at(log_entry["timestamp"].to_i) - @first_time) / 60
-          @last_time_diff = Time.at(log_entry["timestamp"].to_i) - @last_time
-          attr_array << self.class.const_get(:HashPrint).new(["Start State",
-                                                              "End State",
-                                                              "Method",
-                                                              "Action",
-                                                              "Result",
-                                                              "Time",
-                                                              "Last(sec)",
-                                                              "Total(min)"], [log_entry["old_state"].to_s,
-                                                                              log_entry["state"].to_s,
-                                                                              log_entry["method"].to_s,
-                                                                              log_entry["action"].to_s,
-                                                                              log_entry["result"].to_s,
-                                                                              Time.at(log_entry["timestamp"].to_i).strftime("%H:%M:%S"),
-                                                                              @last_time_diff.to_i.to_s,
-                                                                              @total_time_diff.to_i.to_s], line_color, header_color)
+          @total_time_diff = (Time.at(log_entry["timestamp"].to_i) - @first_time)
+          @last_time_diff = (Time.at(log_entry["timestamp"].to_i) - @last_time)
+          attr_array << self.class.const_get(:HashPrint).new(%w(State Action Result Time Last Total Node),
+                                                             [state_print(log_entry["old_state"].to_s,log_entry["state"].to_s),
+                                                              log_entry["action"].to_s,
+                                                              log_entry["result"].to_s,
+                                                              Time.at(log_entry["timestamp"].to_i).strftime("%H:%M:%S"),
+                                                              pretty_time(@last_time_diff.to_i),
+                                                              pretty_time(@total_time_diff.to_i), node_uuid.to_s], line_color, header_color)
           @last_time = Time.at(log_entry["timestamp"])
         end
         # Return our array of HashPrint
         attr_array
+      end
+
+      def print_log_all
+
+        # First see if we have the HashPrint class already defined
+        begin
+          self.class.const_get :HashPrint # This throws an error so we need to use begin/rescue to catch
+        rescue
+          # Define out HashPrint class for this object
+          define_hash_print_class
+        end
+        # Create an array to store our HashPrint objects
+        attr_array = []
+        # Take each element in our attributes_hash and store as a HashPrint object in our array
+        @last_time = nil
+        @model.log.each do
+        |log_entry|
+          @first_time ||= Time.at(log_entry["timestamp"])
+          @last_time ||= Time.at(log_entry["timestamp"])
+          @total_time_diff = (Time.at(log_entry["timestamp"].to_i) - @first_time)
+          @last_time_diff = (Time.at(log_entry["timestamp"].to_i) - @last_time)
+          attr_array << self.class.const_get(:HashPrint).new(%w(State Action Result Time Last Total Node),
+                                                             [state_print(log_entry["old_state"].to_s,log_entry["state"].to_s),
+                                                              log_entry["action"].to_s,
+                                                              log_entry["result"].to_s,
+                                                              log_entry["timestamp"].to_i,
+                                                              pretty_time(@last_time_diff.to_i),
+                                                              pretty_time(@total_time_diff.to_i), node_uuid.to_s], line_color, header_color)
+          @last_time = Time.at(log_entry["timestamp"])
+        end
+        # Return our array of HashPrint
+        attr_array
+      end
+
+      def state_print(old_state, new_state)
+        if old_state == new_state
+          return new_state
+        end
+        "#{old_state}=>#{new_state}"
+      end
+
+      def pretty_time(in_time)
+        float_time = in_time.to_f
+        case
+          when float_time < 60
+            float_time.to_i.to_s + " sec"
+          when float_time > 60
+            ("%02.1f" % (float_time / 60)) + " min"
+          else
+            float_time.to_s + " sec"
+        end
       end
 
     end
