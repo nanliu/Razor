@@ -98,14 +98,17 @@ end
 
 def print_loaded_slices
   print "\nLoaded slices:\n\t"
-  x = 0
-  @slice_array.each do |slice|
-    print "[#{slice.downcase}] ".white unless slice.downcase == "base" || slice.downcase == "template"
-    if x >= 6
-      print "\n\t"
-      x = 0
+  x = 1
+  @slice_array.sort.each do |slice|
+    slice_obj = Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
+    unless slice_obj.hidden
+      print "[#{slice.downcase}] ".white
+      if x > 5
+        print "\n\t"
+        x = 0
+      end
+      x += 1
     end
-    x += 1
   end
   print "\n"
 end

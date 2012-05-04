@@ -160,9 +160,9 @@ end
 module ProjectRazor
   module Slice
 
-    # ProjectRazor Slice System
-    # Used for system management
-    # @author Nicholas Weaver
+    # ProjectRazor Slice LogViewer
+    # Used for log viewing
+    # @author Tom McSweeney
     class Logviewer < ProjectRazor::Slice::Base
 
       # this regular expression should parse out the timestamp for the
@@ -178,6 +178,7 @@ module ProjectRazor
       def initialize(args)
 
         super(args)
+        @hidden = false
         @new_slice_style = true # switch to new slice style
 
         # define a couple of "help strings" (for the tail and filter commands)
