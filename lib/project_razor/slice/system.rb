@@ -5,7 +5,7 @@ require "json"
 
 # Root namespace for system objects
 # used to find them in object space for type checking
-SYSTEM_PREFIX = "ProjectRazor::System::"
+SYSTEM_PREFIX = "ProjectRazor::Broker::"
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
@@ -15,7 +15,7 @@ module ProjectRazor
     # ProjectRazor Slice System
     # Used for system management
     # @author Nicholas Weaver
-    class System < ProjectRazor::Slice::Base
+    class Broker < ProjectRazor::Slice::Base
 
       # Initializes ProjectRazor::Slice::System including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
@@ -40,7 +40,7 @@ module ProjectRazor
         #@slice_commands_help = {:get => "system ".red + "[all|types|(System UUID)]".yellow,
         #                        :add => "system " + "(system type) (Name) (Description) [(server hostname),{server hostname}]".yellow,
         #                        :remove => "system " + "(System UUID)".yellow}
-        @slice_name = "System"
+        @slice_name = "Broker"
       end
 
       # Returns all system instances

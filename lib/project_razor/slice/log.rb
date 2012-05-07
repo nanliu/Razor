@@ -144,6 +144,7 @@ class File
 end
 
 # and monkey patch the JSON class to add an is_json? method
+# TODO - Change to default .to_json already in util
 module JSON
   def self.is_json?(foo)
     begin
@@ -163,7 +164,7 @@ module ProjectRazor
     # ProjectRazor Slice LogViewer
     # Used for log viewing
     # @author Tom McSweeney
-    class Logviewer < ProjectRazor::Slice::Base
+    class Log < ProjectRazor::Slice::Base
 
       # this regular expression should parse out the timestamp for the
       # message, the log-level, the class-name, the method-name, and the
