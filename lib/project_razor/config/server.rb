@@ -24,7 +24,7 @@ module ProjectRazor
       attr_accessor :admin_port
       attr_accessor :api_port
       attr_accessor :image_svc_port
-      attr_accessor :mk_ext_mirror_port
+      attr_accessor :mk_tce_mirror_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -64,7 +64,7 @@ module ProjectRazor
         @admin_port = 8025
         @api_port = 8026
         @image_svc_port = 8027
-        @mk_ext_mirror_port = 2157
+        @mk_tce_mirror_port = 2157
 
         @mk_checkin_interval = 60
         @mk_checkin_skew = 5
@@ -77,7 +77,7 @@ module ProjectRazor
                                    "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)","(.*json_str$)"]
         @mk_fact_excl_pattern = fact_excl_pattern_array.join("|")
         @mk_log_level = "Logger::ERROR"
-        @mk_tce_mirror_uri = "http://localhost:#{@mk_ext_mirror_port}/tinycorelinux"
+        @mk_tce_mirror_uri = "http://localhost:#{@mk_tce_mirror_port}/tinycorelinux"
         @mk_tce_install_list_uri = @mk_tce_mirror_uri + "/tce-install-list"
         @mk_kmod_install_list_uri = @mk_tce_mirror_uri + "/kmod-install-list"
 
