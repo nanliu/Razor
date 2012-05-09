@@ -7,7 +7,37 @@ module ProjectRazor
   module SliceUtil
     module Common
 
+      # here, we define a Stack class that simply delegates the equivalent "push", "pop",
+      # "to_s" and "clear" calls to the underlying Array object using the delegation
+      # methods provided by Ruby through the Forwardable class.  We could do the same
+      # thing using an Array, but that wouldn't let us restrict the methods that
+      # were supported by our Stack to just those methods that a stack should have
 
+      require "forwardable"
+
+      class Stack
+        extend Forwardable
+        def_delegators :@array, :push, :pop, :to_s, :clear, :count
+
+        # initializes the underlying array for the stack
+        def initialize
+          @array = []
+        end
+
+        # looks at the last element pushed onto the stack
+        def look
+          @array.last
+        end
+
+        # peeks down to the n-th element in the stack (zero is the top,
+        # if the 'n' value that is passed is deeper than the stack, it's
+        # an error (and will result in an IndexError being thrown)
+        def peek(n = 0)
+          stack_idx = -(n+1)
+          @array[stack_idx]
+        end
+
+      end
 
       class ObjectTemplate < ProjectRazor::Object
         attr_accessor :template, :description
@@ -47,6 +77,26 @@ module ProjectRazor
         def print_items
           return @plugin, @description
         end
+      end
+
+      def get_noun(classname)
+        noun = nil
+        begin
+          File.open(File.join(File.dirname(__FILE__), "api_mapping.yaml")) do
+          |file|
+            api_map = YAML.load(file)
+
+            api_map.sort! {|a,b| a[:namespace].length <=> b[:namespace].length}.reverse!
+            api_map.each do
+            |api|
+              noun = api[:noun] if classname.start_with?(api[:namespace])
+            end
+          end
+        rescue => e
+          logger.error e.message
+          return nil
+        end
+        noun
       end
 
       # Returns all child templates from prefix
@@ -430,7 +480,23 @@ module ProjectRazor
             end
           end
         else
-          object_array = object_array.collect { |rule| rule.to_hash }
+          if @uri_root
+            object_array = object_array.collect do |object|
+              if object.class == ProjectRazor::SliceUtil::Common::ObjectTemplate ||
+                  object.class == ProjectRazor::SliceUtil::Common::ObjectPlugin
+                object.to_hash
+              else
+                obj_web = object.to_hash
+                obj_web.select! { |k, v| ["@uuid", "@classname"].include?(k) } unless object_array.count == 1
+                noun = get_noun(obj_web["@classname"])
+                obj_web["@uri"] = "#{@uri_root}#{noun}/#{obj_web["@uuid"]}" if noun
+                obj_web
+              end
+            end
+          else
+            object_array = object_array.collect { |object| object.to_hash }
+          end
+
           slice_success(object_array)
         end
       end
@@ -452,7 +518,7 @@ module ProjectRazor
         line_color = obj.line_color
         header_color = obj.header_color
         print_array.each_with_index do
-          |val, index|
+        |val, index|
           print_output << " " + "#{header[index]}".send(header_color)
           print_output << " => "
           print_output << " " + "#{val}".send(line_color) + "\n"

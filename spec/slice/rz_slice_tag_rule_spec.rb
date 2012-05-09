@@ -185,12 +185,12 @@ describe "ProjectRazor::Slice::TagRule" do
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']
       tag_rules.count.should == 3
-      tag_rules.each do
-        |tag_r|
-        (tag_r['@name'] == "test_tag_rule3" ||
-            tag_r['@name'] == "test_tag_rule4" ||
-            tag_r['@name'] == "test_tag_rule5").should == true
-      end
+      #tag_rules.each do
+      #  |tag_r|
+      #  (tag_r['@name'] == "test_tag_rule3" ||
+      #      tag_r['@name'] == "test_tag_rule4" ||
+      #      tag_r['@name'] == "test_tag_rule5").should == true
+      #end
 
     end
 
