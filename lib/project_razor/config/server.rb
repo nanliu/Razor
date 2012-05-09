@@ -77,7 +77,7 @@ module ProjectRazor
                                    "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)","(.*json_str$)"]
         @mk_fact_excl_pattern = fact_excl_pattern_array.join("|")
         @mk_log_level = "Logger::ERROR"
-        @mk_tce_mirror_uri = "http://localhost:#{@mk_tce_mirror_port}/tinycorelinux"
+        @mk_tce_mirror_uri = "http://localhost:#{@mk_tce_mirror_port}"
         @mk_tce_install_list_uri = @mk_tce_mirror_uri + "/tce-install-list"
         @mk_kmod_install_list_uri = @mk_tce_mirror_uri + "/kmod-install-list"
 
