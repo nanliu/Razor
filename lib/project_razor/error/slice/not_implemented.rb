@@ -5,14 +5,13 @@
 module ProjectRazor
   module Error
     module Slice
-      # Error class representing a bad request such as:
-      # * missing information
-      class BadRequest< ProjectRazor::Error::Slice::Generic
+      # Error class representing a request that was missing a value
+      class NotImplemented < ProjectRazor::Error::Slice::Generic
 
         def initialize(message)
           super(message)
-          @http_err = :bad_request
-          @std_err = 4
+          @http_err = :forbidden
+          @std_err = 7
         end
 
       end

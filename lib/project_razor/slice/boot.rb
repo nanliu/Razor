@@ -28,7 +28,7 @@ module ProjectRazor
         @command = :boot_call
 
         # This is only REST API.
-        raise ProjectRazor::Error::Slice::BadRequest, "Not implmeented for CLI." unless @web_command
+        raise ProjectRazor::Error::Slice::NotImplemented, "Not implemented for CLI." unless @web_command
 
         begin
           # Grab next arg as json string var
@@ -44,7 +44,7 @@ module ProjectRazor
           return
         end
 
-        raise ProjectRazor::Error::Slice::BadRequest, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
 
         @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
         unless @hw_id.count > 0

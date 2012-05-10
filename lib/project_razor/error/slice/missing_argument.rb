@@ -5,7 +5,7 @@
 module ProjectRazor
   module Error
     module Slice
-      # Error class representing a request that was intended to include an UUID and didn't
+      # Error class representing a request that was missing a value
       class MissingArgument < ProjectRazor::Error::Slice::Generic
 
         def initialize(message)
