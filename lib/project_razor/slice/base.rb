@@ -18,6 +18,7 @@ module ProjectRazor
     # @author Nicholas Weaver
     class Base < ProjectRazor::Object
       include(ProjectRazor::SliceUtil::Common)
+      include(ProjectRazor::Logging)
 
       # Bool for indicating whether this was driven from Node.js
       attr_accessor :command_array, :slice_name, :slice_commands, :web_command, :hidden
@@ -42,15 +43,14 @@ module ProjectRazor
       # Used by {./bin/project_razor}
       # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
+        begin
         # Switch command/arguments to lower case
         # @command_array.map! {|x| x.downcase}
         if @new_slice_style
           @command_hash = @slice_commands
-          new_slice_call
+            new_slice_call
           return
         end
-
-
 
         # First var in array should be our root command
         @command = @command_array.shift
@@ -78,9 +78,14 @@ module ProjectRazor
               @command_array.unshift(@command) # Add the command back as it is a arg for :else now
               self.send(@slice_commands[:else])
             else
-              slice_error("InvalidCommand")
+              raise ProjectRazor::Error::Slice::InvalidCommand, "Invalid Command [#{@command}]"
             end
           end
+        end
+
+        rescue => e
+
+          slice_error(e)
         end
       end
 
@@ -103,7 +108,7 @@ module ProjectRazor
             return
           else
             #puts "No (default) action defined"
-            slice_error("System Error: no default action for slice")
+            raise ProjectRazor::Error::Slice::Generic, "No Default Action"
             return
           end
         end
@@ -116,11 +121,8 @@ module ProjectRazor
           return
         end
 
-
-
         @command_hash.each do
         |k,v|
-
           case k.class.to_s
             when "Symbol"
               #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(Symbol)"
@@ -172,7 +174,6 @@ module ProjectRazor
           slice_error("System Error: no else action for slice")
           return
         end
-
       end
 
       def eval_command_array(command_array)
@@ -191,7 +192,6 @@ module ProjectRazor
         end
         false
       end
-
 
       def eval_action(command_action)
         case command_action.class.to_s
@@ -215,11 +215,8 @@ module ProjectRazor
             #puts "Unknown command, throwing error"
             #puts command_action.class.to_s
             raise "InvalidActionSlice"
-
         end
       end
-
-
 
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
@@ -229,6 +226,7 @@ module ProjectRazor
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
         return_hash["result"] = "success"
+        return_hash["http_err_code"] = 200
         return_hash["errcode"] = 0
         return_hash["response"] = response
         setup_data
@@ -247,14 +245,25 @@ module ProjectRazor
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
       def slice_error(error, mk_response = false)
-        @command = "null" if @command == nil
-
+        setup_data
         return_hash = {}
+        log_level = :error
+        if error.class.ancestors.include?(ProjectRazor::Error::Slice::Generic)
+          return_hash["std_err_code"] = error.std_err
+          return_hash["result"] = error.message
+          return_hash["http_err_code"] = error.http_err_code
+          log_level = error.log_severity
+        else
+          # We use old style if error is String
+          return_hash["std_err_code"] = 1
+          return_hash["result"] = error
+          logger.error "Slice error: #{return_hash.inspect}"
+
+        end
+
+        @command = "null" if @command == nil
         return_hash["slice"] = self.class.to_s
         return_hash["command"] = @command
-        return_hash["errcode"] = 1
-        return_hash["result"] = error
-        setup_data
         return_hash["client_config"] = @data.config.get_client_config_hash if mk_response
         if @web_command
           puts JSON.dump(return_hash)
@@ -265,7 +274,7 @@ module ProjectRazor
             available_commands(return_hash)
           end
         end
-        logger.error "Slice error: #{return_hash.inspect}"
+        logger.send log_level, "Slice Error: #{return_hash["result"]}"
       end
 
       # Prints available commands to CLI for slice
@@ -290,7 +299,6 @@ module ProjectRazor
           print "[#{@slice_name.capitalize}] "
           print "[#{return_hash["command"]}] ".red
           print "<-#{return_hash["result"]}\n".yellow
-          #puts "\nCommand syntax:" + " #{@slice_commands_help[@command]}".red + "\n" unless @slice_commands_help[@command] == nil
         end
         @command_hash[:help] = "n/a" unless @command_hash[:help]
         if @command_help_text
@@ -304,8 +312,6 @@ module ProjectRazor
       def setup_data
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
-
-
     end
   end
 end

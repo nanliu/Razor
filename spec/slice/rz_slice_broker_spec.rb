@@ -128,7 +128,7 @@ describe "ProjectRazor::Slice::Broker" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_get}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['errcode'].should == 1
+      res_hash['errcode'].should_not == 0
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/#{$broker_uuid_post}"
       res = Net::HTTP.get(uri)
@@ -138,7 +138,7 @@ describe "ProjectRazor::Slice::Broker" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_post}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['errcode'].should == 1
+      res_hash['errcode'].should_not == 0
 
     end
 

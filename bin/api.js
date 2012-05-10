@@ -42,7 +42,6 @@ app.get('/razor/api/*',
         }
         query_param = "'" + JSON.stringify(req.query) + "'";
         console.log(razor_bin + args_string + query_param);
-        //process.stdout.write('\033[2J\033[0;0H'); - screen clearing trick
         exec(razor_bin + args_string + query_param, function (err, stdout, stderr) {
             returnResult(res, stdout);
         });
@@ -85,16 +84,23 @@ app.get('/*',
     });
 
 function returnResult(res, json_string) {
-//    return_obj = JSON.parse(json_string);
-//
-//    if (return_obj['errcode'] == 0) {
+    var return_obj;
+    var http_err_code;
+    try
+    {
+        return_obj = JSON.parse(json_string);
+        http_err_code = return_obj['http_err_code'];
+        res.writeHead(http_err_code, {'Content-Type': 'json/application'});
+        res.end(json_string);
+    }
+    catch(err)
+    {
+        // Parsing Error | Razor sent us something wrong - we just assume output
         res.send(json_string, 200, {"Content-Type": "json/application"});
-//    } else {
-//        res.send(json_string, 400, {"Content-Type": "json/application"});
-//    }
+    }
 }
 
-function getArguments(args_array) {
+function getArguments(args) {
     var arg_string = " ";
     for (x = 0; x < args.length; x++) {
         arg_string = arg_string + args[x] + " "

@@ -41,14 +41,9 @@ module ProjectRazor
       def get_node_with_uuid
         @command = :get_node_with_uuid
         @command_help_text = "razor node [get] (uuid)"
-        @arg = @command_array.shift
-        node = get_object("node_with_uuid", :node, @arg)
-        case node
-          when nil
-            slice_error("Cannot Find Node with UUID: [#@arg]")
-          else
-            print_object_array [node]
-        end
+        node = get_object("node_with_uuid", :node, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
+        print_object_array [node]
       end
 
       def get_node_attributes
