@@ -71,7 +71,7 @@ module ProjectRazor
         setup_data
         model = @data.fetch_object_by_uuid(:model, model_uuid)
 
-        unless models
+        unless model
           slice_error("CannotFindModelConfig")
           get_models
           return
