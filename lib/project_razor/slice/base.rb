@@ -171,7 +171,7 @@ module ProjectRazor
           return eval_action(@command_hash[:else])
         else
           #puts "No (else) action defined"
-          slice_error("System Error: no else action for slice")
+          raise ProjectRazor::Error::Slice::InvalidCommand, "System Error: no else action for slice"
           return
         end
       end
