@@ -44,48 +44,51 @@ module ProjectRazor
       # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
         begin
-        # Switch command/arguments to lower case
-        # @command_array.map! {|x| x.downcase}
-        if @new_slice_style
-          @command_hash = @slice_commands
+          # Switch command/arguments to lower case
+          # @command_array.map! {|x| x.downcase}
+          if @new_slice_style
+            @command_hash = @slice_commands
             new_slice_call
-          return
-        end
-
-        # First var in array should be our root command
-        @command = @command_array.shift
-        # check command and route based on it
-        flag = false
-        @command = "default" if @command == nil
-
-        @slice_commands.each_pair do
-        |cmd_string, method|
-          if @command == cmd_string.to_s
-            logger.debug "Slice command called: #{@command}"
-            self.send(method)
-            flag = true
+            return
           end
-        end
 
-        if @command == "help"
-          available_commands(nil)
-        else
-          # If we haven't called a command we need to either call :else or return an error
-          if !flag
-            # Check if there is an else catch for the slice
-            if @slice_commands[:else]
-              logger.debug "Slice command called: Else"
-              @command_array.unshift(@command) # Add the command back as it is a arg for :else now
-              self.send(@slice_commands[:else])
-            else
-              raise ProjectRazor::Error::Slice::InvalidCommand, "Invalid Command [#{@command}]"
+          # First var in array should be our root command
+          @command = @command_array.shift
+          # check command and route based on it
+          flag = false
+          @command = "default" if @command == nil
+
+          @slice_commands.each_pair do
+          |cmd_string, method|
+            if @command == cmd_string.to_s
+              logger.debug "Slice command called: #{@command}"
+              self.send(method)
+              flag = true
             end
           end
-        end
+
+          if @command == "help"
+            available_commands(nil)
+          else
+            # If we haven't called a command we need to either call :else or return an error
+            if !flag
+              # Check if there is an else catch for the slice
+              if @slice_commands[:else]
+                logger.debug "Slice command called: Else"
+                @command_array.unshift(@command) # Add the command back as it is a arg for :else now
+                self.send(@slice_commands[:else])
+              else
+                raise ProjectRazor::Error::Slice::InvalidCommand, "Invalid Command [#{@command}]"
+              end
+            end
+          end
 
         rescue => e
-
-          slice_error(e)
+          if @debug
+            raise e
+          else
+            slice_error(e)
+          end
         end
       end
 
@@ -306,6 +309,23 @@ module ProjectRazor
         else
           puts "\nCommand help:  " +  @command_hash[:help]
         end
+      end
+
+      def load_slice_commands
+        #begin
+        @slice_commands = YAML.load(File.read(slice_commands_file))
+        #rescue => e
+        #  raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
+        #end
+      end
+
+      def save_slice_commands
+        f = File.new(slice_commands_file,  "w+")
+        f.write(YAML.dump(@slice_commands))
+      end
+
+      def slice_commands_file
+        File.join(File.dirname(__FILE__), "#{@slice_name.downcase}/commands.yaml")
       end
 
       # Initializes [ProjectRazor::Data] in not already instantiated

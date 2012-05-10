@@ -5,27 +5,27 @@
 module ProjectRazor::Error::Slice
   # Error class representing a bad request such as:
   # * missing information
-  class BadRequest < ProjectRazor::Error::Slice::Generic
+  class UserInput < ProjectRazor::Error::Slice::Generic
     def initialize(message)
-      super("Bad request: #{message}")
+      super("Input Error: #{message}")
       @http_err = :bad_request
       @std_err = 4
     end
   end
 
-  class MissingArgument < ProjectRazor::Error::Slice::BadRequest
+  class MissingArgument < ProjectRazor::Error::Slice::UserInput
     def initialize(message)
       super("missing argument #{message}")
     end
   end
 
-  class InvalidPlugin < ProjectRazor::Error::Slice::BadRequest
+  class InvalidPlugin < ProjectRazor::Error::Slice::UserInput
     def initialize(message)
       super("invalid plugin #{message}")
     end
   end
 
-  class InvalidTemplate < ProjectRazor::Error::Slice::BadRequest
+  class InvalidTemplate < ProjectRazor::Error::Slice::UserInput
     def initialize(message)
       super("invalid template #{message}")
     end
