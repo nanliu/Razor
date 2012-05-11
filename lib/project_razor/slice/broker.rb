@@ -60,6 +60,7 @@ module ProjectRazor
         @command_help_text = "razor broker get all|plugin|(uuid)"
         @arg = @command_array.shift
         broker = get_object("broker instances", :broker, @arg)
+
         raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#@arg]" unless broker
         print_object_array [broker]
       end
