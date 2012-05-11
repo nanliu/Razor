@@ -182,7 +182,7 @@ module ProjectRazor
         @hidden = false
         @new_slice_style = true # switch to new slice style
 
-        # define a couple of "help strings" (for the tail and filter commands)
+        # define a few "help strings" (for the tail and filter commands)
         tail_help_str = "razor logviewer tail [NLINES] [filter EXPR]"
         filter_help_str = "razor logviewer filter EXPR [tail [NLINES]]"
         general_help_str = "razor logviewer [tail [NLINES]] [filter EXPR]"

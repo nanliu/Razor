@@ -519,9 +519,17 @@ module ProjectRazor
         header_color = obj.header_color
         print_array.each_with_index do
         |val, index|
-          print_output << " " + "#{header[index]}".send(header_color)
+          if header_color
+            print_output << " " + "#{header[index]}".send(header_color)
+          else
+            print_output << " " + "#{header[index]}"
+          end
           print_output << " => "
-          print_output << " " + "#{val}".send(line_color) + "\n"
+          if line_color
+            print_output << " " + "#{val}".send(line_color) + "\n"
+          else
+            print_output << " " + "#{val}" + "\n"
+          end
         end
         print_output
       end
