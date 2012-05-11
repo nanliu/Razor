@@ -140,7 +140,7 @@ module ProjectRazor
               else
                 setup_data
                 @data.delete_object_by_uuid(:broker, @arg)
-                slice_success("Broker deleted")
+                slice_success("Broker Deleted", :type => :removed)
             end
         end
       end

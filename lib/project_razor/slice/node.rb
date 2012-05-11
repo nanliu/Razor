@@ -1,13 +1,10 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
-require "json"
-
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
   module Slice
-
     # ProjectRazor Slice Node (NEW)
     # Used for policy management
     # @author Nicholas Weaver
@@ -90,7 +87,7 @@ module ProjectRazor
         @new_node.attributes_hash = @attributes_hash
         @new_node.last_state = @last_state
         raise ProjectRazor::Error::Slice::CouldNotRegisterNode, "Could not register node" unless @new_node.update_self
-        slice_success(@new_node.to_hash, true)
+        slice_success(@new_node.to_hash, :mk_command => true)
       end
 
       def checkin_node
@@ -118,9 +115,9 @@ module ProjectRazor
         @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
         if @new_node
           command = @engine.mk_checkin(@new_node.uuid, @last_state)
-          return slice_success(command, true)
+          return slice_success(command, :mk_command => true)
         end
-        slice_success(@engine.mk_command(:register,{}), true)
+        slice_success(@engine.mk_command(:register,{}), :mk_command => true)
       end
     end
   end

@@ -57,10 +57,10 @@ module ProjectRazor
                 get_path_with_uuid(@arg)
             end
           else
-            slice_error("MissingArgument", false)
+            slice_error("MissingArgument")
           end
         else
-          slice_error("NotImplemented", false)
+          slice_error("NotImplemented")
         end
       end
 
@@ -75,19 +75,19 @@ module ProjectRazor
             setup_data
             case @option
               when "kernel"
-                slice_success(default_mk_image.kernel_path,false)
+                slice_success(default_mk_image.kernel_path)
 
               when "initrd"
-                slice_success(default_mk_image.initrd_path,false)
+                slice_success(default_mk_image.initrd_path)
 
               else
-                slice_error("MissingOption", false)
+                slice_error("MissingOption")
             end
           else
-            slice_error("MissingOption", false)
+            slice_error("MissingOption")
           end
         else
-          slice_error("NoMKLoaded", false)
+          slice_error("NoMKLoaded")
         end
       end
 
@@ -95,7 +95,7 @@ module ProjectRazor
         @image_uuid = uuid
 
         unless validate_arg(@image_uuid)
-          slice_error("InvalidImageUUID", false)
+          slice_error("InvalidImageUUID")
           return
         end
 
@@ -105,7 +105,7 @@ module ProjectRazor
         @image = @data.fetch_object_by_uuid(:images, @image_uuid)
 
         unless @image != nil
-          slice_error("CannotFindImage", false)
+          slice_error("CannotFindImage")
           return
         end
 
@@ -114,7 +114,7 @@ module ProjectRazor
         @command_array.each do
         |a|
           unless /^[^ \/\\]+$/ =~ a
-            slice_error("InvalidPathItem", false)
+            slice_error("InvalidPathItem")
             return
           end
         end
@@ -133,7 +133,7 @@ module ProjectRazor
       #Lists images
       def list_images
         if @web_command
-          slice_error("CLIOnlySlice", false)
+          slice_error("CLIOnlySlice")
         else
           print_images get_object("images", :images)
         end
@@ -153,20 +153,20 @@ module ProjectRazor
                                :classname => "ProjectRazor::ImageService::VMwareHypervisor",
                                :method => "add_esxi"}}
         if @web_command
-          slice_error("CLIOnlySlice", false)
+          slice_error("CLIOnlySlice")
         else
 
           image_type = @command_array.shift
 
           unless check_against_types(image_type, image_types)
             print_types(image_types)
-            slice_error("InvalidImageType", false)
+            slice_error("InvalidImageType")
             return
           end
 
           iso_path = @command_array.shift
           unless iso_path != nil && iso_path != ""
-            slice_error("NoISOProvided", false)
+            slice_error("NoISOProvided")
             return
           end
 
@@ -178,13 +178,13 @@ module ProjectRazor
           res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
 
           unless res[0]
-            slice_error(res[1], false)
+            slice_error(res[1])
             return
           end
 
 
           unless insert_image(new_image)
-            slice_error("CouldNotSaveImage", false)
+            slice_error("CouldNotSaveImage")
             return
           end
 
@@ -255,17 +255,17 @@ module ProjectRazor
         @command = :remove
 
         if @web_command
-          slice_error("CLIOnlySlice", false)
+          slice_error("CLIOnlySlice")
         else
           image_uuid = @command_array.shift
           if image_uuid == nil
-            slice_error("NoUUIDProvided", false)
+            slice_error("NoUUIDProvided")
             return
           else
             setup_data
             image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
             if image_selected == nil
-              slice_error("NoImageFoundWithUUID", false)
+              slice_error("NoImageFoundWithUUID")
               return
             else
 
@@ -273,15 +273,15 @@ module ProjectRazor
 
               if image_selected.remove(@data.config.image_svc_path)
                 if @data.delete_object(image_selected)
-                  slice_success("",false)
+                  slice_success("")
                   puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
                   return
                 else
-                  slice_error("CannotRemoveImageFromDB", false)
+                  slice_error("CannotRemoveImageFromDB")
                   return
                 end
               else
-                slice_error("CannotRemoveImagePath", false)
+                slice_error("CannotRemoveImagePath")
                 return
               end
             end

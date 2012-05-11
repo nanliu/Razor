@@ -224,12 +224,18 @@ module ProjectRazor
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
       # @param [Hash] response
-      def slice_success(response, mk_response = false)
+      def slice_success(response, options = {})
+        mk_response = options[:mk_response] ? options[:mk_response] : false
+        type = options[:success_type] ? options[:success_type] : :generic
+
+        # Slice Success types
+        # Created, Updated, Removed, Retrieved. Generic
+
         return_hash = {}
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
-        return_hash["result"] = "success"
-        return_hash["http_err_code"] = 200
+        return_hash["result"] = success_types[type][:message]
+        return_hash["http_err_code"] = success_types[type][:http_code]
         return_hash["errcode"] = 0
         return_hash["response"] = response
         setup_data
@@ -238,16 +244,38 @@ module ProjectRazor
           puts JSON.dump(return_hash)
         else
           print "\n\n#{@slice_name.capitalize}"
-          print " #{return_hash["command"]}"
-          print " #{return_hash["result"]}\n"
+          print " #{return_hash["command"]}\n"
+          print " #{return_hash["response"]}\n"
         end
         logger.debug "(#{return_hash["resource"]}  #{return_hash["command"]}  #{return_hash["result"]})"
+      end
+
+      def success_types
+        {
+            :generic => {
+                :http_code => 200,
+                :message => "Ok"
+            },
+            :created => {
+                :http_code => 201,
+                :message => "Created"
+            },
+            :updated => {
+                :http_code => 202,
+                :message => "Updated"
+            },
+            :removed => {
+                :http_code => 202,
+                :message => "Removed"
+            }
+        }
       end
 
       # Called when a slice action triggers an error
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
-      def slice_error(error, mk_response = false)
+      def slice_error(error, options = {})
+        mk_response = options[:mk_response] ? options[:mk_response] : false
         setup_data
         return_hash = {}
         log_level = :error

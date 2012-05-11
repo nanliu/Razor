@@ -79,6 +79,33 @@ module ProjectRazor
         end
       end
 
+      def get_web_vars(vars_array)
+          json_string = @command_array.first
+          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
+          return nil unless is_valid_json?(json_string)
+          vars_hash = sanitize_hash(JSON.parse(json_string))
+          vars_found_array = []
+          vars_array.each do
+            |vars_name|
+            vars_found_array << vars_hash[vars_name]
+          end
+          vars_found_array
+      end
+
+      def get_cli_vars(vars_array)
+        vars_found_array = []
+        vars_array.each do
+        |vars_name|
+          var_value = nil
+          @command_array.each do
+            |arg|
+            var_value = arg.sub(/^#{vars_name}=/,"") if arg.start_with?(vars_name)
+          end
+          vars_found_array << var_value
+        end
+        vars_found_array
+      end
+
       def get_noun(classname)
         noun = nil
         begin
@@ -497,7 +524,7 @@ module ProjectRazor
             object_array = object_array.collect { |object| object.to_hash }
           end
 
-          slice_success(object_array)
+          slice_success(object_array, options)
         end
       end
 

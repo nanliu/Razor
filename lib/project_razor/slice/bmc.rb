@@ -77,17 +77,17 @@ module ProjectRazor
                 new_bmc = insert_bmc(details)
 
                 if new_bmc.refresh_self
-                  slice_success(new_bmc.to_hash, false)
+                  slice_success(new_bmc.to_hash)
                 else
                   logger.error "Could not register bmc"
-                  slice_error("CouldNotRegister", false)
+                  slice_error("CouldNotRegister")
                 end
               else
                 logger.error "Incomplete bmc details"
-                slice_error("IncompleteDetails", false)
+                slice_error("IncompleteDetails")
               end
             rescue StandardError => e
-              slice_error(e.message, false)
+              slice_error(e.message)
             end
           end
         end
@@ -204,14 +204,14 @@ module ProjectRazor
                   p output
                 else
                   logger.error output
-                  slice_error("IpmiCommandFailed", false)
+                  slice_error("IpmiCommandFailed")
                 end
               else
                 logger.error "Incomplete bmc details"
-                slice_error("IncompleteDetails", false)
+                slice_error("IncompleteDetails")
               end
             rescue StandardError => e
-              slice_error(e.message, false)
+              slice_error(e.message)
             end
           end
         end
@@ -253,47 +253,47 @@ module ProjectRazor
                 case new_state
                   when new_state = "on"
                     if power_state_changed && /Up\/On/.match(status_string)
-                      slice_success("Node #{details['@uuid']} now powering on", false)
+                      slice_success("Node #{details['@uuid']} now powering on")
                     elsif !power_state_changed && /Up\/On/.match(status_string)
-                      slice_success("Node #{details['@uuid']} already powered on", false)
+                      slice_success("Node #{details['@uuid']} already powered on")
                     else
                       logger.error "Could not power on bmc"
-                      slice_error("CouldNotPowerOn", false)
+                      slice_error("CouldNotPowerOn")
                     end
                   when new_state = "off"
                     if power_state_changed && /Down\/Off/.match(status_string)
-                      slice_success("Node #{details['@uuid']} now powering off", false)
+                      slice_success("Node #{details['@uuid']} now powering off")
                     elsif !power_state_changed && /Down\/Off/.match(status_string)
-                      slice_success("Node #{details['@uuid']} already powered off", false)
+                      slice_success("Node #{details['@uuid']} already powered off")
                     else
                       logger.error "Could not power off bmc"
-                      slice_error("CouldNotPowerOff", false)
+                      slice_error("CouldNotPowerOff")
                     end
                   when new_state = "cycle"
                     if power_state_changed && /Cycle/.match(status_string)
-                      slice_success("Node #{details['@uuid']} now power cycling", false)
+                      slice_success("Node #{details['@uuid']} now power cycling")
                     elsif !power_state_changed && /Off/.match(status_string)
-                      slice_error("Node #{details['@uuid']} powered off, cannot power cycle", false)
+                      slice_error("Node #{details['@uuid']} powered off, cannot power cycle")
                     else
                       logger.error "Could not power off bmc"
-                      slice_error("CouldNotPowerOff", false)
+                      slice_error("CouldNotPowerOff")
                     end
                   when new_state = "reset"
                     if power_state_changed && /Reset/.match(status_string)
-                      slice_success("Node #{details['@uuid']} now powering off", false)
+                      slice_success("Node #{details['@uuid']} now powering off")
                     elsif !power_state_changed && /Off/.match(status_string)
-                      slice_error("Node #{details['@uuid']} powered off, cannot reset", false)
+                      slice_error("Node #{details['@uuid']} powered off, cannot reset")
                     else
                       logger.error "Could not power off bmc"
-                      slice_error("CouldNotPowerOff", false)
+                      slice_error("CouldNotPowerOff")
                     end
                 end
               else
                 logger.error "Incomplete bmc details"
-                slice_error("IncompleteDetails", false)
+                slice_error("IncompleteDetails")
               end
             rescue StandardError => e
-              slice_error(e.message, false)
+              slice_error(e.message)
             end
           end
         end
