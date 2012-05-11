@@ -45,7 +45,7 @@ module ProjectRazor
                                         :off => "change_bmc_power_state",
                                         :cycle => "change_bmc_power_state",
                                         :reset => "change_bmc_power_state",
-                                        :status => 'run_ipmi_query_cmd',
+                                        :status => "run_ipmi_query_cmd",
                                         :default => :help,
                                         :else => :help,
                                         :help => power_help_string},
@@ -91,7 +91,6 @@ module ProjectRazor
           command_args_array = get_command_array_args
           @uuid, @mac, @ip, @current_power_state = parse_bmc_metadata_args(command_args_array)
         end
-        puts "At 2...@uuid=#{@uuid}; @mac=#{@mac}; @ip=#{@ip}; current_power_state=#{@current_power_state}"
         begin
           # if we have the details we need, then insert this bmc into the database (or
           # update the matching bmc object, if one exists)
@@ -146,7 +145,6 @@ module ProjectRazor
         command_query_type = @prev_args.peek(1)
         command_query_string = @prev_args.look
         command_args_array = get_command_array_args
-        puts "At 3... command_query_type = #{command_query_type}; command_query_string = #{command_query_string}; command_args_array = #{command_args_array.inspect}"
         return
         if @command_query_string == "{}"
           logger.error "Missing Identifier/Filter-Expression"
@@ -201,7 +199,6 @@ module ProjectRazor
         end
         new_state = @prev_args.look
         command_args_array = get_command_array_args
-        puts "At 4... new_state = #{new_state}; command_args_array = #{command_args_array.inspect}"
         return
         if command_query_string == "{}"
           logger.error "Missing Identifier/Filter-Expression"
