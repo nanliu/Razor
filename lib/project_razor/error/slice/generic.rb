@@ -11,7 +11,7 @@ module ProjectRazor
         def initialize(message)
           super(message)
           @http_err = :forbidden
-          @std_err = ProjectRazor::Error.error_number
+          @std_err = 1
         end
 
       end
