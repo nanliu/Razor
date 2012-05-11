@@ -39,7 +39,7 @@ module ProjectRazor
                                       :chassis_status => "run_ipmi_query_cmd",
                                       :all => "query_bmc",
                                       :default => "query_bmc",
-                                      :else => :help,
+                                      :else => "query_bmc_by_uuid",
                                       :help => get_help_string},
                             :power => { :on => "change_bmc_power_state",
                                         :off => "change_bmc_power_state",

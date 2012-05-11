@@ -496,7 +496,7 @@ module ProjectRazor
           else
             object_array = object_array.collect { |object| object.to_hash }
           end
-          object_array = object_array.shift if object_array.size == 1
+
           slice_success(object_array)
         end
       end
