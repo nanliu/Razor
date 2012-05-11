@@ -58,7 +58,7 @@ module ProjectRazor
                                       :else => :help,
                                       :help => fru_help_string},
                             :default => "query_bmc",
-                            :else => :help,
+                            :else => "query_bmc_by_uuid",
                             :help => general_help_string}
         @slice_name = "Bmc"
         data = ProjectRazor::Data.new
@@ -361,6 +361,18 @@ module ProjectRazor
           }
         end
         print_object_array get_object("bmc", :bmc), "Bmc Nodes"
+      end
+
+      def query_bmc_by_uuid
+        setup_data
+        @uuid = @command_array.shift unless @uuid
+        matching_bmc = @data.fetch_object_by_uuid(:bmc, @uuid)
+        if matching_bmc
+          bmc_array = [matching_bmc]
+          print_object_array bmc_array, "Bmc Nodes"
+        else
+          slice_error("NoMatchingBMC")
+        end
       end
 
       # return the remainder of the @command_array string as an array of arguments; Note that calling
