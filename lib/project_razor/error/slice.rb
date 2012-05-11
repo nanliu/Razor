@@ -14,9 +14,11 @@ module ProjectRazor
         [ 'MissingArgument'           , 114 , {'@http_err'=>:bad_request}           , ''          , 'ProjectRazor::Error::Slice::InputError' ],
         [ 'InvalidCommand'            , 115 , {'@http_err'=>:bad_request}           , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'InvalidUUID'               , 116 , {'@http_err'=>:bad_request}           , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+        [ 'CommandFailed'             , 117 , {'@http_err'=>:bad_request}           , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'SliceCommandParsingFailed' , 121 , {'@http_err'=>:not_found}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'NotFound'                  , 122 , {'@http_err'=>:not_found}             , 'Not found' , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'CouldNotRegisterNode'      , 123 , {'@http_err'=>:not_found}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+        [ 'CouldNotRegisterBmc'       , 124 , {'@http_err'=>:not_found}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'InternalError'             , 131 , {'@http_err'=>:internal_server_error} , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'NotImplemented'            , 141 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
       ].each do |err|
