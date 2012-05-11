@@ -6,12 +6,12 @@ module ProjectRazor
   module Error
     module Slice
       # Error class representing a request that was intended to include an UUID and didn't
-      class MissingUUID < ProjectRazor::Error::Slice::Generic
+      class CouldNotRegisterNode < ProjectRazor::Error::Slice::Generic
 
         def initialize(message)
           super(message)
-          @http_err = :bad_request
-          @std_err = 4
+          @http_err = :not_found
+          @std_err = 6
         end
 
       end
