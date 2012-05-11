@@ -3,7 +3,7 @@
 
 require_rel "slice/"
 
-module ProjectRazor::Error::Slice
+module ProjectRazor
   module Error
     module Slice
 

@@ -84,8 +84,6 @@ module ProjectRazor
           end
 
         rescue => e
-          puts e.backtrace
-
           if @debug
             raise e
           else
