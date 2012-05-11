@@ -130,14 +130,14 @@ module ProjectRazor
                 return
               end
             else
-              slice_error("MissingProperties", false)
+              slice_error("MissingProperties")
             end
           rescue => e
-            slice_error(e.message, false)
+            slice_error(e.message)
           end
 
         else
-          slice_error("MissingAttributes", false)
+          slice_error("MissingAttributes")
         end
       end
 
