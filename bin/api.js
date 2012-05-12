@@ -90,13 +90,13 @@ function returnResult(res, json_string) {
     {
         return_obj = JSON.parse(json_string);
         http_err_code = return_obj['http_err_code'];
-        res.writeHead(http_err_code, {'Content-Type': 'json/application'});
+        res.writeHead(http_err_code, {'Content-Type': 'application/json'});
         res.end(json_string);
     }
     catch(err)
     {
         // Parsing Error | Razor sent us something wrong - we just assume output
-        res.send(json_string, 200, {"Content-Type": "json/application"});
+        res.send(json_string, 200, {"Content-Type": "application/json"});
     }
 }
 

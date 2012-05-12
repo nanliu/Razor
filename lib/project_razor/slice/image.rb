@@ -83,9 +83,9 @@ module ProjectRazor
         setup_data
         case @option
         when "kernel"
-          slice_success(default_mk_image.kernel_path,false)
+          slice_success(default_mk_image.kernel_path)
         when "initrd"
-          slice_success(default_mk_image.initrd_path,false)
+          slice_success(default_mk_image.initrd_path)
         else
           raise ProjectRazor::Error::Slice::InvalidArgument, @option
         end
@@ -228,7 +228,7 @@ module ProjectRazor
 
         raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image path' unless image_selected.remove(@data.config.image_svc_path)
         if @data.delete_object(image_selected)
-          slice_success("",false)
+          slice_success("")
           puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
         else
           raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image from db'

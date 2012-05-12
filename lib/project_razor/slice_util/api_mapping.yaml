@@ -10,7 +10,7 @@
 - :namespace: ProjectRazor::PowerControl::Bmc
   :noun: bmc
 - :namespace: ProjectRazor::Tagging::TagRule
-  :noun: tag/rule
+  :noun: tag
 - :namespace: ProjectRazor::Tagging::TagMatcher
   :noun: tag/matcher
 - :namespace: ProjectRazor::Config

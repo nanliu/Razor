@@ -159,17 +159,17 @@ module ProjectRazor
               if @data.persist_object(new_tag_rule) != nil
                 print_tag_rule [new_tag_rule]
               else
-                slice_error("CouldNotCreateTagRule", false)
+                slice_error("CouldNotCreateTagRule")
               end
             else
-              slice_error("MissingProperties", false)
+              slice_error("MissingProperties")
             end
           rescue => e
-            slice_error(e.message, false)
+            slice_error(e.message)
           end
 
         else
-          slice_error("MissingAttributes", false)
+          slice_error("MissingAttributes")
         end
       end
 
@@ -192,9 +192,9 @@ module ProjectRazor
         end
 
         if @data.delete_object_by_uuid(:tag, tag_rule.uuid)
-          slice_success("TagRuleDeleted", false)
+          slice_success("TagRuleDeleted")
         else
-          slice_error("TagRuleCouldNotBeDeleted", false)
+          slice_error("TagRuleCouldNotBeDeleted")
         end
 
       end
