@@ -524,7 +524,7 @@ module ProjectRazor
             object_array = object_array.collect { |object| object.to_hash }
           end
 
-          slice_success(object_array, options)
+          slice_success(object_array)
         end
       end
 
