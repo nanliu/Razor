@@ -112,7 +112,12 @@ module ProjectRazor
         true
       end
 
-      def add_tag_matcher(key, value, compare, inverse)
+      def add_tag_matcher(options = {})
+        key = options[:key]
+        value = options[:value]
+        compare = options[:compare]
+        inverse = options[:inverse]
+        return false
         logger.debug "New tag matcher: '#{key}' #{compare} '#{value}' inverse:#{inverse.to_s}"
         if key.class == String && value.class == String
           if compare.to_s == "equal" || compare.to_s == "like"

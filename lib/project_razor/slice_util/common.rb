@@ -515,8 +515,8 @@ module ProjectRazor
               else
                 obj_web = object.to_hash
                 obj_web.select! { |k, v| ["@uuid", "@classname"].include?(k) } unless object_array.count == 1
-                noun = get_noun(obj_web["@classname"])
-                obj_web["@uri"] = "#{@uri_root}#{noun}/#{obj_web["@uuid"]}" if noun
+                add_uri_to_object_hash(obj_web)
+                iterate_obj(obj_web)
                 obj_web
               end
             end
@@ -526,6 +526,27 @@ module ProjectRazor
 
           slice_success(object_array, options)
         end
+      end
+
+      def iterate_obj(obj_hash)
+        obj_hash.each do
+          |k,v|
+          if obj_hash[k].class == Array
+            obj_hash[k].each do
+              |item|
+              if item.class == Hash
+                add_uri_to_object_hash(item)
+              end
+            end
+          end
+        end
+        obj_hash
+      end
+
+      def add_uri_to_object_hash(object_hash)
+        noun = get_noun(object_hash["@classname"])
+        object_hash["@uri"] = "#{@uri_root}#{noun}/#{object_hash["@uuid"]}" if noun
+        object_hash
       end
 
       def print_single_item(obj)

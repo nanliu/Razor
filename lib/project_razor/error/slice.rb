@@ -19,6 +19,7 @@ module ProjectRazor
         [ 'CouldNotRegisterNode'      , 123 , {'@http_err'=>:not_found}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'InternalError'             , 131 , {'@http_err'=>:internal_server_error} , ''          , 'ProjectRazor::Error::Slice::Generic' ],
         [ 'NotImplemented'            , 141 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+        [ 'CouldNotCreate'            , 124 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
       ].each do |err|
         ProjectRazor::Error.create_class *err
       end
