@@ -235,7 +235,6 @@ module ProjectRazor
           }
         rescue => e
           # if get to here, there was an issue reading the logfile, return the error
-          logger.error e.message
           raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
         end
 
@@ -262,7 +261,6 @@ module ProjectRazor
           end
           tail_of_file = tail_of_file_as_array(num_lines_tail)
         rescue => e
-          logger.error e.message
           raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
         end
         tail_of_file.each { |line|
@@ -369,7 +367,6 @@ module ProjectRazor
         rescue => e
           # if get to here, there was an issue parsing the filter criteria or
           # reading the logfile, return that error
-          logger.error e.message
           raise ProjectRazor::Error::Slice::InternalError, "error while filtering log file #{@logfile}; #{e.message}"
         end
 
@@ -417,7 +414,6 @@ module ProjectRazor
                                                method_name_match, log_message_match)
           }
         rescue => e
-          logger.error e.message
           raise ProjectRazor::Error::Slice::InternalError, "error while tailing, then filtering log file #{@logfile}; #{e.message}"
         end
 
@@ -439,8 +435,8 @@ module ProjectRazor
         # grab the next argument from the @command_array (which should be the command "tail")
         # and then grab the number of lines to tail.  If there is no "last argument", then
         # no number of lines were include, so just set the num_lines_tail to nil and move on
-        next_cmd = get_next_command_array_val
-        num_lines_tail_str = get_next_command_array_val
+        next_cmd = get_next_arg
+        num_lines_tail_str = get_next_arg
         num_lines_tail = (num_lines_tail_str ? num_lines_tail_str.to_i : nil)
         filter_expression = get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
         tail_of_file = []
@@ -448,7 +444,6 @@ module ProjectRazor
           cutoff_time = (elapsed_time_str ? get_cutoff_time(elapsed_time_str) : nil)
           tail_of_file = tail_of_file_as_array(num_lines_tail, filter_expression, cutoff_time)
         rescue => e
-          logger.error e.message
           raise ProjectRazor::Error::Slice::InternalError, "error while filtering, then tailing log file #{@logfile}; #{e.message}"
         end
         tail_of_file.each { |line|
@@ -499,7 +494,6 @@ module ProjectRazor
             when "d"
               offset = match_data[1].to_i * 3600 * 24
             else
-              logger.error "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
               raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
                     "Unrecognized suffix '#{match_data[2]}' in elapsed_time_str value '#{elapsed_time_str}'"
           end

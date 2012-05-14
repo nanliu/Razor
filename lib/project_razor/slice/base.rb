@@ -363,61 +363,6 @@ module ProjectRazor
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
 
-      # used to parse a set of name-value command-line arguments received
-      # as arguments to a slice "sub-command" and return those values to the
-      # caller.  If specified, the "expected_names" field can be used to restrict
-      # the names parsed to just those that are expected (useful for restricting
-      # the name/value pairs to just those that are "expected")
-      #
-      # @param [Object] expected_names  An array containing a list of field names
-      # to return (in the order in which they should be returned).  Any fields not
-      # in this list will result in an error being thrown by this method.
-      # @return [Hash] name/value pairs parsed from the command-line
-      def get_name_value_args(expected_names = nil)
-        # initialize the return values (to nil) by pre-allocating an appropriately size array
-        return_vals = {}
-        # parse the @command_array for "name=value" pairs
-        begin
-          # get the check the next value in the @command_array, continue only if
-          # it's a name/value pair in the format 'name=value'
-          name_val = @command_array[0]
-          # if we've reached the end of the @command_array, break out of the loop
-          break unless name_val
-          # if it's not in the format 'name=value' then break out of the loop
-          match = /([^=]+)=(.*)/.match(name_val)
-          break unless match
-          # since we've gotten this far, go ahead and shift the first value off
-          # of the @command_array (ensuring that the @last_arg and @prev_args
-          # variables are up to date as we do so)
-          @last_arg = @command_array.shift
-          @prev_args.push(@last_arg)
-          # break apart the match array into the name and value parts
-          name = match[1]
-          value = match[2]
-          # if a list of expected names was passed into the function, then test
-          # to see if this name is one of the expected names.  If it is in the list
-          # of expected names, continue, otherwise thrown an error.  If no expected_names
-          # list was passed in or if the value that was passed in has a zero length,
-          # then any name will be accepted (and any corresponding name/value pair will
-          # be returned)
-          idx = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
-          # and add this name/value pair to the return_vals Hash map
-          return_vals[name] = value
-        end while @command_array.size > 0     # continue as long as there are more arguments to parse
-        return return_vals
-      end
-
-      # returns the next argument from the @command_array (ensuring that the @last_arg and @prev_args
-      # instance variables are kept consistent as it does so)
-      def get_next_command_array_val
-        return_val = @command_array.shift
-        @last_arg = return_val
-        @prev_args.push(return_val)
-        return_val
-      end
-
     end
   end
 end

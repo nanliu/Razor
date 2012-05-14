@@ -150,7 +150,7 @@ module ProjectRazor
           sub_command = @prev_args.peek(1)      # will be a string like "get", "lan", "power", or "fru"
           sub_command_action = @prev_args.look
           ipmitool_cmd = map_to_ipmitool_cmd(sub_command, sub_command_action)
-          @uuid = get_next_command_array_val
+          @uuid = get_next_arg
         end
         raise ProjectRazor::Error::Slice::MissingArgument, "uuid value not specified" unless @uuid
         begin
@@ -192,7 +192,7 @@ module ProjectRazor
         end
         unless @uuid
           new_state = @prev_args.look
-          @uuid = get_next_command_array_val
+          @uuid = get_next_arg
         end
         raise ProjectRazor::Error::Slice::InvalidCommand, "missing details for command to change power state" unless
             new_state && new_state.length > 0
@@ -368,7 +368,7 @@ module ProjectRazor
       # This function is used to print out a single matching BMC object (where the match
       # is made based on the UUID value passed into the function)
       def query_bmc_by_uuid
-        @uuid = get_next_command_array_val unless @uuid
+        @uuid = get_next_arg unless @uuid
         matching_bmc = get_bmc(@uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{@uuid}') found" unless matching_bmc
         bmc_array = [matching_bmc]
