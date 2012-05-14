@@ -215,7 +215,7 @@ module ProjectRazor
                            :else => :help,
                            :help => general_help_str
         }
-        @slice_name = "Logviewer"
+        @slice_name = "Log"
         @logfile = File.join(get_logfile_path, "project_razor.log")
       end
 

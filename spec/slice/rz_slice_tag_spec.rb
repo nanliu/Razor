@@ -368,6 +368,19 @@ describe "ProjectRazor::Slice::TagRule" do
       node.tags.should == %W(RSPEC_TWO) # Only should be tagged with the third tag
     end
 
+    it "should be able to delete all tag rules from REST" do
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/all"
+      http = Net::HTTP.start(uri.host, uri.port)
+      res = http.send_request('DELETE', uri.request_uri)
+      res.class.should == Net::HTTPAccepted
+      response_hash = JSON.parse(res.body)
+
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag"
+      res = Net::HTTP.get(uri)
+      res_hash = JSON.parse(res)
+      res_hash['response'].count.should == 0
+    end
+
   end
 
 end

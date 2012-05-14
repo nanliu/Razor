@@ -11,6 +11,11 @@ describe ProjectRazor::Tagging::TagRule do
     @tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
   end
 
+  after(:all) do
+    @data.delete_all_objects(:tag)
+    @data.delete_all_objects(:node)
+  end
+
 
   it "should be able to create a tag rule" do
     @tag_rule.name.should == "RSpec Tag Rule #1"
