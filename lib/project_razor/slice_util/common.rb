@@ -80,7 +80,7 @@ module ProjectRazor
       end
 
       def get_web_vars(vars_array)
-          json_string = @command_array.first
+          json_string = @command_array.shift
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
           return nil unless is_valid_json?(json_string)
           vars_hash = sanitize_hash(JSON.parse(json_string))
@@ -190,6 +190,7 @@ module ProjectRazor
         if @web_command
           # Get request filter JSON string
           @filter_json_string = @command_array.shift
+          @filter_json_string = '{}' if @filter_json_string == 'null' # handles bad PUT requests
           # Check if we were passed a filter string
           if @filter_json_string != "{}" && @filter_json_string != nil
             @command = "query_with_filter"
@@ -579,7 +580,7 @@ module ProjectRazor
             object_array = object_array.collect { |object| object.to_hash }
           end
 
-          slice_success(object_array)
+          slice_success(object_array, options)
         end
       end
 
