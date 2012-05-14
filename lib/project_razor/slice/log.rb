@@ -220,236 +220,241 @@ module ProjectRazor
 
       # Prints the contents from the current razor logfile to the command line
       def view_razor_log
-        if @web_command
-          # if it's a web command, return an error indicating that this method is not
-          # yet implemented as a web command.  We'll probably have to work out a
-          # separate mechanism for feeding this information back to the Node.js
-          # instances as an ATOM feed of some sort
-          raise ProjectRazor::Error::Slice::NotImplemented, "no web interface exists for the Log slice commands"
-        else
-          # else, just read the logfile and print the contents to the command line
-          begin
-            File.open(@logfile, 'r').each_chunk { |chunk|
-              print chunk
-            }
-          rescue => e
-            # if get to here, there was an issue reading the logfile, return the error
-            logger.error e.message
-            raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
-          end
+
+        # if it's a web command, return an error indicating that this method is not
+        # yet implemented as a web command.  We'll probably have to work out a
+        # separate mechanism for feeding this information back to the Node.js
+        # instances as an ATOM feed of some sort
+        raise ProjectRazor::Error::Slice::NotImplemented,
+              "no web interface exists for the Log slice commands" if @web_command
+
+        # otherwise, just read the logfile and print the contents to the command line
+        begin
+          File.open(@logfile, 'r').each_chunk { |chunk|
+            print chunk
+          }
+        rescue => e
+          # if get to here, there was an issue reading the logfile, return the error
+          logger.error e.message
+          raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
         end
+
       end
 
       # Prints the tail of the current razor logfile to the command line
       def tail_razor_log
-        if @web_command
-          # if it's a web command, return an error indicating that this method is not
-          # yet implemented as a web command.  We'll probably have to work out a
-          # separate mechanism for feeding this information back to the Node.js
-          # instances as an ATOM feed of some sort
-          raise ProjectRazor::Error::Slice::NotImplemented, "no web interface exists for the Log slice commands"
-        else
-          # else, just read and print the tail of the logfile to the command line
-          tail_of_file = []
-          begin
-            last_arg = @prev_args.look
-            num_lines_tail = nil
-            # if the last argument is an integer, us it as the number of lines
-            if /[0-9]+/.match(last_arg)
-              num_lines_tail = last_arg.to_i
-            end
-            tail_of_file = tail_of_file_as_array(num_lines_tail)
-          rescue => e
-            logger.error e.message
-            raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
+
+        # if it's a web command, return an error indicating that this method is not
+        # yet implemented as a web command.  We'll probably have to work out a
+        # separate mechanism for feeding this information back to the Node.js
+        # instances as an ATOM feed of some sort
+        raise ProjectRazor::Error::Slice::NotImplemented,
+              "no web interface exists for the Log slice commands" if @web_command
+
+        # otherwise, just read and print the tail of the logfile to the command line
+        tail_of_file = []
+        begin
+          last_arg = @prev_args.look
+          num_lines_tail = nil
+          # if the last argument is an integer, us it as the number of lines
+          if /[0-9]+/.match(last_arg)
+            num_lines_tail = last_arg.to_i
           end
-          tail_of_file.each { |line|
-            puts line
-          }
+          tail_of_file = tail_of_file_as_array(num_lines_tail)
+        rescue => e
+          logger.error e.message
+          raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
         end
+        tail_of_file.each { |line|
+          puts line
+        }
+
       end
 
       # filters the current razor logfile, printing all matching lines
       def filter_razor_log
-        if @web_command
-          # if it's a web command, return an error indicating that this method is not
-          # yet implemented as a web command.  We'll probably have to work out a
-          # separate mechanism for feeding this information back to the Node.js
-          # instances as an ATOM feed of some sort
-          raise ProjectRazor::Error::Slice::NotImplemented, "no web interface exists for the Log slice commands"
-        else
-          begin
-            return filter_then_tail_razor_log if @command_array.include?("tail")
-            # get the input name=value pairs for the filter expression (if any) from the command line
-            log_level_str, elapsed_time_str, class_name_str,
-                method_name_str, log_message_str = get_filter_criteria
-            # construct regular expressions to use for filtering from the non-nil return values
-            log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
-            class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
-            method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
-            log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
-            # initialize a few variables
-            incomplete_last_line = false
-            prev_line = ""
-            last_complete_line = ""
-            past_time = false
-            # determine the cutoff time to use for printing log file entries
-            cutoff_time = get_cutoff_time(elapsed_time_str)
 
-            # and loop through the file in chunks, parsing each chunk and filtering out
-            # the lines that don't match the criteria parsed from the filter expresssion
-            # passed into the command (above)
-            File.open(@logfile, 'r').each_chunk { |chunk|
+        # if it's a web command, return an error indicating that this method is not
+        # yet implemented as a web command.  We'll probably have to work out a
+        # separate mechanism for feeding this information back to the Node.js
+        # instances as an ATOM feed of some sort
+        raise ProjectRazor::Error::Slice::NotImplemented,
+              "no web interface exists for the Log slice commands" if @web_command
 
-              line_array = []
+        begin
+          return filter_then_tail_razor_log if @command_array.include?("tail")
+          # get the input name=value pairs for the filter expression (if any) from the command line
+          log_level_str, elapsed_time_str, class_name_str,
+              method_name_str, log_message_str = get_filter_criteria
+          # construct regular expressions to use for filtering from the non-nil return values
+          log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+          class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+          method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+          log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
+          # initialize a few variables
+          incomplete_last_line = false
+          prev_line = ""
+          last_complete_line = ""
+          past_time = false
+          # determine the cutoff time to use for printing log file entries
+          cutoff_time = get_cutoff_time(elapsed_time_str)
 
-              # split the chunk into a line array using the newline character as a delimiter
-              line_array.concat(chunk.split("\n"))
-              # if the last chunk had an incomplete last line, then add it to the start
-              # of the first element of the line_array
-              if incomplete_last_line
-                line_array[0] = prev_line + line_array[0]
+          # and loop through the file in chunks, parsing each chunk and filtering out
+          # the lines that don't match the criteria parsed from the filter expresssion
+          # passed into the command (above)
+          File.open(@logfile, 'r').each_chunk { |chunk|
+
+            line_array = []
+
+            # split the chunk into a line array using the newline character as a delimiter
+            line_array.concat(chunk.split("\n"))
+            # if the last chunk had an incomplete last line, then add it to the start
+            # of the first element of the line_array
+            if incomplete_last_line
+              line_array[0] = prev_line + line_array[0]
+            end
+
+            # test to see if this chunk ends with a newline or not, if not then the last
+            # line of this chunk is incomplete; will be important later on
+            incomplete_last_line = (chunk.end_with?("\n") ? false : true)
+            if incomplete_last_line
+              prev_line = line_array[-1]
+            else
+              prev_line = ""
+            end
+
+            # initialize a few variables, then loop through all of the lines in this chunk
+            filtered_chunk = ""
+            nlines_chunk = chunk.count("\n"); count = 0
+
+            # get the index of the last complete line from the chunk we just read
+            if cutoff_time && !past_time && incomplete_last_line
+              last_complete_line = line_array[-2]
+            elsif cutoff_time && !past_time
+              last_complete_line = line_array[-1]
+            end
+
+            # if the cutoff time wasn't specified as part of the search
+            # criteria or if we've already found a line that is past the
+            # time we're looking for, then we can continue, otherwise only
+            # continue if the last complete line in this chunk is after
+            # the specified cutoff time
+            next unless !cutoff_time || past_time || was_logged_after_time(last_complete_line, cutoff_time)
+
+            line_array.each { |line|
+
+              next if incomplete_last_line && count == nlines_chunk
+
+              # if we haven't found a line after the cutoff time yet, then check to see
+              # if the timestamp of this line is after the cutoff time.  If so, then we'll
+              # set "past_time" to true (to avoid further uneccesary time checks) and
+              # start adding matching lines (if any) to our filtered_chunk.  If not, then
+              # move on to the next line
+              unless past_time
+                next unless was_logged_after_time(line, cutoff_time)
+                past_time = true
               end
 
-              # test to see if this chunk ends with a newline or not, if not then the last
-              # line of this chunk is incomplete; will be important later on
-              incomplete_last_line = (chunk.end_with?("\n") ? false : true)
-              if incomplete_last_line
-                prev_line = line_array[-1]
-              else
-                prev_line = ""
+              # otherwise, grab add the line to the filtered_chunk if it matches and
+              # increment our counter
+              if line_matches_criteria(line, log_level_match, class_name_match,
+                                       method_name_match, log_message_match)
+                filtered_chunk << line + "\n"
               end
+              count += 1
 
-              # initialize a few variables, then loop through all of the lines in this chunk
-              filtered_chunk = ""
-              nlines_chunk = chunk.count("\n"); count = 0
-
-              # get the index of the last complete line from the chunk we just read
-              if cutoff_time && !past_time && incomplete_last_line
-                last_complete_line = line_array[-2]
-              elsif cutoff_time && !past_time
-                last_complete_line = line_array[-1]
-              end
-
-              # if the cutoff time wasn't specified as part of the search
-              # criteria or if we've already found a line that is past the
-              # time we're looking for, then we can continue, otherwise only
-              # continue if the last complete line in this chunk is after
-              # the specified cutoff time
-              next unless !cutoff_time || past_time || was_logged_after_time(last_complete_line, cutoff_time)
-
-              line_array.each { |line|
-
-                next if incomplete_last_line && count == nlines_chunk
-
-                # if we haven't found a line after the cutoff time yet, then check to see
-                # if the timestamp of this line is after the cutoff time.  If so, then we'll
-                # set "past_time" to true (to avoid further uneccesary time checks) and
-                # start adding matching lines (if any) to our filtered_chunk.  If not, then
-                # move on to the next line
-                unless past_time
-                  next unless was_logged_after_time(line, cutoff_time)
-                  past_time = true
-                end
-
-                # otherwise, grab add the line to the filtered_chunk if it matches and
-                # increment our counter
-                if line_matches_criteria(line, log_level_match, class_name_match,
-                                         method_name_match, log_message_match)
-                  filtered_chunk << line + "\n"
-                end
-                count += 1
-
-              }
-              print filtered_chunk if filtered_chunk.length > 0
             }
-          rescue => e
-            # if get to here, there was an issue parsing the filter criteria or
-            # reading the logfile, return that error
-            logger.error e.message
-            raise ProjectRazor::Error::Slice::InternalError, "error while filtering log file #{@logfile}; #{e.message}"
-          end
+            print filtered_chunk if filtered_chunk.length > 0
+          }
+        rescue => e
+          # if get to here, there was an issue parsing the filter criteria or
+          # reading the logfile, return that error
+          logger.error e.message
+          raise ProjectRazor::Error::Slice::InternalError, "error while filtering log file #{@logfile}; #{e.message}"
         end
+
       end
 
       # tails the current razor logfile, then filters the result
       def tail_then_filter_razor_log
-        if @web_command
-          # if it's a web command, return an error indicating that this method is not
-          # yet implemented as a web command.  We'll probably have to work out a
-          # separate mechanism for feeding this information back to the Node.js
-          # instances as an ATOM feed of some sort
-          raise ProjectRazor::Error::Slice::NotImplemented, "no web interface exists for the Log slice commands"
-        else
-          begin
-            # then, peek one element down in the stack of previous arguments (which should be
-            # which should be the number of lines to tail before filtering).  Note:  if no
-            # NLINES argument was specified in the command, then the second element down in
-            # the stack will actually be the string "tail" ()rather than the number of lines
-            # to tail off of the file before filtering).  In that case, we ensure that the
-            # num_lines_tail value is set to nil rather than attempting to convert the string
-            # "tail" into an integer (all other error conditions should be handled in the
-            # logic of the @slice_commands hash defined above)
-            num_lines_tail_str = @prev_args.peek(1)
-            num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
-            # get the input name=value pairs for the filter expression (if any) from the command line
-            log_level_str, elapsed_time_str, class_name_str,
-                method_name_str, log_message_str = get_filter_criteria
-            # construct regular expressions to use for filtering from the non-nil return values
-            log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
-            class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
-            method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
-            log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
-            # and parse the file (first tailing, then filtering the result)
-            tail_of_file = tail_of_file_as_array(num_lines_tail)
-            # determine the cutoff time to use for printing log file entries
-            cutoff_time = get_cutoff_time(elapsed_time_str)
-            past_time = false
-            # loop through the tailed lines, extracting the lines that match
-            tail_of_file.each { |line|
-              next unless !cutoff_time || past_time || was_logged_after_time(line, cutoff_time)
-              past_time = true if !cutoff_time && !past_time
-              puts line if line_matches_criteria(line, log_level_match, class_name_match,
-                                                 method_name_match, log_message_match)
-            }
-          rescue => e
-            logger.error e.message
-            raise ProjectRazor::Error::Slice::InternalError, "error while tailing, then filtering log file #{@logfile}; #{e.message}"
-          end
+
+        # if it's a web command, return an error indicating that this method is not
+        # yet implemented as a web command.  We'll probably have to work out a
+        # separate mechanism for feeding this information back to the Node.js
+        # instances as an ATOM feed of some sort
+        raise ProjectRazor::Error::Slice::NotImplemented,
+              "no web interface exists for the Log slice commands" if @web_command
+
+        begin
+          # then, peek one element down in the stack of previous arguments (which should be
+          # which should be the number of lines to tail before filtering).  Note:  if no
+          # NLINES argument was specified in the command, then the second element down in
+          # the stack will actually be the string "tail" ()rather than the number of lines
+          # to tail off of the file before filtering).  In that case, we ensure that the
+          # num_lines_tail value is set to nil rather than attempting to convert the string
+          # "tail" into an integer (all other error conditions should be handled in the
+          # logic of the @slice_commands hash defined above)
+          num_lines_tail_str = @prev_args.peek(1)
+          num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
+          # get the input name=value pairs for the filter expression (if any) from the command line
+          log_level_str, elapsed_time_str, class_name_str,
+              method_name_str, log_message_str = get_filter_criteria
+          # construct regular expressions to use for filtering from the non-nil return values
+          log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+          class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+          method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+          log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
+          # and parse the file (first tailing, then filtering the result)
+          tail_of_file = tail_of_file_as_array(num_lines_tail)
+          # determine the cutoff time to use for printing log file entries
+          cutoff_time = get_cutoff_time(elapsed_time_str)
+          past_time = false
+          # loop through the tailed lines, extracting the lines that match
+          tail_of_file.each { |line|
+            next unless !cutoff_time || past_time || was_logged_after_time(line, cutoff_time)
+            past_time = true if !cutoff_time && !past_time
+            puts line if line_matches_criteria(line, log_level_match, class_name_match,
+                                               method_name_match, log_message_match)
+          }
+        rescue => e
+          logger.error e.message
+          raise ProjectRazor::Error::Slice::InternalError, "error while tailing, then filtering log file #{@logfile}; #{e.message}"
         end
+
       end
 
       # filters the current razor logfile, then tails the result
       def filter_then_tail_razor_log
-        if @web_command
-          # if it's a web command, return an error indicating that this method is not
-          # yet implemented as a web command.  We'll probably have to work out a
-          # separate mechanism for feeding this information back to the Node.js
-          # instances as an ATOM feed of some sort
-          raise ProjectRazor::Error::Slice::NotImplemented, "no web interface exists for the Log slice commands"
-        else
-          # get the input name=value pairs for the filter expression (if any) from the command line
-          log_level_str, elapsed_time_str, class_name_str,
-              method_name_str, log_message_str = get_filter_criteria
-          # grab the next argument from the @command_array (which should be the command "tail")
-          # and then grab the number of lines to tail.  If there is no "last argument", then
-          # no number of lines were include, so just set the num_lines_tail to nil and move on
-          next_cmd = get_next_command_array_val
-          num_lines_tail_str = get_next_command_array_val
-          num_lines_tail = (num_lines_tail_str ? num_lines_tail_str.to_i : nil)
-          filter_expression = get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
-          tail_of_file = []
-          begin
-            cutoff_time = (elapsed_time_str ? get_cutoff_time(elapsed_time_str) : nil)
-            tail_of_file = tail_of_file_as_array(num_lines_tail, filter_expression, cutoff_time)
-          rescue => e
-            logger.error e.message
-            raise ProjectRazor::Error::Slice::InternalError, "error while filtering, then tailing log file #{@logfile}; #{e.message}"
-          end
-          tail_of_file.each { |line|
-            puts line
-          }
+
+        # if it's a web command, return an error indicating that this method is not
+        # yet implemented as a web command.  We'll probably have to work out a
+        # separate mechanism for feeding this information back to the Node.js
+        # instances as an ATOM feed of some sort
+        raise ProjectRazor::Error::Slice::NotImplemented,
+              "no web interface exists for the Log slice commands" if @web_command
+
+        # get the input name=value pairs for the filter expression (if any) from the command line
+        log_level_str, elapsed_time_str, class_name_str,
+            method_name_str, log_message_str = get_filter_criteria
+        # grab the next argument from the @command_array (which should be the command "tail")
+        # and then grab the number of lines to tail.  If there is no "last argument", then
+        # no number of lines were include, so just set the num_lines_tail to nil and move on
+        next_cmd = get_next_command_array_val
+        num_lines_tail_str = get_next_command_array_val
+        num_lines_tail = (num_lines_tail_str ? num_lines_tail_str.to_i : nil)
+        filter_expression = get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
+        tail_of_file = []
+        begin
+          cutoff_time = (elapsed_time_str ? get_cutoff_time(elapsed_time_str) : nil)
+          tail_of_file = tail_of_file_as_array(num_lines_tail, filter_expression, cutoff_time)
+        rescue => e
+          logger.error e.message
+          raise ProjectRazor::Error::Slice::InternalError, "error while filtering, then tailing log file #{@logfile}; #{e.message}"
         end
+        tail_of_file.each { |line|
+          puts line
+        }
+
       end
 
       private
