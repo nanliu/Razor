@@ -8,6 +8,7 @@
 #
 #  before(:all) do
 #    @data = ProjectRazor::Data.instance
+#    @data.check_init
 #    @config = @data.config
 #  end
 #

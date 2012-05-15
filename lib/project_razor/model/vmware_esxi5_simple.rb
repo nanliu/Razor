@@ -185,7 +185,7 @@ module ProjectRazor
 
 
       def boot_cfg
-        @image = $data.fetch_object_by_uuid(:images, @image_uuid)
+        @image = get_data.fetch_object_by_uuid(:images, @image_uuid)
         @image.boot_cfg.gsub("/", "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel","ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file")
       end
 

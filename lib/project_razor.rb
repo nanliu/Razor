@@ -33,8 +33,6 @@ require "project_razor/power_control"
 require "project_razor/broker"
 
 
-$data = ProjectRazor::Data.instance
-
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor

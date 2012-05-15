@@ -14,6 +14,7 @@ describe "ProjectRazor::Slice::Bmc" do
 
     before(:all) do
       @data = ProjectRazor::Data.instance
+      @data.check_init
       @config = @data.config
       @data.delete_all_objects(:bmc)
       @uuid = ["001517FAE036", "001517FADE66"]

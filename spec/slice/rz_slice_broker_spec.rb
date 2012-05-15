@@ -13,6 +13,7 @@ describe "ProjectRazor::Slice::Broker" do
 
     before(:all) do
       @data = ProjectRazor::Data.instance
+      @data.check_init
       @config = @data.config
       @data.delete_all_objects(:broker)
     end

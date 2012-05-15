@@ -186,7 +186,7 @@ module ProjectRazor
       end
 
       def config
-        $data.config
+        get_data.config
       end
 
       def image_svc_uri

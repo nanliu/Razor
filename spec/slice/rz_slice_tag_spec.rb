@@ -15,6 +15,7 @@ describe "ProjectRazor::Slice::TagRule" do
 
     before(:all) do
       @data = ProjectRazor::Data.instance
+      @data.check_init
       @config = @data.config
       @data.delete_all_objects(:tag)
       @data.delete_all_objects(:node)

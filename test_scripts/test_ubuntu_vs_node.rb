@@ -21,6 +21,7 @@ puts "** Please enter the UUID of the node to work with:"
 node_uuid = gets.strip
 
 data = ProjectRazor::Data.instance
+data.check_init
 engine = ProjectRazor::Engine.instance
 config  = data.config
 

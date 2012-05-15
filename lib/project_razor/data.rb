@@ -23,7 +23,12 @@ module ProjectRazor
     def initialize
       logger.debug "Initializing object"
       load_config
-      setup_persist unless (@persist_ctrl && @persist_ctrl.check_connection)
+      setup_persist
+    end
+
+    def check_init
+      load_config
+      setup_persist if !@persist_ctrl || !@persist_ctrl.check_connection
     end
 
     def config

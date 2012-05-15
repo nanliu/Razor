@@ -4,7 +4,7 @@
 module ProjectRazor
   # Used for binding of policy+models to a node
   # this is permanent unless a user removed the binding or deletes a node
-  class Policies
+  class Policies < ProjectRazor::Object
     include(ProjectRazor::Logging)
     include(Singleton)
 
@@ -16,7 +16,7 @@ module ProjectRazor
     # Get Array of Models that are compatible with a Policy Template
     def get_models(model_template)
       models = []
-      $data.fetch_all_objects(:model).each do
+      get_data.fetch_all_objects(:model).each do
       |mc|
         models << mc if mc.template == model_template
       end
@@ -93,7 +93,7 @@ module ProjectRazor
 
     def get
       # Get all the policy templates
-      policies_array = $data.fetch_all_objects(:policy)
+      policies_array = get_data.fetch_all_objects(:policy)
 
       logger.debug "Total policies #{policies_array.count}"
       # Sort the policies based on line_number
@@ -114,7 +114,7 @@ module ProjectRazor
       else
         new_policy.line_number = last_line_number + 1
       end
-      $data.persist_object(new_policy)
+      get_data.persist_object(new_policy)
     end
 
     alias :update :add
@@ -126,7 +126,7 @@ module ProjectRazor
     end
 
     def policy_exists?(new_policy)
-      $data.fetch_object_by_uuid(:policy, new_policy)
+      get_data.fetch_object_by_uuid(:policy, new_policy)
     end
 
     def last_line_number

@@ -8,6 +8,7 @@ describe ProjectRazor::Tagging::TagRule do
 
   before (:all) do
     @data = ProjectRazor::Data.instance
+    @data.check_init
     @tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
   end
 

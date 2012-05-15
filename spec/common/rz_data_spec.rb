@@ -53,6 +53,7 @@ describe ProjectRazor::Data do
       write_config(config)
 
       data = ProjectRazor::Data.instance
+      data.check_init
 
       # Check to make sure it is our config object
       data.config.admin_port.should == config.admin_port
@@ -71,6 +72,7 @@ describe ProjectRazor::Data do
       File.exists?($config_server_path).should == false
 
       data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -90,6 +92,7 @@ describe ProjectRazor::Data do
       File.exists?($config_server_path).should == true
 
       data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -106,6 +109,7 @@ describe ProjectRazor::Data do
       File.exists?($config_server_path).should == true
 
       data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -122,6 +126,7 @@ describe ProjectRazor::Data do
 
     before(:all) do
       @data = ProjectRazor::Data.instance
+      @data.check_init
     end
 
     after(:all) do
@@ -144,6 +149,7 @@ describe ProjectRazor::Data do
 
     before(:all) do
       @data = ProjectRazor::Data.instance
+      @data.check_init
       @data.delete_all_objects(:node)
 
       (1..NODE_COUNT).each do
@@ -271,6 +277,7 @@ describe ProjectRazor::Data do
   #
   #  before(:all) do
   #    @data = ProjectRazor::Data.instance
+  #    @data.check_init
   #
   #    (1..NODE_COUNT).each do
   #    |x|
@@ -375,6 +382,7 @@ describe ProjectRazor::Data do
   #
   #  before(:all) do
   #    @data = ProjectRazor::Data.instance
+  #    @data.check_init
   #
   #    (1..NODE_COUNT).each do
   #    |x|

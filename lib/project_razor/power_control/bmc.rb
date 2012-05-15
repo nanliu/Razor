@@ -24,8 +24,7 @@ module ProjectRazor
         @board_serial_number = ''
         from_hash(hash) unless hash == nil
         @_ipmi = ProjectRazor::PowerControl::IpmiController.instance
-        data = ProjectRazor::Data.instance
-        config = data.config
+        config = get_data.config
         @_ipmi_username = config.default_ipmi_username
         @_ipmi_password = config.default_ipmi_password
       end
