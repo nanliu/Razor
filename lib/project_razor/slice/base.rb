@@ -84,7 +84,6 @@ module ProjectRazor
           end
 
         rescue => e
-          logger.debug(e.backtrace)
           if @debug
             raise e
           else
@@ -276,7 +275,6 @@ module ProjectRazor
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
       def slice_error(error, options = {})
-        puts error.message
         mk_response = options[:mk_response] ? options[:mk_response] : false
         setup_data
         return_hash = {}

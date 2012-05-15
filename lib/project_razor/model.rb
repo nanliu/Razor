@@ -6,7 +6,6 @@ require "project_razor/model/debian"
 require "project_razor/model/ubuntu"
 require "project_razor/model/ubuntu_oneiric"
 require "project_razor/model/ubuntu_precise"
-require "project_razor/model/redhat"
 require "project_razor/model/vmware_esxi5_simple"
 
 # Root ProjectRazor namespace
