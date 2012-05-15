@@ -19,7 +19,7 @@ module ProjectRazor
 
       # defines the default set of field names that can be used to filter the effects
       # of BMC Slice sub-commands
-      DEFAULT_FIELDS_ARRAY = %W[uuid, mac, ip, current_power_state, board_serial_number]
+      DEFAULT_FIELDS_ARRAY = %W[uuid mac ip current_power_state board_serial_number]
 
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param args [Array]
@@ -94,15 +94,15 @@ module ProjectRazor
         end
         unless @uuid || @mac || @ip
           command_name = @prev_args.look
-          command_args_array = get_command_array_args
-          @current_power_state = nil
-          @board_serial_number = nil
-          @uuid, @mac, @ip = parse_bmc_metadata_args(command_args_array, ["uuid", "mac", "ip"])
+          @current_power_state, @board_serial_number = nil, nil
+          return_vals = get_name_value_args(%W[uuid mac ip])
+          @uuid, @mac, @ip = return_vals["uuid"], return_vals["mac"], return_vals["ip"]
+          puts "#{return_vals['uuid']}, #{return_vals['mac']}, #{return_vals['ip']}"
         end
         begin
           # if we have the details we need, then insert this bmc into the database (or
           # update the matching bmc object, if one exists, otherwise, raise an exception)
-          raise ProjectRazor::Error::Slice::MissingArgument, "cannot register BMC without specifying the UUID, MAC, and IP" unless @uuid && @mac && @ip
+          raise ProjectRazor::Error::Slice::MissingArgument, "cannot register BMC without specifying the uuid, mac, and ip" unless @uuid && @mac && @ip
           logger.debug "bmc: #{@mac} #{@ip}"
           timestamp = Time.now.to_i
           bmc_hash = {"@uuid" => @uuid,
@@ -146,12 +146,11 @@ module ProjectRazor
             @uuid = lcl_command_array[0]
           end
         end
-        unless @uuid || @mac || @ip
+        unless @uuid
           sub_command = @prev_args.peek(1)      # will be a string like "get", "lan", "power", or "fru"
           sub_command_action = @prev_args.look
           ipmitool_cmd = map_to_ipmitool_cmd(sub_command, sub_command_action)
-          command_args_array = get_command_array_args
-          @uuid = command_args_array.shift
+          @uuid = get_next_arg
         end
         raise ProjectRazor::Error::Slice::MissingArgument, "uuid value not specified" unless @uuid
         begin
@@ -191,10 +190,9 @@ module ProjectRazor
             @uuid = lcl_command_array[0]
           end
         end
-        unless @uuid || @mac || @ip
+        unless @uuid
           new_state = @prev_args.look
-          command_args_array = get_command_array_args
-          @uuid = command_args_array.shift
+          @uuid = get_next_arg
         end
         raise ProjectRazor::Error::Slice::InvalidCommand, "missing details for command to change power state" unless
             new_state && new_state.length > 0
@@ -370,7 +368,7 @@ module ProjectRazor
       # This function is used to print out a single matching BMC object (where the match
       # is made based on the UUID value passed into the function)
       def query_bmc_by_uuid
-        @uuid = @command_array.shift unless @uuid
+        @uuid = get_next_arg unless @uuid
         matching_bmc = get_bmc(@uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{@uuid}') found" unless matching_bmc
         bmc_array = [matching_bmc]
@@ -388,17 +386,6 @@ module ProjectRazor
         existing_bmc = @data.fetch_object_by_uuid(:bmc, uuid)
         existing_bmc.refresh_power_state if existing_bmc
         existing_bmc
-      end
-
-      # return the remainder of the @command_array string as an array of arguments; Note that calling
-      # this method will shift all remaining elements out of the @command_array instance variable, so
-      # caution should be used when invoking this method
-      def get_command_array_args
-        command_args_array = []
-        while (tmp_str = @command_array.shift)
-          command_args_array << tmp_str
-        end
-        command_args_array
       end
 
       # This function is used to map the combination of a sub_command and an action on
@@ -438,31 +425,6 @@ module ProjectRazor
             raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
                   "the BMC sub-command '#{sub_command} #{sub_command_action}' is not recognized"
         end
-      end
-
-      # used to parse the command-line arguments received as part of a command and return the
-      # 'uuid', 'mac', and 'ip' values they might contain (all of those arguments may not be present)
-      # @param [Object] command_args_array  The array of arguments to parse
-      # @param [Object] return_fields  An array containing a list of field names to return (in the order
-      # in which they should be returned).  Any fields not in this list will be skipped
-      def parse_bmc_metadata_args(command_args_array, return_fields)
-        # if no return fields are requested, then return nothing (an empty array)
-        return [] if !return_fields || return_fields.size == 0
-        # initialize the return values (to nil) by pre-allocating an appropriately size array
-        return_vals = Array.new(return_fields.size)
-        # parse the command_args_array as "name=value" pairs
-        command_args_array.each { |name_val|
-          match = /([A-Za-z0-9]+)=(.*)/.match(name_val)
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "could not parse command line argument #{name_val}; expected 'name=value' format" unless match
-          name = match[1]
-          value = match[2]
-          idx = return_fields.index(name)
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "unrecognized field with name #{name}; valid values are #{return_fields.inspect}" unless idx
-          return_vals[idx] = value
-        }
-        return return_vals
       end
 
     end

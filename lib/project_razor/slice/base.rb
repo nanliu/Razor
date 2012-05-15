@@ -361,6 +361,7 @@ module ProjectRazor
       def setup_data
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
+
     end
   end
 end

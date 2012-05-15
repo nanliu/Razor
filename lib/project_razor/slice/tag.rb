@@ -36,8 +36,8 @@ module ProjectRazor
                                    :default => "get_matcher_with_uuid",
                                    :else => "get_matcher_with_uuid"
                                },
-                               :update => "",
-                               :remove => "",
+                               :update => "update_matcher",
+                               :remove => "remove_matcher",
                                :default => :get,
                                :else => :get
                            },
@@ -125,10 +125,10 @@ module ProjectRazor
       def find_matcher(matcher_uuid)
         found_matcher = []
         setup_data
-        get_object("get_tag",:tag).each do
+        @data.fetch_all_objects(:tag).each do
         |tr|
           tr.tag_matchers.each do
-            |matcher|
+          |matcher|
             found_matcher << [matcher,tr] if matcher.uuid.scan(matcher_uuid).count > 0
           end
         end
@@ -137,7 +137,7 @@ module ProjectRazor
 
       def get_matcher_with_uuid
         @command = :get_matcher_with_uuid
-        @command_help_text = "razor tag [get] (uuid)"
+        @command_help_text = "razor tag matcher [get] (uuid)"
         matcher_uuid = @command_array.shift
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
@@ -146,15 +146,15 @@ module ProjectRazor
       end
 
       def add_matcher
-        @command =:add_tagrule
-        @command_help_text = "razor tag add tag_rule_uuid=(tag rule key) key=(key) compare=[equal|like] value=(value) {invert=(yes)}\n"
+        @command =:add_matcher
+        @command_help_text = "razor tag matcher add tag_rule_uuid=(tag rule key) key=(key) compare=[equal|like] value=(value) {invert=(yes)}\n"
         @command_help_text << "\t tag rule uuid: \t" + " Is the UUID of the parent Tag Rule to add the matcher to\n".yellow
         @command_help_text << "\t key: \t\t\t" + " the Node attribute key to match against\n".yellow
         @command_help_text << "\t compare: \t\t" + " Either [equal] for literal matching or [like] for regular expression\n".yellow
         @command_help_text << "\t value: \t\t" + " the value to match against the key\n".yellow
         @command_help_text << "\t inverse(OPTIONAL): \t"+" inverts so result is true if key does NOT match value\n".yellow
         @tag_rule_uuid, @key, @compare, @value, @invert = *get_web_vars(%w(tag_rule_uuid key compare value invert)) if @web_command
-        @tag_rule_uuid, @key, @compare, @value, @invert = *get_cli_vars(%w(tag_rule_uuid key compare value invert)) unless @name || @tag
+        @tag_rule_uuid, @key, @compare, @value, @invert = *get_cli_vars(%w(tag_rule_uuid key compare value invert)) unless @tag_rule_uuid || @key || @compare || @value || @invert
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Tag Rule UUID [tag_rule_uuid]" unless validate_arg(@tag_rule_uuid)
         @tagrule = get_object("tagrule_with_uuid", :tag, @tag_rule_uuid)
@@ -164,27 +164,46 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Compare[equal|like] [compare]" unless @compare == "equal" || @compare == "like"
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Value Tag [value]" unless validate_arg(@value)
         @invert = @invert == "yes" || @invert == "true" ? "true" : "false"
+        matcher = @tagrule.add_tag_matcher(:key => @key, :compare => @compare, :value => @value, :inverse => @invert)
+        raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not create tag matcher" unless matcher
 
-        puts @tag_rule_uuid
-        puts @key
-        puts @compare
-        puts @value
-        puts @invert
-
-        @tagrule.add_tag_matcher(:key => @key, :compare => @compare, :value => @value, :inverse => @invert)
-        #tagrule = ProjectRazor::Tagging::TagRule.new({"@name" => @name, "@tag" => @tag})
-        #setup_data
-        #@data.persist_object(tagrule)
-        #tagrule ? print_object_array([tagrule], "", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Rule")
-
+        @tagrule.update_self ? print_object_array([matcher], "Tag Matcher created:", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Matcher")
       end
 
       def update_matcher
-
+        @command = :update_matcher
+        @command_help_text = "razor tag matcher update (matcher uuid) key=(key) compare=[equal|like] value=(value) {invert=(yes)}\n"
+        @command_help_text << "\t key: \t\t\t" + " the Node attribute key to match against\n".yellow
+        @command_help_text << "\t compare: \t\t" + " Either [equal] for literal matching or [like] for regular expression\n".yellow
+        @command_help_text << "\t value: \t\t" + " the value to match against the key\n".yellow
+        @command_help_text << "\t inverse(OPTIONAL): \t"+" inverts so result is true if key does NOT match value\n".yellow
+        matcher_uuid = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
+        matcher, tagrule = find_matcher(matcher_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
+        @key, @compare, @value, @invert = *get_web_vars(%w(key compare value invert)) if @web_command
+        @key, @compare, @value, @invert = *get_cli_vars(%w(key compare value invert)) unless  @key || @compare || @value || @invert
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless @key || @compare || @value || @invert
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Compare[equal|like] [compare]" unless @compare == "equal" || @compare == "like" if @compare
+        @invert = @invert == "yes" || @invert == "true" ? "true" : @invert
+        @invert = @invert == "no" || @invert == "false" ? "false" : @invert
+        matcher.key = @key if @key
+        matcher.compare = @compare if @compare
+        matcher.value = @value if @value
+        matcher.inverse = @invert if @invert
+        tagrule.update_self ? print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
       end
 
       def remove_matcher
-
+        @command = :get_matcher_with_uuid
+        @command_help_text = "razor tag matcher remove (matcher uuid)\n"
+        matcher_uuid = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
+        matcher, tagrule = find_matcher(matcher_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
+        raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher" unless
+            tagrule.remove_tag_matcher(matcher.uuid)
+        tagrule.update_self ? print_object_array([tagrule], "Tag Matcher removed [#{matcher.uuid}]\nTag Rule:", :success_type => :removed) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher")
       end
 
       #
