@@ -39,45 +39,65 @@ module ProjectRazor
 
       end
 
-      class ObjectTemplate < ProjectRazor::Object
-        attr_accessor :template, :description
-
-        def initialize(template, description)
-          @template, @description = template, description
-        end
-
-        def print_header
-          return "Template", "Description"
-        end
-
-        def print_items
-          return @template, @description
-        end
-
-        def line_color
-          :white_on_black
-        end
-
-        def header_color
-          :red_on_black
-        end
-      end
-
-      class ObjectPlugin < ObjectTemplate
-        attr_accessor :plugin, :description
-
-        def initialize(plugin, description)
-          @plugin, @description = plugin, description
-        end
-
-        def print_header
-          return "Plugin", "Description"
-        end
-
-        def print_items
-          return @plugin, @description
-        end
-      end
+      #class ObjectTemplate < ProjectRazor::Object
+      #  attr_accessor :template, :description
+      #
+      #  def initialize(options = {})
+      #    @template = options[:template]
+      #    @description = options[:description]
+      #  end
+      #
+      #  def print_header
+      #    return "Template", "Description"
+      #  end
+      #
+      #  def print_items
+      #    return @template, @description
+      #  end
+      #
+      #  def line_color
+      #    :white_on_black
+      #  end
+      #
+      #  def header_color
+      #    :red_on_black
+      #  end
+      #end
+      #
+      #class ObjectPlugin < ObjectTemplate
+      #  attr_accessor :plugin, :description
+      #
+      #  def initialize(options = {})
+      #    @plugin = options[:plugin]
+      #    @description = options[:description]
+      #  end
+      #
+      #  def print_header
+      #    return "Plugin", "Description"
+      #  end
+      #
+      #  def print_items
+      #    return @plugin, @description
+      #  end
+      #end
+      #
+      #class ObjectModelTemplate < ObjectTemplate
+      #  attr_accessor :template, :description, :req_metadata
+      #
+      #  def initialize(options = {})
+      #    @template = options[:template]
+      #    @description = options[:description]
+      #    @req_metadata_hash = options[:req_metadata_hash]
+      #  end
+      #
+      #  def print_header
+      #    return "Template", "Description"
+      #  end
+      #
+      #  def print_items
+      #    return @template, @description
+      #  end
+      #end
 
       def get_web_vars(vars_array)
           json_string = @command_array.shift
@@ -138,25 +158,42 @@ module ProjectRazor
         object_array = {}
         temp_hash.each_value {|x| object_array[x] = x}
 
-        object_array.each_value.collect { |x| x }.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+        objects = object_array.each_value.collect { |x| x }.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+        objects.each {|object| object.is_template = true}
+        valid_objects = []
+        objects.each {|object| valid_objects << object unless object.hidden}
+        valid_objects
       end
+
 
       alias :get_child_types :get_child_templates
 
-      # returns child templates as ObjectType (used for printing)
-      def get_templates_as_object_templates(namespace_prefix)
-        get_child_templates(namespace_prefix).map do
-        |template|
-          ObjectTemplate.new(template.template.to_s, template.description) unless template.hidden
-        end.compact
-      end
-
-      def get_plugins_as_object_plugins(namespace_prefix)
-        get_child_templates(namespace_prefix).map do
-        |plugin|
-          ObjectPlugin.new(plugin.plugin.to_s, plugin.description) unless plugin.hidden
-        end.compact
-      end
+      # returns child templates as ObjectTemplate (used for printing)
+      #def get_object_template(namespace_prefix)
+      #  get_child_templates(namespace_prefix).map do
+      #  |template|
+      #    ObjectTemplate.new(:template => template.template.to_s,
+      #                       :description => template.description) unless template.hidden
+      #  end.compact
+      #end
+      #
+      ## returns model templates as ObjectModelTemplate (used for printing)
+      #def get_object_model_template(namespace_prefix)
+      #  get_child_templates(namespace_prefix).map do
+      #  |template|
+      #    ObjectModelTemplate.new(:template => template.template.to_s,
+      #                            :description => template.description,
+      #                            :req_metadata_hash => template.req_metadata_hash) unless template.hidden
+      #  end.compact
+      #end
+      #
+      #def get_plugin_template(namespace_prefix)
+      #  get_child_templates(namespace_prefix).map do
+      #  |plugin|
+      #    ObjectPlugin.new(:plugin => plugin.plugin.to_s,
+      #                     :description => plugin.description) unless plugin.hidden
+      #  end.compact
+      #end
 
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(*arg)
@@ -565,8 +602,7 @@ module ProjectRazor
         else
           if @uri_root
             object_array = object_array.collect do |object|
-              if object.class == ProjectRazor::SliceUtil::Common::ObjectTemplate ||
-                  object.class == ProjectRazor::SliceUtil::Common::ObjectPlugin
+              if object.is_template
                 object.to_hash
               else
                 obj_web = object.to_hash
