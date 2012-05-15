@@ -84,6 +84,7 @@ module ProjectRazor
           end
 
         rescue => e
+          logger.debug(e.backtrace)
           if @debug
             raise e
           else
