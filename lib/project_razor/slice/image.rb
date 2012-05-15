@@ -156,7 +156,7 @@ module ProjectRazor
         # We send the new image object to the appropriate method
         res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
 
-        raise ProjectRazor::Error::Slice::InternalError res[1] unless res[0]
+        raise ProjectRazor::Error::Slice::InternalError, res[1] unless res[0]
 
         raise ProjectRazor::Error::Slice::InternalError "Could not save image." unless insert_image(new_image)
 
