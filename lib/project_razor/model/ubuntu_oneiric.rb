@@ -40,28 +40,33 @@ module ProjectRazor
         @image_prefix = "os"
         # Enable agent brokers for this model
         @broker_plugin = :agent
+        @osversion = 'oneiric'
         @final_state = :os_complete
         from_hash(hash) unless hash == nil
       end
 
       def req_metadata_hash
         {
-            "@hostname_prefix" => {:default => "node",
-                            :example => "node",
-                            :validation => '^[\w]+$',
-                            :required => true,
-                            :description => "node hostname prefix (will append node number"},
-            "@root_password" => {:default => "test123",
-                            :example => "P@ssword!",
-                            :validation => '^[\S]{8,}',
-                            :required => true,
-                            :description => "root password (> 8 characters)"},
+          "@hostname_prefix" => {
+            :default     => "node",
+            :example     => "node",
+            :validation  => '^[\w]+$',
+            :required    => true,
+            :description => "node hostname prefix (will append node number"
+          },
+          "@root_password" => {
+            :default     => "test1234",
+            :example     => "P@ssword!",
+            :validation  => '^[\S]{8,}',
+            :required    => true,
+            :description => "root password (> 8 characters)"
+          },
         }
       end
 
       def callback
-        {"preseed" => :preseed_call,
-         "postinstall" => :postinstall_call,}
+        { "preseed"     => :preseed_call,
+          "postinstall" => :postinstall_call, }
       end
 
       def broker_agent_handoff
@@ -72,34 +77,36 @@ module ProjectRazor
         # We need to send username & password to broker agent method
         # We also need to send our Node's metadata (attributes_hash).
 
-        options = {}
-
-        options[:username] = "root" # For this model it is root
-        logger.debug "username: #{options[:username]}"
-        options[:password] = @root_password
-        logger.debug "password: #{options[:password]}"
-        options[:metadata] = node_metadata
-        options[:hostname] = hostname
-        logger.debug "hostname: #{options[:hostname]}"
         unless @node_ip
           logger.error "Node IP address isn't known"
           @current_state = :broker_fail
-          fsm_log(:state => @current_state,
-                  :old_state => :os_complete,
-                  :action => :broker_agent_handoff,
-                  :method => :broker,
-                  :node_uuid => @node_bound.uuid,
-                  :timestamp => Time.now.to_i)
+          fsm_log( :state     => @current_state,
+                   :old_state => :os_complete,
+                   :action    => :broker_agent_handoff,
+                   :method    => :broker,
+                   :node_uuid => @node_bound.uuid,
+                   :timestamp => Time.now.to_i )
         end
-        options[:ipaddress] = @node_ip
-        logger.debug "ip address: #{options[:ipaddress]}"
+
+        options = {
+          :username  => "root",
+          :password  => @root_password,
+          :metadata  => node_metadata,
+          :hostname  => hostname,
+          :ipaddress => @node_ip,
+        }
+
+        options.each do |k, v|
+          logger.debug "#{k}: #{v}"
+        end
+
         @current_state = @broker.agent_hand_off(options)
-        fsm_log(:state => @current_state,
-                :old_state => :os_complete,
-                :action => :broker_agent_handoff,
-                :method => :broker,
-                :node_uuid => @node_bound.uuid,
-                :timestamp => Time.now.to_i)
+        fsm_log( :state     => @current_state,
+                 :old_state => :os_complete,
+                 :action    => :broker_agent_handoff,
+                 :method    => :broker,
+                 :node_uuid => @node_bound.uuid,
+                 :timestamp => Time.now.to_i )
       end
 
       def preseed_call
@@ -149,69 +156,63 @@ module ProjectRazor
         end
       end
 
-
-
-      def os_boot_script(policy_uuid)
-        @result = "Replied with os boot script"
-        os_boot = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_boot.erb")
-        ERB.new(File.read(os_boot)).result(binding)
-      end
-
-      def os_complete_script(node)
-        @result = "Replied with os complete script"
-        os_complete = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_complete.erb")
-        ERB.new(File.read(os_complete)).result(binding)
-      end
-
-      def nl(s)
-        s + "\n"
-      end
-
       # Defines our FSM for this model
       #  For state => {action => state, ..}
       def fsm_tree
         {
-            :init => {:mk_call => :init,
-                      :boot_call => :init,
-                      :preseed_start => :preinstall,
-                      :preseed_file => :init,
-                      :preseed_end => :postinstall,
-                      :timeout => :timeout_error,
-                      :error => :error_catch,
-                      :else => :init},
-            :preinstall => {:mk_call => :preinstall,
-                            :boot_call => :preinstall,
-                            :preseed_start => :preinstall,
-                            :preseed_file => :init,
-                            :preseed_end => :postinstall,
-                            :preseed_timeout => :timeout_error,
-                            :error => :error_catch,
-                            :else => :preinstall},
-            :postinstall => {:mk_call => :postinstall,
-                             :boot_call => :postinstall,
-                             :preseed_end => :postinstall,
-                             :source_fix => :postinstall,
-                             :apt_get_update => :postinstall,
-                             :apt_get_upgrade => :postinstall,
-                             :apt_get_ruby => :postinstall,
-                             :postinstall_inject => :postinstall,
-                             :os_boot => :os_complete,
-                             :post_error => :error_catch,
-                             :post_timeout => :timeout_error,
-                             :error => :error_catch,
-                             :else => :postinstall},
-            :os_complete => {:mk_call => :os_complete,
-                             :boot_call => :os_complete,
-                             :else => :os_complete,
-                             :reset => :init},
-            :timeout_error => {:mk_call => :timeout_error,
-                               :boot_call => :timeout_error,
-                               :else => :timeout_error,
-                               :reset => :init},
-            :error_catch => {:mk_call => :error_catch,
-                             :boot_call => :error_catch,
-                             :else => :error_catch,
-                             :reset => :init},
+          :init => {
+            :mk_call       => :init,
+            :boot_call     => :init,
+            :preseed_start => :preinstall,
+            :preseed_file  => :init,
+            :preseed_end   => :postinstall,
+            :timeout       => :timeout_error,
+            :error         => :error_catch,
+            :else          => :init
+          },
+          :preinstall => {
+            :mk_call         => :preinstall,
+            :boot_call       => :preinstall,
+            :preseed_start   => :preinstall,
+            :preseed_file    => :init,
+            :preseed_end     => :postinstall,
+            :preseed_timeout => :timeout_error,
+            :error           => :error_catch,
+            :else            => :preinstall
+          },
+          :postinstall => {
+            :mk_call            => :postinstall,
+            :boot_call          => :postinstall,
+            :preseed_end        => :postinstall,
+            :source_fix         => :postinstall,
+            :apt_get_update     => :postinstall,
+            :apt_get_upgrade    => :postinstall,
+            :apt_get_ruby       => :postinstall,
+            :postinstall_inject => :postinstall,
+            :os_boot            => :os_complete,
+            :post_error         => :error_catch,
+            :post_timeout       => :timeout_error,
+            :error              => :error_catch,
+            :else               => :postinstall
+          },
+          :os_complete => {
+            :mk_call   => :os_complete,
+            :boot_call => :os_complete,
+            :else      => :os_complete,
+            :reset     => :init
+          },
+          :timeout_error => {
+            :mk_call   => :timeout_error,
+            :boot_call => :timeout_error,
+            :else      => :timeout_error,
+            :reset     => :init
+          },
+          :error_catch => {
+            :mk_call   => :error_catch,
+            :boot_call => :error_catch,
+            :else      => :error_catch,
+            :reset     => :init
+          },
         }
       end
 
@@ -236,7 +237,7 @@ module ProjectRazor
           when :init, :preinstall
             @result = "Starting Ubuntu model install"
             ret = start_install(node, policy_uuid)
-          when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success
+          when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success, :complete_no_broker
             ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
@@ -249,23 +250,33 @@ module ProjectRazor
         ret
       end
 
+      # ERB.result(binding) is failing in Ruby 1.9.2 and 1.9.3 so template is processed in the def block.
+      def template_filepath(filename)
+        raise ProjectRazor::Error::Slice::InternalError, "must provide ubuntu version." unless @osversion
+
+        filepath = File.join(File.dirname(__FILE__), "ubuntu/#{@osversion}/#{filename}.erb")
+      end
+
+      def os_boot_script(policy_uuid)
+        @result = "Replied with os boot script"
+        filepath = template_filepath('os_boot')
+        ERB.new(File.read(filepath)).result(binding)
+      end
+
+      def os_complete_script(node)
+        @result = "Replied with os complete script"
+        filepath = template_filepath('os_complete')
+        ERB.new(File.read(filepath)).result(binding)
+      end
+
       def start_install(node, policy_uuid)
-        ip = "#!ipxe\n"
-        ip << "echo Reached #{@label} model boot_call\n"
-        ip << "echo Our image UUID is: #{@image_uuid}\n"
-        ip << "echo Our state is: #{@current_state}\n"
-        ip << "echo Our node UUID: #{node.uuid}\n"
-        ip << "\n"
-        ip << "echo We will be running an install now\n"
-        ip << "sleep 3\n"
-        ip << "\n"
-        ip << "kernel #{image_svc_uri}/#{@image_uuid}/#{kernel_path} #{kernel_args(policy_uuid)}  || goto error\n"
-        ip << "initrd #{image_svc_uri}/#{@image_uuid}/#{initrd_path} || goto error\n"
-        ip << "boot\n"
-        ip
+        filepath = template_filepath('boot_install')
+        ERB.new(File.read(filepath)).result(binding)
       end
 
       def local_boot(node)
+        #filepath = template_filepath('boot_local')
+        #ERB.new(File.read(filepath)).result(binding)
         ip = "#!ipxe\n"
         ip << "echo Reached #{@label} model boot_call\n"
         ip << "echo Our image UUID is: #{@image_uuid}\n"
@@ -280,12 +291,8 @@ module ProjectRazor
       end
 
       def kernel_args(policy_uuid)
-        ka = ""
-        ka << "preseed/url=#{api_svc_uri}/policy/callback/#{policy_uuid}/preseed/file "
-        ka << "debian-installer/locale=en_US "
-        ka << "netcfg/choose_interface=auto "
-        ka << "priority=critical "
-        ka
+        filepath = template_filepath('kernel_args')
+        ERB.new(File.read(filepath)).result(binding)
       end
 
       def hostname
@@ -313,8 +320,8 @@ module ProjectRazor
       end
 
       def generate_preseed(policy_uuid)
-        preseed = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/preseed.erb")
-        ERB.new(File.read(preseed)).result(binding)
+        filepath = template_filepath('preseed')
+        ERB.new(File.read(filepath)).result(binding)
       end
     end
   end
