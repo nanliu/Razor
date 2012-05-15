@@ -158,7 +158,7 @@ module ProjectRazor
 
         raise ProjectRazor::Error::Slice::InternalError, res[1] unless res[0]
 
-        raise ProjectRazor::Error::Slice::InternalError "Could not save image." unless insert_image(new_image)
+        raise ProjectRazor::Error::Slice::InternalError, "Could not save image." unless insert_image(new_image)
 
         puts "\nNew image added successfully\n".green
         print_images [new_image]
