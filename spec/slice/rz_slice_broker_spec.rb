@@ -12,7 +12,8 @@ describe "ProjectRazor::Slice::Broker" do
   describe ".RESTful Interface" do
 
     before(:all) do
-      @data = ProjectRazor::Data.new
+      @data = ProjectRazor::Data.instance
+      @data.check_init
       @config = @data.config
       @data.delete_all_objects(:broker)
     end

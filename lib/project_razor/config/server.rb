@@ -89,7 +89,6 @@ module ProjectRazor
         @default_ipmi_power_state = 'off'
         @default_ipmi_username = 'ipmi_user'
         @default_ipmi_password = 'ipmi_password'
-
       end
 
       def get_client_config_hash
@@ -106,10 +105,8 @@ module ProjectRazor
 
       def get_an_ip
         ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
-        ip.ip_address
+        ip.ip_address.force_encoding("UTF-8")
       end
-
-
 
     end
   end

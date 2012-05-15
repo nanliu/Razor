@@ -52,7 +52,7 @@ module ProjectRazor
       #
 
       def get_all_tagrules
-        # Get all node instances and print/return
+        # Get all tag rules and print/return
         @command = :get_all_tagrules
         @command_array.unshift(@last_arg) unless @last_arg == 'default'
         print_object_array get_object("tagrules", :tag), "Tag Rules", :style => :table, :success_type => :generic

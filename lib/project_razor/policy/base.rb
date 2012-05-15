@@ -84,7 +84,11 @@ module ProjectRazor
         if @bound
           return "Label", "State", "Node UUID", "System", "Bind #", "UUID"
         else
-          return "#", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
+          if @is_template
+            return "Template", "Description"
+          else
+            return "#", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
+          end
         end
       end
 
@@ -93,8 +97,12 @@ module ProjectRazor
           broker_name = @broker ? @broker.name : "none"
           return @label, @model.current_state.to_s, @node_uuid, broker_name, @model.counter.to_s, @uuid
         else
-          broker_name = @broker ? @broker.name : "none"
-          return @line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+          if @is_template
+            return @template.to_s, @description.to_s
+          else
+            broker_name = @broker ? @broker.name : "none"
+            return @line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+          end
         end
       end
 

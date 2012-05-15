@@ -9,6 +9,9 @@ module ProjectRazor
     # Base image abstract
     class Base < ProjectRazor::Object
 
+      MOUNT_COMMAND = (Process::uid == 0 ? "mount" : "sudo mount")
+      UMOUNT_COMMAND = (Process::uid == 0 ? "umount" : "sudo umount")
+
       attr_accessor :filename
       attr_accessor :description
       attr_accessor :size
@@ -124,7 +127,7 @@ module ProjectRazor
       def mount(src_image_path)
         FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
 
-        `mount -o loop #{src_image_path} #{mount_path} 2> /dev/null`
+        `#{MOUNT_COMMAND} -o loop #{src_image_path} #{mount_path} 2> /dev/null`
         if $? == 0
           logger.debug "mounted: #{src_image_path} on #{mount_path}"
           true
@@ -135,7 +138,7 @@ module ProjectRazor
       end
 
       def umount
-        `umount #{mount_path} 2> /dev/null`
+        `#{UMOUNT_COMMAND} #{mount_path} 2> /dev/null`
         if $? == 0
           logger.debug "unmounted: #{mount_path}"
           true
@@ -146,7 +149,7 @@ module ProjectRazor
       end
 
       def mounts
-        `mount`.split("\n").map! {|x| x.split("on")}.map! {|x| [x[0],x[1].split(" ")[0]]}
+        `#{MOUNT_COMMAND}`.split("\n").map! {|x| x.split("on")}.map! {|x| [x[0],x[1].split(" ")[0]]}
       end
 
       def cleanup(ret)

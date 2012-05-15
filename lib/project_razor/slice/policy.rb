@@ -67,7 +67,7 @@ module ProjectRazor
       # Returns the policy templates available
       def get_policy_templates
         # We use the common method in Utility to fetch object templates by providing Namespace prefix
-        print_object_array get_templates_as_object_templates(POLICY_PREFIX), "\nPolicy Templates:"
+        print_object_array get_child_templates(POLICY_PREFIX), "\nPolicy Templates:"
       end
 
       def get_policy_with_uuid
