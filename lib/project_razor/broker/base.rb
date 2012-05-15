@@ -49,11 +49,19 @@ module ProjectRazor
       end
 
       def print_header
-        return "Name", "Description", "Plugin", "Servers", "UUID"
+        if @is_template
+          return "Plugin", "Description"
+        else
+          return "Name", "Description", "Plugin", "Servers", "UUID"
+        end
       end
 
       def print_items
-        return @name, @user_description, @plugin.to_s, "[#{@servers.join(",")}]", @uuid
+        if @is_template
+          return @plugin.to_s, @description.to_s
+        else
+          return @name, @user_description, @plugin.to_s, "[#{@servers.join(",")}]", @uuid
+        end
       end
 
       def line_color
