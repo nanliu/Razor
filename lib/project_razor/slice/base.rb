@@ -35,6 +35,7 @@ module ProjectRazor
         @last_arg = nil
         @prev_args = Stack.new
         @hidden = true
+        @helper_message_objects = nil
         setup_data
         @uri_root = @data.config.mk_uri + "/razor/api/"
       end
