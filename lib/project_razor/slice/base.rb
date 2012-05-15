@@ -281,6 +281,7 @@ module ProjectRazor
         log_level = :error
         if error.class.ancestors.include?(ProjectRazor::Error::Slice::Generic)
           return_hash["std_err_code"] = error.std_err
+          return_hash["err_class"] = error.class.to_s
           return_hash["result"] = error.message
           return_hash["http_err_code"] = error.http_err_code
           log_level = error.log_severity
@@ -333,18 +334,18 @@ module ProjectRazor
         end
         @command_hash[:help] = "n/a" unless @command_hash[:help]
         if @command_help_text
-          puts "\nCommand help:  " +  @command_help_text
+          puts "\nCommand help:\n" +  @command_help_text
         else
-          puts "\nCommand help:  " +  @command_hash[:help]
+          puts "\nCommand help:\n" +  @command_hash[:help]
         end
       end
 
       def load_slice_commands
-        #begin
-        @slice_commands = YAML.load(File.read(slice_commands_file))
-        #rescue => e
-        #  raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
-        #end
+        begin
+          @slice_commands = YAML.load(File.read(slice_commands_file))
+        rescue => e
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
+        end
       end
 
       def save_slice_commands
@@ -360,6 +361,7 @@ module ProjectRazor
       def setup_data
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
+
     end
   end
 end

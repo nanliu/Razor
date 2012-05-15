@@ -80,7 +80,7 @@ module ProjectRazor
       end
 
       def get_web_vars(vars_array)
-          json_string = @command_array.first
+          json_string = @command_array.shift
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
           return nil unless is_valid_json?(json_string)
           vars_hash = sanitize_hash(JSON.parse(json_string))
@@ -190,6 +190,7 @@ module ProjectRazor
         if @web_command
           # Get request filter JSON string
           @filter_json_string = @command_array.shift
+          @filter_json_string = '{}' if @filter_json_string == 'null' # handles bad PUT requests
           # Check if we were passed a filter string
           if @filter_json_string != "{}" && @filter_json_string != nil
             @command = "query_with_filter"
@@ -232,6 +233,61 @@ module ProjectRazor
         @data.fetch_object_by_uuid_pattern(collection, uuid)
       end
 
+
+      # used to parse a set of name-value command-line arguments received
+      # as arguments to a slice "sub-command" and return those values to the
+      # caller.  If specified, the "expected_names" field can be used to restrict
+      # the names parsed to just those that are expected (useful for restricting
+      # the name/value pairs to just those that are "expected")
+      #
+      # @param [Object] expected_names  An array containing a list of field names
+      # to return (in the order in which they should be returned).  Any fields not
+      # in this list will result in an error being thrown by this method.
+      # @return [Hash] name/value pairs parsed from the command-line
+      def get_name_value_args(expected_names = nil)
+        # initialize the return values (to nil) by pre-allocating an appropriately size array
+        return_vals = {}
+        # parse the @command_array for "name=value" pairs
+        begin
+          # get the check the next value in the @command_array, continue only if
+          # it's a name/value pair in the format 'name=value'
+          name_val = @command_array[0]
+          # if we've reached the end of the @command_array, break out of the loop
+          break unless name_val
+          # if it's not in the format 'name=value' then break out of the loop
+          match = /([^=]+)=(.*)/.match(name_val)
+          break unless match
+          # since we've gotten this far, go ahead and shift the first value off
+          # of the @command_array (ensuring that the @last_arg and @prev_args
+          # variables are up to date as we do so)
+          @last_arg = @command_array.shift
+          @prev_args.push(@last_arg)
+          # break apart the match array into the name and value parts
+          name = match[1]
+          value = match[2]
+          # if a list of expected names was passed into the function, then test
+          # to see if this name is one of the expected names.  If it is in the list
+          # of expected names, continue, otherwise thrown an error.  If no expected_names
+          # list was passed in or if the value that was passed in has a zero length,
+          # then any name will be accepted (and any corresponding name/value pair will
+          # be returned)
+          idx = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
+          # and add this name/value pair to the return_vals Hash map
+          return_vals[name] = value
+        end while @command_array.size > 0     # continue as long as there are more arguments to parse
+        return return_vals
+      end
+
+      # returns the next argument from the @command_array (ensuring that the @last_arg and @prev_args
+      # instance variables are kept consistent as it does so)
+      def get_next_arg
+        return_val = @command_array.shift
+        @last_arg = return_val
+        @prev_args.push(return_val)
+        return_val
+      end
 
       def print_object_details_cli(obj)
         obj.instance_variables.each do
@@ -515,8 +571,8 @@ module ProjectRazor
               else
                 obj_web = object.to_hash
                 obj_web.select! { |k, v| ["@uuid", "@classname"].include?(k) } unless object_array.count == 1
-                noun = get_noun(obj_web["@classname"])
-                obj_web["@uri"] = "#{@uri_root}#{noun}/#{obj_web["@uuid"]}" if noun
+                add_uri_to_object_hash(obj_web)
+                iterate_obj(obj_web)
                 obj_web
               end
             end
@@ -526,6 +582,27 @@ module ProjectRazor
 
           slice_success(object_array, options)
         end
+      end
+
+      def iterate_obj(obj_hash)
+        obj_hash.each do
+          |k,v|
+          if obj_hash[k].class == Array
+            obj_hash[k].each do
+              |item|
+              if item.class == Hash
+                add_uri_to_object_hash(item)
+              end
+            end
+          end
+        end
+        obj_hash
+      end
+
+      def add_uri_to_object_hash(object_hash)
+        noun = get_noun(object_hash["@classname"])
+        object_hash["@uri"] = "#{@uri_root}#{noun}/#{object_hash["@uuid"]}" if noun
+        object_hash
       end
 
       def print_single_item(obj)

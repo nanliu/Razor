@@ -34,6 +34,7 @@ app.get('/razor/api/*',
     // TODO - need to decode vars
 
     function(req, res) {
+        console.log("GET called");
         args = req.path.split("/");
         args.splice(0,3);
         var args_string = getArguments(args);
@@ -51,15 +52,54 @@ app.get('/razor/api/*',
 
 app.post('/razor/api/*',
     function(req, res) {
+        console.log("POST called");
         args = req.path.split("/");
         args.splice(0,3);
+        if (command_included(args, "add") == undefined &&
+            command_included(args, "checkin") == undefined &&
+            command_included(args, "register") == undefined) {
+            args.push("add");
+        }
         var json_data = "'" + req.param('json_hash', null) + "'";
-
         var args_string = getArguments(args);
         //process.stdout.write('\033[2J\033[0;0H');
         console.log(args_string);
         console.log(razor_bin + args_string + json_data);
         exec(razor_bin + args_string + json_data, function (err, stdout, stderr) {
+            returnResult(res, stdout);
+        });
+    });
+
+app.put('/razor/api/*',
+    function(req, res) {
+        console.log("PUT called");
+        args = req.path.split("/");
+        args.splice(0,3);
+        if (command_included(args, "update") == undefined) {
+            args.splice(-1,0,"update");
+        }
+        var json_data = "'" + req.param('json_hash', null) + "'";
+        var args_string = getArguments(args);
+        console.log(args_string);
+        console.log(razor_bin + args_string + json_data);
+        exec(razor_bin + args_string + json_data, function (err, stdout, stderr) {
+            returnResult(res, stdout);
+        });
+    });
+
+app.delete('/razor/api/*',
+    function(req, res) {
+        console.log("DELETE called");
+        args = req.path.split("/");
+        args.splice(0,3);
+        if (command_included(args, "remove") == undefined) {
+            args.splice(-1,0,"remove");
+        }
+        var json_data = '{}';
+        var args_string = getArguments(args);
+        console.log(args_string);
+        console.log(razor_bin + args_string);
+        exec(razor_bin + args_string, function (err, stdout, stderr) {
             returnResult(res, stdout);
         });
     });
@@ -90,13 +130,13 @@ function returnResult(res, json_string) {
     {
         return_obj = JSON.parse(json_string);
         http_err_code = return_obj['http_err_code'];
-        res.writeHead(http_err_code, {'Content-Type': 'json/application'});
+        res.writeHead(http_err_code, {'Content-Type': 'application/json'});
         res.end(json_string);
     }
     catch(err)
     {
         // Parsing Error | Razor sent us something wrong - we just assume output
-        res.send(json_string, 200, {"Content-Type": "json/application"});
+        res.send(json_string, 200, {"Content-Type": "application/json"});
     }
 }
 
@@ -113,6 +153,12 @@ function getConfig() {
         console.log(stdout);
         startServer(stdout);
     });
+}
+
+function command_included(arr, obj) {
+    for(var i=0; i<arr.length; i++) {
+        if (arr[i] == obj) return true;
+    }
 }
 
 // TODO Add catch for if project_razor.js is already running on port
