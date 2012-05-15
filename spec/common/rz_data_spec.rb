@@ -52,7 +52,8 @@ describe ProjectRazor::Data do
       config.persist_timeout = PC_TIMEOUT
       write_config(config)
 
-      data = ProjectRazor::Data.new
+      data = ProjectRazor::Data.instance
+      data.check_init
 
       # Check to make sure it is our config object
       data.config.admin_port.should == config.admin_port
@@ -70,7 +71,8 @@ describe ProjectRazor::Data do
       File.delete($config_server_path) if File.exists?($config_server_path)
       File.exists?($config_server_path).should == false
 
-      data = ProjectRazor::Data.new
+      data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -89,7 +91,8 @@ describe ProjectRazor::Data do
       write_config(temp_str)
       File.exists?($config_server_path).should == true
 
-      data = ProjectRazor::Data.new
+      data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -105,7 +108,8 @@ describe ProjectRazor::Data do
       write_config(temp_str)
       File.exists?($config_server_path).should == true
 
-      data = ProjectRazor::Data.new
+      data = ProjectRazor::Data.instance
+      data.check_init
 
       # Confirm we have our default config
       data.config.instance_variables.each do
@@ -121,7 +125,8 @@ describe ProjectRazor::Data do
   describe ".PersistenceController" do
 
     before(:all) do
-      @data = ProjectRazor::Data.new
+      @data = ProjectRazor::Data.instance
+      @data.check_init
     end
 
     after(:all) do
@@ -143,7 +148,8 @@ describe ProjectRazor::Data do
   describe ".Nodes" do
 
     before(:all) do
-      @data = ProjectRazor::Data.new
+      @data = ProjectRazor::Data.instance
+      @data.check_init
       @data.delete_all_objects(:node)
 
       (1..NODE_COUNT).each do
@@ -270,7 +276,8 @@ describe ProjectRazor::Data do
   #describe ".Models" do
   #
   #  before(:all) do
-  #    @data = ProjectRazor::Data.new
+  #    @data = ProjectRazor::Data.instance
+  #    @data.check_init
   #
   #    (1..NODE_COUNT).each do
   #    |x|
@@ -374,7 +381,8 @@ describe ProjectRazor::Data do
   #describe ".Policies" do
   #
   #  before(:all) do
-  #    @data = ProjectRazor::Data.new
+  #    @data = ProjectRazor::Data.instance
+  #    @data.check_init
   #
   #    (1..NODE_COUNT).each do
   #    |x|
