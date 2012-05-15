@@ -9,7 +9,7 @@ require "json"
 
 
 
-describe "ProjectRazor::Slice::TagRule" do
+describe "ProjectRazor::Slice::Tag" do
 
   describe ".RESTful Interface" do
 
@@ -28,7 +28,7 @@ describe "ProjectRazor::Slice::TagRule" do
     end
 
     it "should be able to create a new empty tag rule from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/add"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag"
 
       name = "test_tag_rule_web"
       tag = "testtag"
