@@ -14,7 +14,7 @@ describe ProjectRazor::PowerControl::IpmiController do
   before (:all) do
     @ipmi = ProjectRazor::PowerControl::IpmiController.instance
     @mock_data_dir = File.expand_path(File.dirname(__FILE__)) + File::SEPARATOR + 'ipmitool-mock-files'
-    data = ProjectRazor::Data.new
+    data = ProjectRazor::Data.instance
     config = data.config
     @ipmi_username = config.default_ipmi_username
     @ipmi_password = config.default_ipmi_password

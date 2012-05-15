@@ -4,7 +4,7 @@ require "project_razor"
 
 
 
-@data = ProjectRazor::Data.new
+@data = ProjectRazor::Data.instance
 engine = ProjectRazor::Engine.instance
 
 @data.delete_all_objects(:node)

@@ -20,7 +20,7 @@ puts "\n\n"
 puts "** Please enter the UUID of the node to work with:"
 node_uuid = gets.strip
 
-data = ProjectRazor::Data.new
+data = ProjectRazor::Data.instance
 engine = ProjectRazor::Engine.instance
 config  = data.config
 

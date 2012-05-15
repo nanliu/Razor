@@ -13,7 +13,7 @@ describe "ProjectRazor::Slice::Bmc" do
   describe ".RESTful Interface" do
 
     before(:all) do
-      @data = ProjectRazor::Data.new
+      @data = ProjectRazor::Data.instance
       @config = @data.config
       @data.delete_all_objects(:bmc)
       @uuid = ["001517FAE036", "001517FADE66"]

@@ -10,7 +10,7 @@ require "json"
 describe ProjectRazor::Engine do
 
   before (:all) do
-    @data = ProjectRazor::Data.new
+    @data = ProjectRazor::Data.instance
     @config = @data.config
     @engine = ProjectRazor::Engine.instance
 
