@@ -3,12 +3,13 @@
 
 require "yaml"
 require "extlib"
-
+require "singleton"
 
 # This class is the interface to all querying and saving of objects for ProjectRazor
 # @author Nicholas Weaver
 module ProjectRazor
   class Data
+    include Singleton
     include(ProjectRazor::Utility)
     include(ProjectRazor::Logging)
     include(ProjectRazor::Filtering)
@@ -22,7 +23,7 @@ module ProjectRazor
     def initialize
       logger.debug "Initializing object"
       load_config
-      setup_persist
+      setup_persist unless (@persist_ctrl && @persist_ctrl.check_connection)
     end
 
     def config

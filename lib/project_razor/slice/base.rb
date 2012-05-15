@@ -359,7 +359,7 @@ module ProjectRazor
 
       # Initializes [ProjectRazor::Data] in not already instantiated
       def setup_data
-        @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
+        @data = ProjectRazor::Data.instance unless @data.class == ProjectRazor::Data
       end
 
     end

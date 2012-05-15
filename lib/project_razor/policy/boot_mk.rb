@@ -16,7 +16,7 @@ module ProjectRazor
         @template = :hidden
         @description = "Default MK boot object. Hidden"
 
-        @data = ProjectRazor::Data.new
+        @data = ProjectRazor::Data.instance
         @config = @data.config
       end
 
