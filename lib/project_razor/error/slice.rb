@@ -27,6 +27,10 @@ module ProjectRazor
           [ 'CouldNotCreate'            , 125 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'CouldNotUpdate'            , 126 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'CouldNotRemove'            , 127 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'InvalidModelTemplate'      , 150 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'UserCancelled'             , 151 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'MissingModelMetadata'      , 152 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'InvalidModelMetadata'      , 153 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
       ].each do |err|
         ProjectRazor::Error.create_class *err
       end

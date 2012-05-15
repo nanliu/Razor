@@ -66,8 +66,7 @@ module ProjectRazor
                             :else => "query_bmc_by_uuid",
                             :help => general_help_string}
         @slice_name = "Bmc"
-        data = ProjectRazor::Data.new
-        config = data.config
+        config = get_data.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
       end

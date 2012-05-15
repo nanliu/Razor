@@ -105,11 +105,8 @@ module ProjectRazor
 
       def get_an_ip
         ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
-        puts "image_svc_host:::" + ip.ip_address.encoding.to_s
         ip.ip_address.force_encoding("UTF-8")
       end
-
-
 
     end
   end

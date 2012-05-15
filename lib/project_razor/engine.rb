@@ -9,19 +9,19 @@ require "json"
 
 
 module ProjectRazor
-  class Engine
+  class Engine < ProjectRazor::Object
     include(ProjectRazor::Logging)
     include(Singleton)
 
     attr_accessor :policies
 
     def initialize
-      # create the singelton for policies
+      # create the singleton for policies
       @policies = ProjectRazor::Policies.instance
     end
 
     def get_active_models
-      $data.fetch_all_objects(:active)
+      get_data.fetch_all_objects(:active)
     end
 
     #####################
@@ -32,7 +32,7 @@ module ProjectRazor
 
     def default_mk
       mk_images = []
-      $data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify($data.config.image_svc_path) == true}
+      get_data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify(get_data.config.image_svc_path) == true}
 
 
 
@@ -58,7 +58,7 @@ module ProjectRazor
     def mk_checkin(uuid, last_state)
       old_timestamp = 0 # we set this early in case a timestamp field is nil
                         # We attempt to fetch the node object
-      node = $data.fetch_object_by_uuid(:node, uuid)
+      node = get_data.fetch_object_by_uuid(:node, uuid)
 
       # Check to see if node is known
       if node
@@ -81,7 +81,7 @@ module ProjectRazor
 
         # Check to see if the time span since the last node contact
         # is greater than our register_timeout
-        if (node.timestamp - old_timestamp) > $data.config.register_timeout
+        if (node.timestamp - old_timestamp) > get_data.config.register_timeout
           # Our node hasn't talked to the server within an acceptable time frame
           # we will request a re-register to refresh details about the node
           logger.debug "Asking Node #{node.uuid} to re-register as we haven't talked to him in #{(node.timestamp - old_timestamp)} seconds"
@@ -149,7 +149,7 @@ module ProjectRazor
     def mk_bind_policy(node, policy)
       if policy.bind_me(node)
         logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy.label})"
-        $data.persist_object(policy)
+        get_data.persist_object(policy)
       else
         logger.error "Cannot bind Node (#{node.uuid}) to Policy (#{policy.label})"
       end
@@ -202,7 +202,7 @@ module ProjectRazor
           # Call the active model boot_call
           logger.info "Active policy found (#{active_model.label}) for Node uuid: #{node.uuid}"
           boot_response = active_model.boot_call(node)
-          $data.persist_object(active_model)
+          get_data.persist_object(active_model)
           return boot_response
         else
           #There is not active model so we boot the MK
@@ -226,7 +226,7 @@ module ProjectRazor
 
 
     def find_active_models(node)
-      active_models = $data.fetch_all_objects(:active)
+      active_models = get_data.fetch_all_objects(:active)
       active_models.each do
       |bp|
         # If we find a active model we return it
@@ -264,7 +264,7 @@ module ProjectRazor
         return nil
       end
       matching_nodes = []
-      nodes = $data.fetch_all_objects(:node)
+      nodes = get_data.fetch_all_objects(:node)
       nodes.each do
       |node|
         matching_hw_id = node.hw_id & options[:hw_id]
@@ -304,7 +304,7 @@ module ProjectRazor
         return nil
       end
       # Create new node object with node object
-      new_node = $data.persist_object(node_object)
+      new_node = get_data.persist_object(node_object)
       # run the resolve to be sure we don't have a conflict
       resolve_node_hw_id_collision
       new_node
@@ -316,7 +316,7 @@ module ProjectRazor
     # @param [Array] hw_id
     def resolve_node_hw_id_collision
       # Get all nodes
-      nodes = $data.fetch_all_objects(:node)
+      nodes = get_data.fetch_all_objects(:node)
       # This will hold all hw_id's (not unique)'
       all_hw_id = []
       # Take each hw_id and add to our all_hw_id array
@@ -366,7 +366,7 @@ module ProjectRazor
 
     def node_tags(node)
       node.attributes_hash
-      tag_policies = $data.fetch_all_objects(:tag)
+      tag_policies = get_data.fetch_all_objects(:tag)
       tag_policies = tag_policies + get_system_tags
       tags = []
       tag_policies.each do

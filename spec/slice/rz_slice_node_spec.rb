@@ -11,7 +11,8 @@ describe "ProjectRazor::Slice::Node" do
   describe ".RESTful Interface" do
 
     before(:all) do
-      @data = ProjectRazor::Data.new
+      @data = ProjectRazor::Data.instance
+      @data.check_init
       @config = @data.config
 
       @hw_id = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
