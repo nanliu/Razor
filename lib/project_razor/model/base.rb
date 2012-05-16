@@ -178,6 +178,23 @@ module ProjectRazor
         end
       end
 
+      def print_item
+        if @is_template
+          return @name.to_s, @description.to_s
+        else
+          image_uuid_str = image_uuid ? image_uuid : "n/a"
+          return @label, @template.to_s, @description, @uuid, image_uuid_str
+        end
+      end
+
+      def print_item_header
+        if @is_template
+          return "Template Name", "Description"
+        else
+          return "Label", "Template", "Description", "UUID", "Image UUID"
+        end
+      end
+
       def print_items
         if @is_template
           return @name.to_s, @description.to_s
@@ -233,7 +250,7 @@ module ProjectRazor
           flag = false
           until flag
             print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow.bold
-            print " (example: " + "#{req_metadata_hash[md][:example]}}".yellow + ") \n"
+            print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
             puts "default: " + "#{req_metadata_hash[md][:default]}".yellow if req_metadata_hash[md][:default] != ""
             puts req_metadata_hash[md][:required] ? quit_option : skip_quit_option
             print " > "

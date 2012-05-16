@@ -173,6 +173,7 @@ module ProjectRazor
         new_policy.model = @model_config
         new_policy.broker = @broker
         new_policy.tags = @tags
+        new_policy.is_template = false
 
         policy_rules = ProjectRazor::Policies.instance
         if policy_rules.add(new_policy)

@@ -3,6 +3,7 @@
 
 require "project_razor/model/base"
 require "project_razor/model/debian"
+require "project_razor/model/debian_wheezy"
 require "project_razor/model/ubuntu"
 require "project_razor/model/ubuntu_oneiric"
 require "project_razor/model/ubuntu_precise"
