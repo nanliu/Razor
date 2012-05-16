@@ -4,7 +4,8 @@
 require "socket"
 require "logger"
 
-# This class represents the ProjectRazor configuration. It is stored persistently in './conf/razor_server.conf' and editing by the user
+# This class represents the ProjectRazor configuration. It is stored persistently in
+# './conf/razor_server.conf' and editing by the user
 # @author Nicholas Weaver
 module ProjectRazor
   module Config
@@ -48,6 +49,8 @@ module ProjectRazor
       attr_accessor :default_ipmi_username
       attr_accessor :default_ipmi_password
 
+      attr_accessor :daemon_min_cycle_time
+
       # init
       def initialize
         use_defaults
@@ -89,6 +92,9 @@ module ProjectRazor
         @default_ipmi_power_state = 'off'
         @default_ipmi_username = 'ipmi_user'
         @default_ipmi_password = 'ipmi_password'
+
+        @daemon_min_cycle_time = 30
+
       end
 
       def get_client_config_hash

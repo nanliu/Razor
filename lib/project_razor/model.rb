@@ -7,7 +7,8 @@ require "project_razor/model/debian_wheezy"
 require "project_razor/model/ubuntu"
 require "project_razor/model/ubuntu_oneiric"
 require "project_razor/model/ubuntu_precise"
-require "project_razor/model/vmware_esxi5_simple"
+require "project_razor/model/vmware_esxi"
+require "project_razor/model/vmware_esxi_5"
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver

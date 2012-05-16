@@ -154,8 +154,8 @@ module ProjectRazor
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
         setup_data
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Tag Rule [#{tagrule.uuid}]" unless @data.delete_object(model)
-        slice_success("Tag Rule [#{model.uuid}] removed",:success_type => :removed)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{tagrule.uuid}]" unless @data.delete_object(model)
+        slice_success("Active Model [#{model.uuid}] removed",:success_type => :removed)
       end
 
     end

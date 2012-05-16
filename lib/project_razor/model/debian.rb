@@ -3,9 +3,6 @@
 
 require "erb"
 
-# TODO - timing between state changes
-# TODO - timeout values for a state
-
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -41,26 +38,23 @@ module ProjectRazor
         # Enable agent brokers for this model
         @broker_plugin = :agent
         @final_state = :os_complete
-        from_hash(hash) unless hash == nil
-      end
-
-      def req_metadata_hash
-        {
-          "@hostname_prefix" => {
-            :default     => "node",
-            :example     => "node",
-            :validation  => '^[\w]+$',
-            :required    => true,
-            :description => "node hostname prefix (will append node number)"
-          },
-          "@root_password" => {
-            :default     => "test1234",
-            :example     => "P@ssword!",
-            :validation  => '^[\S]{8,}',
-            :required    => true,
-            :description => "root password (> 8 characters)"
-          },
+        @req_metadata_hash = {
+            "@hostname_prefix" => {
+                :default     => "node",
+                :example     => "node",
+                :validation  => '^[\w]+$',
+                :required    => true,
+                :description => "node hostname prefix (will append node number)"
+            },
+            "@root_password" => {
+                :default     => "test1234",
+                :example     => "P@ssword!",
+                :validation  => '^[\S]{8,}',
+                :required    => true,
+                :description => "root password (> 8 characters)"
+            },
         }
+        from_hash(hash) unless hash == nil
       end
 
       def callback
@@ -69,24 +63,12 @@ module ProjectRazor
       end
 
       def broker_agent_handoff
-        # Ubuntu support agent-based brokers that support Linux
-
         logger.debug "Broker agent called for: #{@broker.name}"
-
-        # We need to send username & password to broker agent method
-        # We also need to send our Node's metadata (attributes_hash).
-
         unless @node_ip
           logger.error "Node IP address isn't known"
           @current_state = :broker_fail
-          fsm_log( :state     => @current_state,
-                   :old_state => :os_complete,
-                   :action    => :broker_agent_handoff,
-                   :method    => :broker,
-                   :node_uuid => @node_bound.uuid,
-                   :timestamp => Time.now.to_i )
+          broker_fsm_log
         end
-
         options = {
           :username  => "root",
           :password  => @root_password,
@@ -94,22 +76,11 @@ module ProjectRazor
           :hostname  => hostname,
           :ipaddress => @node_ip,
         }
-
-        options.each do |k, v|
-          logger.debug "#{k}: #{v}"
-        end
-
         @current_state = @broker.agent_hand_off(options)
-        fsm_log( :state     => @current_state,
-                 :old_state => :os_complete,
-                 :action    => :broker_agent_handoff,
-                 :method    => :broker,
-                 :node_uuid => @node_bound.uuid,
-                 :timestamp => Time.now.to_i )
+        broker_fsm_log
       end
 
       def preseed_call
-        @node_bound = @node
         @arg = @args_array.shift
         case @arg
           when  "start"
@@ -130,7 +101,6 @@ module ProjectRazor
       end
 
       def postinstall_call
-        @node_bound = @node
         @arg = @args_array.shift
         case @arg
           when "inject"
@@ -216,7 +186,7 @@ module ProjectRazor
       end
 
       def mk_call(node, policy_uuid)
-        @node_bound = node
+        super(node, policy_uuid)
         case @current_state
           # We need to reboot
           when :init, :preinstall, :postinstall, :os_validate, :os_complete, :broker_check, :broker_fail, :broker_success
@@ -231,7 +201,7 @@ module ProjectRazor
       end
 
       def boot_call(node, policy_uuid)
-        @node_bound = node
+        super(node, policy_uuid)
         case @current_state
           when :init, :preinstall
             @result = "Starting Ubuntu model install"

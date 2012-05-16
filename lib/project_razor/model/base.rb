@@ -38,7 +38,7 @@ module ProjectRazor
         @req_metadata_hash = {}
         @callback = {}
         @current_state = :init
-        @node_bound = nil
+        @node = nil
         @policy_bound = nil
         @broker_plugin = false # by default
         @final_state = :nothing
@@ -68,7 +68,9 @@ module ProjectRazor
             :broker_wait => {
                 :else => :broker_wait},
             :broker_success => {
-                :else => :broker_success}
+                :else => :broker_success},
+            :complete_no_broker => {
+                :else => :complete_no_broker}
         }
         fsm_tree.merge base_fsm_tree
       end
@@ -80,7 +82,7 @@ module ProjectRazor
 
       def fsm_action(action, method)
         # We only change state if we have a node bound
-        if @node_bound
+        if @node
           old_state = @current_state
           old_state = :init unless old_state
           begin
@@ -91,6 +93,7 @@ module ProjectRazor
             end
           rescue => e
             logger.error "FSM ERROR: #{e.message}"
+            raise e
           end
 
         else
@@ -100,7 +103,7 @@ module ProjectRazor
                 :old_state => old_state,
                 :action => action,
                 :method => method,
-                :node_uuid => node_bound.uuid,
+                :node_uuid => @node.uuid,
                 :timestamp => Time.now.to_i)
         # If in final state we check broker assignment
         if @current_state.to_s == @final_state.to_s # Enable to help with broker debug || @current_state.to_s == "broker_fail"
@@ -126,7 +129,7 @@ module ProjectRazor
                   :old_state => @final_state,
                   :action => :broker_check,
                   :method => :broker_check,
-                  :node_uuid => node_bound.uuid,
+                  :node_uuid => @node.uuid,
                   :timestamp => Time.now.to_i)
           return
         end
@@ -134,7 +137,7 @@ module ProjectRazor
           when :agent
             return broker_agent_handoff
           when :proxy
-            return false # Replace with proxy handling
+            return broker_proxy_handoff
           else
             return false # Brokers disabled for model
         end
@@ -142,6 +145,11 @@ module ProjectRazor
       end
 
       def broker_agent_handoff
+        # Implemented by child model
+        false
+      end
+
+      def broker_proxy_handoff
         # Implemented by child model
         false
       end
@@ -265,15 +273,14 @@ module ProjectRazor
               when "QUIT"
                 return false
               when ""
-                if default != ""
+                if req_metadata_hash[md][:default] != ""
                   flag = set_metadata_value(md, req_metadata_hash[md][:default], req_metadata_hash[md][:validation])
-                  puts "Value (".red + "#{value}".yellow + ") is invalid".red unless flag
                 else
                   puts "No default value, must enter something".red
                 end
               else
                 flag = set_metadata_value(md, response, req_metadata_hash[md][:validation])
-                puts "Value (".red + "#{value}".yellow + ") is invalid".red unless flag
+                puts "Value (".red + "#{response}".yellow + ") is invalid".red unless flag
             end
           end
         end
@@ -298,6 +305,22 @@ module ProjectRazor
         "(" + "QUIT".red + " to cancel)"
       end
 
+      def mk_call(node, policy_uuid)
+        @node, @policy_uuid = node, policy_uuid
+      end
+
+      def boot_call(node, policy_uuid)
+        @node, @policy_uuid = node, policy_uuid
+      end
+
+      def broker_fsm_log
+        fsm_log(:state     => @current_state,
+                :old_state => @final_state,
+                :action    => :broker_agent_handoff,
+                :method    => :broker,
+                :node_uuid => @node.uuid,
+                :timestamp => Time.now.to_i)
+      end
     end
   end
 end
