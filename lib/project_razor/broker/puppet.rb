@@ -36,8 +36,9 @@ module ProjectRazor::BrokerPlugin
     end
 
     def proxy_hand_off(options = {})
-      # Return false until we implement
-      false
+      # Return something
+      logger.debug options.inspect
+      :broker_success
     end
 
     # Method call for validating that a Broker instance successfully received the node
