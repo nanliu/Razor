@@ -74,7 +74,7 @@ module ProjectRazor
           :username  => "root",
           :password  => @root_password,
           :metadata  => node_metadata,
-          :hostname  => hostname,
+          :uuid  => @node.uuid,
           :ipaddress => @node_ip,
         }
         @current_state = @broker.agent_hand_off(options)

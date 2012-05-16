@@ -147,7 +147,7 @@ module ProjectRazor
             :username                => "root",
             :password                => @root_password,
             :metadata                => node_metadata,
-            :hostname                => node_hostname,
+            :uuid                    => @node.uuid,
             :ipaddress               => node_ip_address,
             :vcenter_name            => @vcenter_name,
             :vcenter_datacenter_path => @vcenter_datacenter_path,
