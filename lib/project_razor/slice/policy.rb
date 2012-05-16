@@ -48,7 +48,7 @@ module ProjectRazor
                            # TODO - Add :move => :up + :down for Policy Rules
                            :default => "get_policy_all",
                            :remove => {:policy => "remove_policy",
-                                       [/^[Bb]ound/,"active_model",/^[Bb]$/] => "remove_active",
+                                       [/^[Aa]ctive/,"active_model",/^[Bb]$/] => "remove_active",
                                        :default => :policy,
                                        :else => :policy,
                                        :help => "razor policy remove policy[p]|active_model[am] all|(policy uuid)"},
@@ -173,6 +173,7 @@ module ProjectRazor
         new_policy.model = @model_config
         new_policy.broker = @broker
         new_policy.tags = @tags
+        new_policy.is_template = false
 
         policy_rules = ProjectRazor::Policies.instance
         if policy_rules.add(new_policy)
@@ -258,29 +259,16 @@ module ProjectRazor
         end
       end
 
-      def remove_active
-        @command_help_text = "razor policy remove active_model[am] all|(uuid)"
-        # Grab the arg
-        @arg = @command_array.shift
-        case @arg
-          when "all" # if [all] we remove all instances
-            setup_data # setup the data object
-            @data.delete_all_objects(:active) # remove all policy instances
-            slice_success("All Active Models deleted") # return success
-          when nil
-            slice_error("Command Error") # return error for no arg
-          else
-            active_model = get_object("active model", :active, @arg) # attempt to find policy with uuid
-            case active_model
-              when nil
-                slice_error("Cannot Find Active Model with UUID: [#@arg]") # error when it is invalid
-              else
-                setup_data
-                @data.delete_object_by_uuid(:active, @arg)
-                slice_success("Active Model deleted")
-            end
-        end
 
+      def remove_active
+        @command = :remove_active
+        @command_help_text = "razor policy active remove (UUID)"
+        active_model_uuid = @command_array.shift
+        active_model = get_object("active_model_with_uuid", :active, active_model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{active_model}]" unless active_model
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model.uuid}]" unless @data.delete_object(active_model)
+        slice_success("Active Model [#{active_model.uuid}] removed",:success_type => :removed)
       end
 
       def get_possible_models

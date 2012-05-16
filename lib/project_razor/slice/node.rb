@@ -27,25 +27,22 @@ module ProjectRazor
 
       def get_node_with_uuid
         @command = :get_node_with_uuid
-        @command_help_text = "razor node [get] (uuid)"
         node = get_object("node_with_uuid", :node, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node get (uuid)'}) unless node
         print_object_array [node]
       end
 
       def get_node_attributes
         @command = :get_node_attributes
-        @command_help_text = "razor node [get] attributes[a] (uuid)"
         node = get_object("node_with_uuid", :node, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node [get] attributes[a] (uuid)'}) unless node
         print_object_array node.print_attributes_hash, "Node Attributes:"
       end
 
       def get_node_hardware_ids
         @command = :get_node_attributes
-        @command_help_text = "razor node [get] attributes[a] (uuid)"
         node = get_object("node_with_uuid", :node, @arg)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node [get] attributes[a] (uuid)'}) unless node
         print_object_array node.print_hardware_ids, "Node Hardware ID's:"
       end
 
@@ -87,7 +84,7 @@ module ProjectRazor
         @new_node.attributes_hash = @attributes_hash
         @new_node.last_state = @last_state
         raise ProjectRazor::Error::Slice::CouldNotRegisterNode, "Could not register node" unless @new_node.update_self
-        slice_success(@new_node.to_hash, :mk_command => true)
+        slice_success(@new_node.to_hash, :mk_response => true)
       end
 
       def checkin_node
@@ -115,9 +112,9 @@ module ProjectRazor
         @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
         if @new_node
           command = @engine.mk_checkin(@new_node.uuid, @last_state)
-          return slice_success(command, :mk_command => true)
+          return slice_success(command, :mk_response => true)
         end
-        slice_success(@engine.mk_command(:register,{}), :mk_command => true)
+        slice_success(@engine.mk_command(:register,{}), :mk_response => true)
       end
     end
   end

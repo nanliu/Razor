@@ -158,7 +158,7 @@ module ProjectRazor
         object_array = {}
         temp_hash.each_value {|x| object_array[x] = x}
 
-        objects = object_array.each_value.collect { |x| x }.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+        objects = object_array.each_value.collect { |x| x }.sort.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
         objects.each {|object| object.is_template = true}
         valid_objects = []
         objects.each {|object| valid_objects << object unless object.hidden}

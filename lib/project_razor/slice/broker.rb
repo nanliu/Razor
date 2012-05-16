@@ -111,6 +111,7 @@ module ProjectRazor
         new_broker.name = @name
         new_broker.user_description = @user_description
         new_broker.servers = @servers
+        new_broker.is_template = false
         setup_data
         @data.persist_object(new_broker)
         if new_broker
