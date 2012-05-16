@@ -27,6 +27,15 @@ require 'project_razor'
 # parameter value for the daemon_min_cycle_time
 DEFAULT_MIN_CYCLE_TIME = 30
 
+# monkey-patch the Daemons::Application class so that it uses a pattern of "*.log" for
+# the file that it uses to capture output from the Daemon (and the processes that it
+# manages) rather than the default pattern used by this class ("*.output")
+class Daemons::Application
+  def output_logfile
+    (options[:log_output] && logdir) ? File.join(logdir, @group.app_name + '.log') : nil
+  end
+end
+
 # This singleton class is used by the daemon (below) to interact with the
 # underlying Razor (obtaining a copy of the Razor server configuration and
 # managing the underlying services that make up the Razor server).  It is
@@ -216,7 +225,7 @@ Daemons.run_proc("razor_daemon", options) {
       msecs_elapsed = (t2 - t1) * 1000
       if msecs_elapsed < msecs_sleep then
         secs_sleep = (msecs_sleep - msecs_elapsed)/1000.0
-        puts "Sleeping for #{secs_sleep} secs..."
+        #puts "Sleeping for #{secs_sleep} secs..."
         sleep(secs_sleep) if secs_sleep >= 0.0
       end
 
