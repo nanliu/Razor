@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 #
-# A simple "wrapper" script that is used to daemonize the razor_control_server.rb
-# script (which represents the primary Razor Controller) .  This wrapper script
-# is used to start, stop, restart, etc. the underlying razor_control_server.rb
-# script and could be replaced by a more standard, OS-specific mechanism later
-# (perhaps)
+# A daemon that is used to start, stop, restart, etc. the underlying Node.js
+# instances that make up Razor and to ensure that they stay running as long
+# as this daemon process continues to run.  It also checks the status of the
+# underlying database instance that is used by Razor to ensure that it is
+# running and throws an error (and exits) if that database stops running.
+# Finally, this daemon will be used to check the timings on tasks that are
+# running under Razor, but that functionality is, as of now, unimplemented.
 #
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
@@ -39,6 +41,8 @@ end
 # define the directory to use for logging
 log_dir = current_dir.sub(/\/bin$/,"/log")
 
+# used to cleanly shut down the processes being managed by this daemon
+# (i.e. the Node.js instances)
 def shutdown_instances
   # clean up before exiting
   razor_controller = RazorDaemon.instance
@@ -53,8 +57,6 @@ options = {
     :log_output => true,
     :stop_proc => shutdown_instances
 }
-
-#Daemons.run("#{bin_dir}/razor_controller.rb", options)
 
 Daemons.run_proc("razor_daemon", options) {
 
@@ -112,7 +114,9 @@ Daemons.run_proc("razor_daemon", options) {
     rescue => e
       puts "An exception occurred: #{e.message}"
       # check to see how much time has elapsed, sleep for the time remaining
-      # in the msecs_sleep time window
+      # in the msecs_sleep time window (to avoid spinning through this loop
+      # over and over again with no lag if an error is thrown within the
+      # loop itself)
       t2 = Time.now
       msecs_elapsed = (t2 - t1) * 1000
       if msecs_elapsed < msecs_sleep then
