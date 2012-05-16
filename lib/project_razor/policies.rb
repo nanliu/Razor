@@ -99,6 +99,8 @@ module ProjectRazor
       # Sort the policies based on line_number
       policies_array.sort! do
       |a,b|
+        a.line_number ||= 9999
+        b.line_number ||= 9999
         a.line_number <=> b.line_number
       end
       policies_array
