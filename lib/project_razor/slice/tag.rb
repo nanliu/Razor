@@ -191,7 +191,9 @@ module ProjectRazor
         matcher.compare = @compare if @compare
         matcher.value = @value if @value
         matcher.inverse = @invert if @invert
-        tagrule.update_self ? print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
+        tagrule.update_self ?
+            print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) :
+            raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
       end
 
       def remove_matcher
