@@ -142,14 +142,14 @@ module ProjectRazor
 
       def remove_all_models
         @command = :remove_all_models
-        @command_help_text = "razor tag remove all"
+        @command_help_text = "razor model remove all"
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:model)
         slice_success("All Models removed",:success_type => :removed)
       end
 
       def remove_model
         @command = :remove_model
-        @command_help_text = "razor tag model (UUID)"
+        @command_help_text = "razor model remove (UUID)"
         model_uuid = @command_array.shift
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
