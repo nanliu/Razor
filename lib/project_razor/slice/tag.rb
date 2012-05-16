@@ -52,7 +52,7 @@ module ProjectRazor
       #
 
       def get_all_tagrules
-        # Get all node instances and print/return
+        # Get all tag rules and print/return
         @command = :get_all_tagrules
         @command_array.unshift(@last_arg) unless @last_arg == 'default'
         print_object_array get_object("tagrules", :tag), "Tag Rules", :style => :table, :success_type => :generic
@@ -191,7 +191,9 @@ module ProjectRazor
         matcher.compare = @compare if @compare
         matcher.value = @value if @value
         matcher.inverse = @invert if @invert
-        tagrule.update_self ? print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
+        tagrule.update_self ?
+            print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) :
+            raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
       end
 
       def remove_matcher

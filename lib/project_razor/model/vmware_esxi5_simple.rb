@@ -33,6 +33,13 @@ module ProjectRazor
         @template = :vmware_hypervisor
         @name = "vmware_esxi5_simple"
         @description = "VMware ESXi 5 Simple Deployment"
+        @req_metadata_hash = {
+            "@esx_license" => {:default => "",
+                               :example => "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE",
+                               :validation => '^[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}$',
+                               :required => true,
+                               :description => "ESX License Key"}
+        }
 
         # Metadata vars
         esx_license = nil
@@ -51,15 +58,15 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
       end
 
-      def req_metadata_hash
-        {
-            "@esx_license" => {:default => "",
-                               :example => "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE",
-                               :validation => '^[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}$',
-                               :required => true,
-                               :description => "ESX License Key"}
-        }
-      end
+      #def req_metadata_hash
+      #  {
+      #      "@esx_license" => {:default => "",
+      #                         :example => "AAAAA-BBBBB-CCCCC-DDDDD-EEEEE",
+      #                         :validation => '^[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}-[A-Z\d]{5}$',
+      #                         :required => true,
+      #                         :description => "ESX License Key"}
+      #  }
+      #end
 
       def callback
         {"boot_cfg" => :boot_cfg,
@@ -185,7 +192,7 @@ module ProjectRazor
 
 
       def boot_cfg
-        @image = $data.fetch_object_by_uuid(:images, @image_uuid)
+        @image = get_data.fetch_object_by_uuid(:images, @image_uuid)
         @image.boot_cfg.gsub("/", "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel","ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file")
       end
 
