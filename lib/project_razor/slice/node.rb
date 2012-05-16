@@ -87,7 +87,7 @@ module ProjectRazor
         @new_node.attributes_hash = @attributes_hash
         @new_node.last_state = @last_state
         raise ProjectRazor::Error::Slice::CouldNotRegisterNode, "Could not register node" unless @new_node.update_self
-        slice_success(@new_node.to_hash, :mk_command => true)
+        slice_success(@new_node.to_hash, :mk_response => true)
       end
 
       def checkin_node
@@ -115,9 +115,9 @@ module ProjectRazor
         @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
         if @new_node
           command = @engine.mk_checkin(@new_node.uuid, @last_state)
-          return slice_success(command, :mk_command => true)
+          return slice_success(command, :mk_response => true)
         end
-        slice_success(@engine.mk_command(:register,{}), :mk_command => true)
+        slice_success(@engine.mk_command(:register,{}), :mk_response => true)
       end
     end
   end
