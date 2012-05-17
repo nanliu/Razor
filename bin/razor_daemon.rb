@@ -205,7 +205,7 @@ Daemons.run_proc("razor_daemon", options) {
   # for each iteration will be accurate to the nearest millisecond.
   razor_config = razor_daemon.get_config
   msecs_sleep = get_min_cycle_time(razor_config) * 1000;
-  node_expire_timeout = get_node_expire_timeout(razor_configor)
+  node_expire_timeout = get_node_expire_timeout(razor_config)
 
   # flag that is used to ensure razor_config is reloaded before each pass through
   # the event-handling loop, but not on the first pass (since we just loaded it)
