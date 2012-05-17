@@ -385,7 +385,7 @@ module ProjectRazor
       active_model = find_active_models(node)
       return "bound" if active_model
       max_active_elapsed_time = get_data.config.register_timeout
-      time_since_last_checkin = Time.now - node.timestamp
+      time_since_last_checkin = Time.now.to_i - node.timestamp.to_i
       return "inactive" if time_since_last_checkin > max_active_elapsed_time
       return "active"
     end
