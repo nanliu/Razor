@@ -42,5 +42,11 @@ module ProjectRazor
     # FIXME: This require is here because other modules needs access to methods in this module.
     require_rel "error/"
 
+    [
+        [ 'CannotCreatePolicyTable'                , 10 , {'@http_err' => :bad_request}           , ''          , 'ProjectRazor::Error::Generic' ],
+    ].each do |err|
+      ProjectRazor::Error.create_class *err
+    end
+
   end
 end
