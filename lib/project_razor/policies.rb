@@ -28,7 +28,7 @@ module ProjectRazor
       end
 
       def get_line_number(policy_uuid)
-        @p_table.each_with_index { |p_item_uuid, index| return index.to_s if p_item_uuid == policy_uuid }
+        @p_table.each_with_index { |p_item_uuid, index| return index if p_item_uuid == policy_uuid }
       end
 
       def add_p_item(policy_uuid)
@@ -177,19 +177,17 @@ module ProjectRazor
     end
 
 
-    #def get
-    #  # Get all the policy templates
-    #  policies_array = get_data.fetch_all_objects(:policy)
-    #  logger.debug "Total policies #{policies_array.count}"
-    #  # Sort the policies based on line_number
-    #  policies_array.sort! do
-    #  |a,b|
-    #    a.line_number ||= 9999
-    #    b.line_number ||= 9999
-    #    a.line_number <=> b.line_number
-    #  end
-    #  policies_array
-    #end
+    def get
+      # Get all the policy templates
+      policies_array = get_data.fetch_all_objects(:policy)
+      logger.debug "Total policies #{policies_array.count}"
+      # Sort the policies based on line_number
+      policies_array.sort! do
+      |a,b|
+        a.line_number <=> b.line_number
+      end
+      policies_array
+    end
 
     # When adding a policy
     # Line number is preserved for updates, line_number is last for new
