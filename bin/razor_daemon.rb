@@ -27,6 +27,10 @@ require 'project_razor'
 # parameter value for the daemon_min_cycle_time
 DEFAULT_MIN_CYCLE_TIME = 30
 
+# used in cases where the Razor server configuration file does not have a
+# parameter value for the node_expire_timeout (uses a 15 minute default)
+DEFAULT_NODE_EXPIRE_TIMEOUT = 60 * 15
+
 # monkey-patch the Daemons::Application class so that it uses a pattern of "*.log" for
 # the file that it uses to capture output from the Daemon (and the processes that it
 # manages) rather than the default pattern used by this class ("*.output")
@@ -105,6 +109,14 @@ class RazorDaemon < ProjectRazor::Object
     end
   end
 
+  # used to remove nodes from the system that have not checked in recently
+  # (here, recently means within the time period defined by the node_expire_timeout
+  # that is defined in the configuration)
+  def remove_expired_nodes(node_expire_timeout)
+    engine = ProjectRazor::Engine.instance
+    engine.remove_expired_nodes(node_expire_timeout)
+  end
+
   # used to shut down all "node-related" processes in the system during
   # the process of shutting down this daemon
   def shutdown_node_instances
@@ -153,6 +165,18 @@ def get_min_cycle_time(razor_config)
   min_cycle_time
 end
 
+# used to get the node expiration timeout value from the Razor server
+# configuration (returns the DEFAULT_NODE_EXPIRE_TIMEOUT if no parameter
+# is set in the Razor server configuration...
+def get_node_expire_timeout(razor_config)
+  # get the value that should be used from the Razor server configuration
+  node_expire_timeout = razor_config.node_expire_timeout
+  # set to the default value if there was no value read from the configuration
+  node_expire_timeout = DEFAULT_NODE_EXPIRE_TIMEOUT unless node_expire_timeout
+  # and return the result
+  node_expire_timeout
+end
+
 # define some options for our daemon process (below)
 options = {
     :ontop      => false,
@@ -181,6 +205,7 @@ Daemons.run_proc("razor_daemon", options) {
   # for each iteration will be accurate to the nearest millisecond.
   razor_config = razor_daemon.get_config
   msecs_sleep = get_min_cycle_time(razor_config) * 1000;
+  node_expire_timeout = get_node_expire_timeout(razor_configor)
 
   # flag that is used to ensure razor_config is reloaded before each pass through
   # the event-handling loop, but not on the first pass (since we just loaded it)
@@ -201,6 +226,7 @@ Daemons.run_proc("razor_daemon", options) {
         razor_config = razor_daemon.get_config
         # adjust time to sleep it has changed since the last iteration
         msecs_sleep = get_min_cycle_time(razor_config) * 1000;
+        node_expire_timeout = get_node_expire_timeout(razor_config)
       else
         is_first_iteration = false
       end
@@ -218,6 +244,9 @@ Daemons.run_proc("razor_daemon", options) {
       # command?) that checks the timings for tasks running in that server.
       razor_daemon.check_task_timing
 
+      # remove "expired" nodes from the database (i.e. nodes that haven't
+      # checked in during the past 'node_expire_timeout' seconds)
+      razor_daemon.remove_expired_nodes(node_expire_timeout)
 
       # check to see how much time has elapsed, sleep for the time remaining
       # in the msecs_sleep time window

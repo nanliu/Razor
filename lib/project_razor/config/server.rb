@@ -13,7 +13,7 @@ module ProjectRazor
 
       include(ProjectRazor::Utility)
 
-      # (Symbol) representing the database plugin mode to use defaults to (:mongo)
+                                      # (Symbol) representing the database plugin mode to use defaults to (:mongo)
 
       attr_accessor :image_svc_host
 
@@ -33,8 +33,8 @@ module ProjectRazor
       attr_accessor :mk_fact_excl_pattern
       attr_accessor :mk_register_path # : /project_razor/api/node/register
       attr_accessor :mk_checkin_path # checkin: /project_razor/api/node/checkin
-      # mk_log_level should be 'Logger::FATAL', 'Logger::ERROR', 'Logger::WARN',
-      # 'Logger::INFO', or 'Logger::DEBUG' (default is 'Logger::ERROR')
+                                      # mk_log_level should be 'Logger::FATAL', 'Logger::ERROR', 'Logger::WARN',
+                                      # 'Logger::INFO', or 'Logger::DEBUG' (default is 'Logger::ERROR')
       attr_accessor :mk_log_level
       attr_accessor :mk_tce_mirror_uri
       attr_accessor :mk_tce_install_list_uri
@@ -50,6 +50,8 @@ module ProjectRazor
       attr_accessor :default_ipmi_password
 
       attr_accessor :daemon_min_cycle_time
+
+      attr_accessor :node_expire_timeout
 
       # init
       def initialize
@@ -94,6 +96,11 @@ module ProjectRazor
         @default_ipmi_password = 'ipmi_password'
 
         @daemon_min_cycle_time = 30
+
+        # this is the default value for the amount of time (in seconds) that
+        # is allowed to pass before a node is removed from the system.  If the
+        # node has not checked in for this long, it'll be removed
+        @node_expire_timeout = 300
 
       end
 

@@ -412,6 +412,24 @@ module ProjectRazor
       system_tag_rules
     end
 
+    # removes all nodes that have not checked in during the last
+    # node_expire_timeout seconds from the database
+    def remove_expired_nodes(node_expire_timeout)
+      node_array = get_data.fetch_all_objects(:node)
+      node_array.each { |node|
+        elapsed_time = Time.now.to_i - node.timestamp.to_i
+        if elapsed_time > node_expire_timeout
+          node_uuid = node.uuid
+          if delete_object(node)
+            slice_success("")
+            logger.info "expired node '#{node_uuid}' successfully removed from db"
+          else
+            raise ProjectRazor::Error::Slice::InternalError, "cannot remove expired node '#{node_uuid}' from db"
+          end
+        end
+      }
+    end
+
   end
 end
 
