@@ -34,7 +34,6 @@ app.get('/razor/image/mk*',
 
 app.get('/razor/image/*',
     function(req, res) {
-        console.log(req.headers);
         path = decodeURIComponent(req.path.replace(/^\/razor\/image/, image_svc_path));
         console.log(path);
         respondWithFile(path, res, req);
@@ -68,19 +67,21 @@ function respondWithFile(path, res, req) {
             var mimetype = mime.lookup(path);
             var stat = fs.statSync(path);
             if (req.headers['range'] != undefined) {
-                console.log("HEADER" + req.headers['range']);
+                console.log("Range requested: " + req.headers['range']);
                 var range_array = req.headers['range'].replace("bytes=","").split("-");
-                console.log(range_array[0]);
-                console.log(range_array[1]);
                 start_offset = parseInt(range_array[0]);
                 end_offset = parseInt(range_array[1]);
+                stat.size = (end_offset - start_offset + 1);
+                console.log("Start offset: " + start_offset);
+                console.log("End offset: " + end_offset);
+                console.log("Size: " + stat.size);
+                var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
             } else {
-                start_offset = 0;
-                end_offset = stat;
+                var fileStream = fs.createReadStream(path);
             }
             res.setHeader('Content-length', stat.size);
             res.writeHead(200, {'Content-Type': mimetype});
-            var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+
             fileStream.on('data', function(chunk) {
                 res.write(chunk);
             });
@@ -88,6 +89,7 @@ function respondWithFile(path, res, req) {
                 res.end();
             });
             console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
+            console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
         }
         catch (err)
         {
