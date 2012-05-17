@@ -54,7 +54,16 @@ class ProjectRazor::Node < ProjectRazor::Object
     temp_tags = self.tags
     temp_tags = ["n/a"] if temp_tags == [] || temp_tags == nil
     time_diff = Time.now.to_i - @timestamp.to_i
-    return @uuid, pretty_time(time_diff), current_status, "[#{temp_tags.join(",")}]"
+    status = "-"
+    case current_status
+      when "bound"
+        status = "B"
+      when "inactive"
+        status = "I"
+      when "active"
+        status = "A"
+    end
+    return @uuid, pretty_time(time_diff), status, "[#{temp_tags.join(",")}]"
   end
 
   def print_item_header
