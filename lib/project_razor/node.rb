@@ -40,25 +40,32 @@ class ProjectRazor::Node < ProjectRazor::Object
     @uuid = new_uuid.upcase
   end
 
+  def current_status
+    # Dynamically return the current status for this node
+    engine = ProjectRazor::Engine.instance
+    engine.node_status(self)
+  end
+
   def print_header
-    return "UUID", "Last Checkin", "Tags"
+    return "UUID", "Last Checkin", "Status", "Tags"
   end
 
   def print_items
     temp_tags = self.tags
     temp_tags = ["n/a"] if temp_tags == [] || temp_tags == nil
     time_diff = Time.now.to_i - @timestamp.to_i
-    return @uuid, pretty_time(time_diff), "[#{temp_tags.join(",")}]"
-  end
-  def print_item_header
-    return "UUID", "Last Checkin", "Tags", "Hardware IDs"
+    return @uuid, pretty_time(time_diff), current_status, "[#{temp_tags.join(",")}]"
   end
 
+  def print_item_header
+    return "UUID", "Last Checkin", "Status", "Tags", "Hardware IDs"
+  end
 
   def print_item
     temp_tags = self.tags
     temp_tags = ["n/a"] if temp_tags == [] || temp_tags == nil
-    return @uuid, Time.at(@timestamp.to_i).strftime("%m-%d-%y %H:%M:%S"), "[#{temp_tags.join(",")}]", "[#{hw_id.join(", ")}]"
+    return @uuid, Time.at(@timestamp.to_i).strftime("%m-%d-%y %H:%M:%S"), current_status,
+        "[#{temp_tags.join(",")}]", "[#{hw_id.join(", ")}]"
   end
 
   def line_color

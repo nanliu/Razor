@@ -380,6 +380,16 @@ module ProjectRazor
       tags
     end
 
+    def node_status(node)
+      node.attributes_hash
+      active_model = find_active_models(node)
+      return "bound" if active_model
+      max_active_elapsed_time = get_data.config.register_timeout
+      time_since_last_checkin = Time.now - node.timestamp
+      return "inactive" if time_since_last_checkin > max_active_elapsed_time
+      return "active"
+    end
+
     def get_system_tags
       system_tag_rules = []
       system_tag_rules_dir = File.join(File.dirname(__FILE__), "tagging/system_rules/**/*.json")
