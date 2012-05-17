@@ -9,7 +9,7 @@ module ProjectRazor
       include(ProjectRazor::Logging)
 
       attr_accessor :label
-      attr_accessor :line_number
+      attr_accessor :enabled
       attr_accessor :model
       attr_accessor :broker
       attr_accessor :tags
@@ -29,6 +29,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
+        @enabled
         @template = :hidden
         @description = "Base policy rule object. Hidden"
         @node_uuid = nil
@@ -41,6 +42,11 @@ module ProjectRazor
         else
           @_collection = :policy
         end
+      end
+
+      def line_number
+        policies = ProjectRazor::Policies.instance
+        policies.get_line_number(self.uuid)
       end
 
       def bind_me(node)
@@ -101,7 +107,7 @@ module ProjectRazor
             return @template.to_s, @description.to_s
           else
             broker_name = @broker ? @broker.name : "none"
-            return @line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+            return line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
           end
         end
       end
@@ -147,7 +153,7 @@ module ProjectRazor
         else
           broker_name = @broker ? @broker.name : "none"
           [@uuid,
-           @line_number.to_s,
+           line_number.to_s,
            @label,
            @template.to_s,
            @description,

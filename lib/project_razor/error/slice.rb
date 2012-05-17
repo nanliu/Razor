@@ -31,6 +31,13 @@ module ProjectRazor
           [ 'UserCancelled'             , 151 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'MissingModelMetadata'      , 152 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'InvalidModelMetadata'      , 153 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'InvalidPolicyTemplate'     , 154 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'InvalidModel'              , 155 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'MissingTags'               , 156 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'NoCallbackFound'           , 157 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'MissingActiveModelUUID'    , 158 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'MissingCallbackNamespace'  , 159 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'ActiveModelInvalid'        , 160 , {'@http_err'=>:forbidden}             , ''          , 'ProjectRazor::Error::Slice::Generic' ],
       ].each do |err|
         ProjectRazor::Error.create_class *err
       end
