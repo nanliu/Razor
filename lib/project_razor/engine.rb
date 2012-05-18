@@ -420,7 +420,7 @@ module ProjectRazor
         elapsed_time = Time.now.to_i - node.timestamp.to_i
         if elapsed_time > node_expire_timeout
           node_uuid = node.uuid
-          if delete_object(node)
+          if get_data.delete_object(node)
             slice_success("")
             logger.info "expired node '#{node_uuid}' successfully removed from db"
           else
