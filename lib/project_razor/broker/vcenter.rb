@@ -18,14 +18,14 @@ module ProjectRazor::BrokerPlugin
 
     def proxy_hand_off(options = {})
       res = "
-      @@vc_host { '#{options[:ipaddress]}':
+      @@vc_host { '#{options[:hostname]}':
         ensure   => 'present',
         username => '#{options[:username]}',
         password => '#{options[:password]}',
         tag      => '#{options[:vcenter_name]}',
       }
       "
-      system("puppet apply -e #{res}")
+      system("puppet apply --certname=#{options[:hostname]} --report -e \"#{res}\"")
       :broker_success
     end
 
