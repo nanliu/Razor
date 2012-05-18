@@ -380,6 +380,16 @@ module ProjectRazor
       tags
     end
 
+    def node_status(node)
+      node.attributes_hash
+      active_model = find_active_models(node)
+      return "bound" if active_model
+      max_active_elapsed_time = get_data.config.register_timeout
+      time_since_last_checkin = Time.now.to_i - node.timestamp.to_i
+      return "inactive" if time_since_last_checkin > max_active_elapsed_time
+      return "active"
+    end
+
     def get_system_tags
       system_tag_rules = []
       system_tag_rules_dir = File.join(File.dirname(__FILE__), "tagging/system_rules/**/*.json")
@@ -400,6 +410,24 @@ module ProjectRazor
         end
       end
       system_tag_rules
+    end
+
+    # removes all nodes that have not checked in during the last
+    # node_expire_timeout seconds from the database
+    def remove_expired_nodes(node_expire_timeout)
+      node_array = get_data.fetch_all_objects(:node)
+      node_array.each { |node|
+        next if node_status(node) == "bound"
+        elapsed_time = Time.now.to_i - node.timestamp.to_i
+        if elapsed_time > node_expire_timeout
+          node_uuid = node.uuid
+          if get_data.delete_object(node)
+            logger.info "expired node '#{node_uuid}' successfully removed from db"
+          else
+            logger.info "expired node '#{node_uuid}' could not be removed from db"
+          end
+        end
+      }
     end
 
   end
