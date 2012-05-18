@@ -421,10 +421,9 @@ module ProjectRazor
         if elapsed_time > node_expire_timeout
           node_uuid = node.uuid
           if get_data.delete_object(node)
-            slice_success("")
             logger.info "expired node '#{node_uuid}' successfully removed from db"
           else
-            raise ProjectRazor::Error::Slice::InternalError, "cannot remove expired node '#{node_uuid}' from db"
+            logger.info "expired node '#{node_uuid}' could not be removed from db"
           end
         end
       }
