@@ -12,11 +12,12 @@ $temp_path = "#{$razor_root}/tmp"
 #puts "Logging path: #{$logging_path}"
 
 
+
 require "project_razor/object"
 require "project_razor/filtering"
 require "project_razor/utility"
 require "project_razor/logging"
-
+require "project_razor/error"
 require "project_razor/data"
 require "project_razor/config"
 require "project_razor/node"
@@ -31,8 +32,6 @@ require "project_razor/image_service"
 require "project_razor/power_control"
 require "project_razor/broker"
 
-
-$data = ProjectRazor::Data.new
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver

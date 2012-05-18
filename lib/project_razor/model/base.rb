@@ -25,6 +25,7 @@ module ProjectRazor
       attr_accessor :final_state
       attr_accessor :counter
       attr_accessor :log
+      attr_accessor :req_metadata_hash
 
       # init
       # @param hash [Hash]
@@ -37,13 +38,13 @@ module ProjectRazor
         @req_metadata_hash = {}
         @callback = {}
         @current_state = :init
-        @node_bound = nil
+        @node = nil
         @policy_bound = nil
         @broker_plugin = false # by default
         @final_state = :nothing
         @counter = 0
         @result = nil
-                             # Model Log
+                               # Model Log
         @log = []
         @_collection = :model
         from_hash(hash) unless hash == nil
@@ -67,7 +68,9 @@ module ProjectRazor
             :broker_wait => {
                 :else => :broker_wait},
             :broker_success => {
-                :else => :broker_success}
+                :else => :broker_success},
+            :complete_no_broker => {
+                :else => :complete_no_broker}
         }
         fsm_tree.merge base_fsm_tree
       end
@@ -79,7 +82,7 @@ module ProjectRazor
 
       def fsm_action(action, method)
         # We only change state if we have a node bound
-        if @node_bound
+        if @node
           old_state = @current_state
           old_state = :init unless old_state
           begin
@@ -90,6 +93,7 @@ module ProjectRazor
             end
           rescue => e
             logger.error "FSM ERROR: #{e.message}"
+            raise e
           end
 
         else
@@ -99,7 +103,7 @@ module ProjectRazor
                 :old_state => old_state,
                 :action => action,
                 :method => method,
-                :node_uuid => node_bound.uuid,
+                :node_uuid => @node.uuid,
                 :timestamp => Time.now.to_i)
         # If in final state we check broker assignment
         if @current_state.to_s == @final_state.to_s # Enable to help with broker debug || @current_state.to_s == "broker_fail"
@@ -125,7 +129,7 @@ module ProjectRazor
                   :old_state => @final_state,
                   :action => :broker_check,
                   :method => :broker_check,
-                  :node_uuid => node_bound.uuid,
+                  :node_uuid => @node.uuid,
                   :timestamp => Time.now.to_i)
           return
         end
@@ -133,7 +137,7 @@ module ProjectRazor
           when :agent
             return broker_agent_handoff
           when :proxy
-            return false # Replace with proxy handling
+            return broker_proxy_handoff
           else
             return false # Brokers disabled for model
         end
@@ -141,6 +145,11 @@ module ProjectRazor
       end
 
       def broker_agent_handoff
+        # Implemented by child model
+        false
+      end
+
+      def broker_proxy_handoff
         # Implemented by child model
         false
       end
@@ -170,11 +179,36 @@ module ProjectRazor
       end
 
       def print_header
-        return "Label", "Template", "Description", "UUID"
+        if @is_template
+          return "Template Name", "Description"
+        else
+          return "Label", "Template", "Description", "UUID"
+        end
+      end
+
+      def print_item
+        if @is_template
+          return @name.to_s, @description.to_s
+        else
+          image_uuid_str = image_uuid ? image_uuid : "n/a"
+          return @label, @template.to_s, @description, @uuid, image_uuid_str
+        end
+      end
+
+      def print_item_header
+        if @is_template
+          return "Template Name", "Description"
+        else
+          return "Label", "Template", "Description", "UUID", "Image UUID"
+        end
       end
 
       def print_items
-        return @label, @template.to_s, @description, @uuid
+        if @is_template
+          return @name.to_s, @description.to_s
+        else
+          return @label, @template.to_s, @description, @uuid
+        end
       end
 
       def line_color
@@ -186,7 +220,7 @@ module ProjectRazor
       end
 
       def config
-        $data.config
+        get_data.config
       end
 
       def image_svc_uri
@@ -195,6 +229,97 @@ module ProjectRazor
 
       def api_svc_uri
         "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
+      end
+
+      def web_create_metadata(provided_metadata)
+        missing_metadata = []
+        rmd = req_metadata_hash
+        rmd.each_key do
+        |md|
+          if provided_metadata[md]
+            raise ProjectRazor::Error::Slice::InvalidModelMetadata, "Invalid Metadata [#{md.to_s}:'#{provided_metadata[md]}']" unless
+                set_metadata_value(md, provided_metadata[md], rmd[md][:validation])
+          else
+            if req_metadata_hash[md][:default] != ""
+              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" unless
+                  set_metadata_value(md, rmd[md][:default], rmd[md][:validation])
+            else
+              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if
+                  rmd[md][:required]
+            end
+          end
+        end
+      end
+
+      def cli_create_metadata
+        puts "--- Building Model (#{name}): #{label}\n".yellow
+        req_metadata_hash.each_key do
+        |md|
+          flag = false
+          until flag
+            print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow.bold
+            print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
+            puts "default: " + "#{req_metadata_hash[md][:default]}".yellow if req_metadata_hash[md][:default] != ""
+            puts req_metadata_hash[md][:required] ? quit_option : skip_quit_option
+            print " > "
+            response = STDIN.gets.strip
+            case response
+              when "SKIP"
+                if req_metadata_hash[md][:required]
+                  puts "Cannot skip, value required".red
+                else
+                  flag = true
+                end
+              when "QUIT"
+                return false
+              when ""
+                if req_metadata_hash[md][:default] != ""
+                  flag = set_metadata_value(md, req_metadata_hash[md][:default], req_metadata_hash[md][:validation])
+                else
+                  puts "No default value, must enter something".red
+                end
+              else
+                flag = set_metadata_value(md, response, req_metadata_hash[md][:validation])
+                puts "Value (".red + "#{response}".yellow + ") is invalid".red unless flag
+            end
+          end
+        end
+        true
+      end
+
+      def set_metadata_value(key, value, validation)
+        regex = Regexp.new(validation)
+        if regex =~ value
+          self.instance_variable_set(key.to_sym, value)
+          true
+        else
+          false
+        end
+      end
+
+      def skip_quit_option
+        "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)"
+      end
+
+      def quit_option
+        "(" + "QUIT".red + " to cancel)"
+      end
+
+      def mk_call(node, policy_uuid)
+        @node, @policy_uuid = node, policy_uuid
+      end
+
+      def boot_call(node, policy_uuid)
+        @node, @policy_uuid = node, policy_uuid
+      end
+
+      def broker_fsm_log
+        fsm_log(:state     => @current_state,
+                :old_state => @final_state,
+                :action    => :broker_agent_handoff,
+                :method    => :broker,
+                :node_uuid => @node.uuid,
+                :timestamp => Time.now.to_i)
       end
     end
   end

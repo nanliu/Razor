@@ -4,7 +4,8 @@
 require "socket"
 require "logger"
 
-# This class represents the ProjectRazor configuration. It is stored persistently in './conf/razor_server.conf' and editing by the user
+# This class represents the ProjectRazor configuration. It is stored persistently in
+# './conf/razor_server.conf' and editing by the user
 # @author Nicholas Weaver
 module ProjectRazor
   module Config
@@ -24,7 +25,7 @@ module ProjectRazor
       attr_accessor :admin_port
       attr_accessor :api_port
       attr_accessor :image_svc_port
-      attr_accessor :mk_ext_mirror_port
+      attr_accessor :mk_tce_mirror_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -32,11 +33,13 @@ module ProjectRazor
       attr_accessor :mk_fact_excl_pattern
       attr_accessor :mk_register_path # : /project_razor/api/node/register
       attr_accessor :mk_checkin_path # checkin: /project_razor/api/node/checkin
+
       # mk_log_level should be 'Logger::FATAL', 'Logger::ERROR', 'Logger::WARN',
       # 'Logger::INFO', or 'Logger::DEBUG' (default is 'Logger::ERROR')
       attr_accessor :mk_log_level
-      attr_accessor :mk_ext_mirror_uri
-      attr_accessor :mk_ext_list_uri
+      attr_accessor :mk_tce_mirror_uri
+      attr_accessor :mk_tce_install_list_uri
+      attr_accessor :mk_kmod_install_list_uri
 
       attr_accessor :image_svc_path
 
@@ -46,6 +49,10 @@ module ProjectRazor
       attr_accessor :default_ipmi_power_state
       attr_accessor :default_ipmi_username
       attr_accessor :default_ipmi_password
+
+      attr_accessor :daemon_min_cycle_time
+
+      attr_accessor :node_expire_timeout
 
       # init
       def initialize
@@ -63,7 +70,7 @@ module ProjectRazor
         @admin_port = 8025
         @api_port = 8026
         @image_svc_port = 8027
-        @mk_ext_mirror_port = 8028
+        @mk_tce_mirror_port = 2157
 
         @mk_checkin_interval = 60
         @mk_checkin_skew = 5
@@ -76,8 +83,9 @@ module ProjectRazor
                                    "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)","(.*json_str$)"]
         @mk_fact_excl_pattern = fact_excl_pattern_array.join("|")
         @mk_log_level = "Logger::ERROR"
-        @mk_ext_mirror_uri = "http://#{get_an_ip}:#{@mk_ext_mirror_port}/tinycorelinux"
-        @mk_ext_list_uri = @mk_ext_mirror_uri + "/tcl-ext-list.yaml"
+        @mk_tce_mirror_uri = "http://localhost:#{@mk_tce_mirror_port}/tinycorelinux"
+        @mk_tce_install_list_uri = @mk_tce_mirror_uri + "/tce-install-list"
+        @mk_kmod_install_list_uri = @mk_tce_mirror_uri + "/kmod-install-list"
 
         @image_svc_path = $img_svc_path
 
@@ -87,6 +95,13 @@ module ProjectRazor
         @default_ipmi_power_state = 'off'
         @default_ipmi_username = 'ipmi_user'
         @default_ipmi_password = 'ipmi_password'
+
+        @daemon_min_cycle_time = 30
+
+        # this is the default value for the amount of time (in seconds) that
+        # is allowed to pass before a node is removed from the system.  If the
+        # node has not checked in for this long, it'll be removed
+        @node_expire_timeout = 300
 
       end
 
@@ -104,10 +119,8 @@ module ProjectRazor
 
       def get_an_ip
         ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
-        ip.ip_address
+        ip.ip_address.force_encoding("UTF-8")
       end
-
-
 
     end
   end

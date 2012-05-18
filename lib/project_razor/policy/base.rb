@@ -9,7 +9,7 @@ module ProjectRazor
       include(ProjectRazor::Logging)
 
       attr_accessor :label
-      attr_accessor :line_number
+      attr_accessor :enabled
       attr_accessor :model
       attr_accessor :broker
       attr_accessor :tags
@@ -29,6 +29,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
+        @enabled = false
         @template = :hidden
         @description = "Base policy rule object. Hidden"
         @node_uuid = nil
@@ -41,6 +42,11 @@ module ProjectRazor
         else
           @_collection = :policy
         end
+      end
+
+      def line_number
+        policies = ProjectRazor::Policies.instance
+        policies.get_line_number(self.uuid)
       end
 
       def bind_me(node)
@@ -84,7 +90,11 @@ module ProjectRazor
         if @bound
           return "Label", "State", "Node UUID", "System", "Bind #", "UUID"
         else
-          return "#", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
+          if @is_template
+            return "Template", "Description"
+          else
+            return "#", "Enabled", "Label", "Tags", "Model Label", "Count", "UUID"
+          end
         end
       end
 
@@ -93,8 +103,12 @@ module ProjectRazor
           broker_name = @broker ? @broker.name : "none"
           return @label, @model.current_state.to_s, @node_uuid, broker_name, @model.counter.to_s, @uuid
         else
-          broker_name = @broker ? @broker.name : "none"
-          return @line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+          if @is_template
+            return @template.to_s, @description.to_s
+          else
+            broker_name = @broker ? @broker.name : "none"
+            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, @model.counter.to_s, @uuid
+          end
         end
       end
 
@@ -114,6 +128,7 @@ module ProjectRazor
           ["UUID",
            "Line Number",
            "Label",
+           "Enabled",
            "Template",
            "Description",
            "Tags",
@@ -139,8 +154,9 @@ module ProjectRazor
         else
           broker_name = @broker ? @broker.name : "none"
           [@uuid,
-           @line_number.to_s,
+           line_number.to_s,
            @label,
+           @enabled.to_s,
            @template.to_s,
            @description,
            "[#{@tags.join(", ")}]",

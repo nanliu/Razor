@@ -114,7 +114,7 @@ module ProjectRazor
       |template|
         return template if template.template.to_s == object_template_name
       end
-      template
+      nil
     end
 
     alias :new_object_from_type_name :new_object_from_template_name

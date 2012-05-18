@@ -7,7 +7,8 @@
 #describe ProjectRazor::ImageService do
 #
 #  before(:all) do
-#    @data = ProjectRazor::Data.new
+#    @data = ProjectRazor::Data.instance
+#    @data.check_init
 #    @config = @data.config
 #  end
 #

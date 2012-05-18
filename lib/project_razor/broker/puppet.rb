@@ -29,15 +29,16 @@ module ProjectRazor::BrokerPlugin
       @options = options
       @options[:server] = @servers.first
       @options[:ca_server] = @options[:server]
-      @options[:puppetagent_certname] ||= @options[:hostname]
+      @options[:puppetagent_certname] ||= @options[:uuid].base62_decode.to_s(16)
       return false unless validate_options(@options, [:username, :password, :server, :ca_server, :puppetagent_certname, :ipaddress])
       @puppet_script = compile_template
       init_agent(options)
     end
 
     def proxy_hand_off(options = {})
-      # Return false until we implement
-      false
+      # Return something
+      logger.debug options.inspect
+      :broker_success
     end
 
     # Method call for validating that a Broker instance successfully received the node
@@ -70,7 +71,18 @@ module ProjectRazor::BrokerPlugin
       ret
     end
 
-
+    def proxy_hand_off(options = {})
+      res = "
+      @@vc_host { '#{options[:ipaddress]}':
+        ensure   => 'present',
+        username => '#{options[:username]}',
+        password => '#{options[:password]}',
+        tag      => '#{options[:vcenter_name]}',
+      }
+      "
+      system("puppet apply --certname=#{options[:hostname]} --report -e \"#{res}\"")
+      :broker_success
+    end
 
     def compile_template
       logger.debug "Compiling template"

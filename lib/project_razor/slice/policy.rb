@@ -21,190 +21,173 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
-        @hidden = false
+        @hidden          = false
         @new_slice_style = true # switch to new slice style
                                 # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:add => "add_policy",
-                           :get => {["all", '{}', /^{.*}$/, nil,/^[Aa]$/] => "get_policy_all",
-                                    [/type/,/^[Tt]$/,/template/] => "get_policy_templates",
-                                    [/^[Mm]odel/,/^[Mm]$/,"model_config","possible_models"] => {:default => "get_possible_models",
-                                                                                                :help => "razor policy get [models] [all|(policy template)]",
-                                                                                                :else => "get_possible_models"},
-                                    ["active_model",/active/,/^[Aa][Mm]$/] => {["all", '{}', /^{.*}$/, nil] => "get_active_model_all",
-                                                                              [/^[Ll]og/,/^[Ll]$/] => { :all => "get_active_log_all",
-                                                                                                        :default => "get_active_log_all",
-                                                                                                        :else => "get_active_log"
-                                                                                                        },
-                                                                              :default => "get_active_model_all",
-                                                                              :help => "",
-                                                                              :else => "get_active_model_with_uuid"},
-                                    [/^[Bb][Tt]$/,/broker/] => "get_broker_targets",
-                                    :default => "get_policy_all",
-                                    :else => "get_policy_with_uuid",
-                                    :help => "razor policy get all[a]|template[t]|(uuid)"},
-                           :template => "get_policy_templates",
-                           :callback => "get_callback",
-                           [/type/,/^[Tt]$/,/template/] => "get_policy_templates",
-                           # TODO - Add :move => :up + :down for Policy Rules
-                           :default => "get_policy_all",
-                           :remove => {:policy => "remove_policy",
-                                       [/^[Bb]ound/,"active_model",/^[Bb]$/] => "remove_active",
-                                       :default => :policy,
-                                       :else => :policy,
-                                       :help => "razor policy remove policy[p]|active_model[am] all|(policy uuid)"},
-                           :else => :get,
-                           :help => "razor policy add|remove|get [all[a]|template[t]|(policy rule uuid)|models[m]|active_model[am]|broker targets[bt]"}
-        @slice_name = "Policy"
+        @slice_commands  = { :add                           => "add_policy",
+                             :move                          => {
+                                 :higher => "move_policy_higher",
+                                 :lower  => "move_policy_lower",
+                             },
+                             :enable => "enable_policy",
+                             :disable => "disable_policy",
+                             :get                           => { ["all", '{}', /^{.*}$/, nil, /^[Aa]$/]                     => "get_policy_all",
+                                                                 [/type/, /^[Tt]$/, /template/]                             => "get_policy_templates",
+                                                                 [/^[Mm]odel/, /^[Mm]$/, "model_config", "possible_models"] => { :default => "get_possible_models",
+                                                                                                                                 :help    => "razor policy get [models] [all|(policy template)]",
+                                                                                                                                 :else    => "get_possible_models" },
+                                                                 ["active_model", /active/, /^[Aa][Mm]$/]                   => { ["all", '{}', /^{.*}$/, nil] => "get_active_model_all",
+                                                                                                                                 [/^[Ll]og/, /^[Ll]$/]        => { :all     => "get_active_log_all",
+                                                                                                                                                                   :default => "get_active_log_all",
+                                                                                                                                                                   :else    => "get_active_log"
+                                                                                                                                 },
+                                                                                                                                 :default                     => "get_active_model_all",
+                                                                                                                                 :help                        => "",
+                                                                                                                                 :else                        => "get_active_model_with_uuid" },
+                                                                 [/^[Bb][Tt]$/, /broker/]                                   => "get_broker_targets",
+                                                                 :default                                                   => "get_policy_all",
+                                                                 :else                                                      => "get_policy_by_uuid",
+                                                                 :help                                                      => "razor policy get all[a]|template[t]|(uuid)" },
+                             :template                      => "get_policy_templates",
+                             :callback                      => "get_callback",
+                             [/type/, /^[Tt]$/, /template/] => "get_policy_templates",
+                             # TODO - Add :move => :up + :down for Policy Rules
+                             :default                       => "get_policy_all",
+                             :remove                        => { :all                                     => "remove_all_policies",
+                                                                 :policy                                  => "remove_policy",
+                                                                 [/^[Aa]ctive/, "active_model", /^[Bb]$/] => "remove_active",
+                                                                 :default                                 => :policy,
+                                                                 :else                                    => :policy,
+                                                                 :help                                    => "razor policy remove policy[p]|active_model[am] all|(policy uuid)" },
+                             :else                          => :get,
+                             :help                          => "razor policy add|remove|get [all[a]|template[t]|(policy rule uuid)|models[m]|active_model[am]|broker targets[bt]" }
+        @slice_name      = "Policy"
+        @policies = ProjectRazor::Policies.instance
+      end
+
+      def move_policy_higher
+        @command           = :move_policy_higher
+        @command_help_text = "razor policy move higher (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
+        policy = get_object("get_policy_by_uuid", :policy, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
+        policy_rules = ProjectRazor::Policies.instance
+        policy_rules.move_policy_up(policy.uuid)
+        policy_all = get_object("policies", :policy)
+        print_object_array policy_all.sort { |a, b| a.line_number <=> b.line_number }, "Policies", :style => :table
+      end
+
+      def move_policy_lower
+        @command           = :move_policy_lower
+        @command_help_text = "razor policy move lower (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
+        policy = get_object("get_policy_by_uuid", :policy, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
+        policy_rules = ProjectRazor::Policies.instance
+        policy_rules.move_policy_down(policy.uuid)
+        policy_all = get_object("policies", :policy)
+        print_object_array policy_all.sort { |a, b| a.line_number <=> b.line_number }, "Policies", :style => :table
       end
 
       # Returns all policy instances
       def get_policy_all
         # Get all policy instances and print/return
         @command_array.unshift(@last_arg) unless @last_arg == 'default'
-        print_object_array get_object("policies", :policy), "Policies", :style => :table
+        policy_all = get_object("policies", :policy)
+        print_object_array @policies.get, "Policies", :style => :table
       end
 
       # Returns the policy templates available
       def get_policy_templates
         # We use the common method in Utility to fetch object templates by providing Namespace prefix
-        print_object_array get_templates_as_object_templates(POLICY_PREFIX), "\nPolicy Templates:"
+        print_object_array get_child_templates(POLICY_PREFIX), "\nPolicy Templates:"
       end
 
-      def get_policy_with_uuid
-        @command = :get_policy_with_uuid
-        @command_help_text = "razor policy get all|template|(uuid)"
-        @arg = @command_array.shift
-        policy = get_object("policy instances", :policy, @arg)
-        case policy
-          when nil
-            slice_error("Cannot Find Policy with UUID: [#@arg]")
-          else
-            print_object_array [policy]
-        end
+      def get_policy_by_uuid
+        @command           = :get_policy_by_uuid
+        @command_help_text = "razor policy [get] (uuid)"
+        policy             = get_object("get_policy_by_uuid", :policy, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
+        print_object_array [policy], "", :success_type => :generic
+      end
+
+      def enable_policy
+        @command           = :enable_policy
+        @command_help_text = "razor policy enable (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
+        policy             = get_object("get_policy_by_uuid", :policy, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
+        policy.enabled = true
+        raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not enable Policy [#{policy.uuid}]" unless policy.update_self
+        print_object_array @policies.get, "Policies", :style => :table
+      end
+
+      def disable_policy
+        @command           = :disable_policy
+        @command_help_text = "razor policy disable (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
+        policy             = get_object("get_policy_by_uuid", :policy, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
+        policy.enabled = false
+        raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not enable Policy [#{policy.uuid}]" unless policy.update_self
+        print_object_array @policies.get, "Policies", :style => :table
       end
 
       def add_policy
-        # Set the command we have selected
-        @command =:add
-        # Set out help text
-        @command_help_text = "razor policy add " + "(policy templates) (Name) (Model Config UUID) [none|(Broker Target UUID)] (tag{,tag,tag})".yellow
-        # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            # Policy template (must match a proper policy template)
-            @template = @vars_hash['template']
-            # Policy Name (user defined)
-            @label = @vars_hash['name']
-            # Policy Model Config UUID (must be valid)
-            @model_config_uuid = @vars_hash['model_config']
-            # Policy Broker Target to attached. Can be set to none. Required
-            @broker_target_uuid = @vars_hash['broker_target']
-            # Policy Tags (Array or comma-delimited string)
-            @tags = @vars_hash['servers']
-          else
-            #Same vars as above but pulled from CLI arg / Web PATH
-            @template, @label, @model_config_uuid, @broker_target_uuid, @tags = *@command_array
-          end
-        end
-        @template, @label, @model_config_uuid, @broker_target_uuid, @tags = *@command_array unless @template || @label || @model_config_uuid || @broker_target_uuid
+        @command           =:add_policy
+        @command_help_text = "razor model add template=(policy template) label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
+        @command_help_text << "\t template: \t" + " The Policy Template name to use\n".yellow
+        @command_help_text << "\t label: \t" + " A label to name this Policy\n".yellow
+        @command_help_text << "\t model_uuid: \t" + " The Model to attach to the Policy\n".yellow
+        @command_help_text << "\t broker_uuid: \t" + " The Broker to attach to the Policy or 'none'\n".yellow
+        @command_help_text << "\t tags: \t" + " At least one tag to trigger the Policy. Comma delimited\n".yellow
+        @command_help_text << "\t enabled: \t" + " Whether the Policy is enabled or not. Optional and defaults to false\n".yellow
+        template, label, model_uuid, broker_uuid, tags, enabled = *get_web_vars(%w(template label model_uuid broker_uuid tags enabled)) if @web_command
+        template, label, model_uuid, broker_uuid, tags, enabled = *get_cli_vars(%w(template label model_uuid broker_uuid tags enabled)) unless template || label || model_uuid || broker_uuid || tags
         # Validate our args are here
-        return slice_error("Must Provide Policy Template [template]") unless validate_arg(@template)
-        # We use the [is_valid_template?] method from Utility to validate our template vs our object namespace prefix
-        unless is_valid_template?(POLICY_PREFIX, @template)
-          # Return error
-          slice_error("InvalidPolicyTemplate")
-          # Also print possible templates if not a REST call
-          get_policy_templates unless @web_command
-          return
-        end
-        # Get our new policy object
-        new_policy = new_object_from_template_name(POLICY_PREFIX, @template)
-        return slice_error("Must Provide Policy Name [name]") unless validate_arg(@label)
-        unless validate_arg(@model_config_uuid)
-          slice_error("Must Provide Model Config UUID [model_config]")
-          # Unless REST call, list possible model configs
-          @command_array.unshift new_policy.template # push the template in for the next method
-          get_possible_models unless @web_command
-          return
-        end
-        unless validate_arg(@broker_target_uuid)
-          slice_error("Must Provide Broker Target UUID or String:'none' [broker_target]")
-          get_broker_targets
-          return
-        end
-        # Validate Model Config UUID
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy Template [template]" unless validate_arg(template)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy Label [label]" unless validate_arg(label)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model UUID [model_uuid]" unless validate_arg(model_uuid)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Broker UUID or 'none' [broker_uuid]" unless validate_arg(broker_uuid)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide At Least One Tag [tags]" unless validate_arg(tags)
+        policy = new_object_from_template_name(POLICY_PREFIX, template)
+        raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [template]" unless policy
         setup_data
-        @model_config = @data.fetch_object_by_uuid(:model, @model_config_uuid)
-        unless @model_config
-          slice_error("Cannot find Model Config with UUID (#{@model_config_uuid})")
-          # Unless REST call, list possible model configs
-          @command_array.unshift new_policy.template # push the template in for the next method
-          get_possible_models unless @web_command
-          return
-        end
-        unless new_policy.template == @model_config.template
-          slice_error("Model Config is not compatible with Policy template (#{new_policy.template.to_s})")
-          # Unless REST call, list possible model configs
-          @command_array.unshift new_policy.template # push the template in for the next method
-          get_possible_models unless @web_command
-          return
-        end
-        # Validate Broker Target UUID
-        if @broker_target_uuid == "none"
-          @broker = nil
-        else
-          @broker = @data.fetch_object_by_uuid(:broker, @broker_target_uuid)
-          unless @broker
-            slice_error("Cannot find Broker Target with UUID (#{@broker_target_uuid})")
-            get_broker_targets
-            return
-          end
-        end
-        # Validate tags
-        return slice_error("Must Provide Tags [tags]") unless @tags
-        @tags = @tags.split(",") unless @tags.class.to_s == "Array"
-        return slice_error("Must Provide at least one tag [tags]") unless @tags.count > 0
-        new_policy.label = @label
-        new_policy.model = @model_config
-        new_policy.broker = @broker
-        new_policy.tags = @tags
+        model = get_object("model_by_uuid", :model, model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model
+        raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.label}]" unless policy.template == model.template
+        broker = get_object("model_by_uuid", :broker, broker_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{broker_uuid}]" unless broker || broker_uuid == "none"
+        tags = tags.split(",") unless tags.class.to_s == "Array"
+        raise ProjectRazor::Error::Slice::MissingTags, "Must provide at least one tag [tags]" unless tags.count > 0
+        policy.label  = label
+        policy.model  = model
+        policy.broker = broker
+        policy.tags   = tags
+        policy.enabled = true if enabled == "true"
+        policy.is_template = false
+        policy_rules       = ProjectRazor::Policies.instance
+        policy_rules.add(policy) ? print_object_array([policy], "Policy created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Policy")
+      end
 
-        policy_rules = ProjectRazor::Policies.instance
-        if policy_rules.add(new_policy)
-          @command_array.unshift(new_policy.uuid)
-          get_policy_with_uuid
-        else
-          slice_error("CouldNotSavePolicy")
-        end
+
+      def remove_all_policies
+        @command           = :remove_all_policies
+        @command_help_text = "razor policy remove all"
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Policies" unless @data.delete_all_objects(:policy)
+        slice_success("All policies removed", :success_type => :removed)
       end
 
       def remove_policy
-        @command_help_text = "razor policy remove policy[p] all|(uuid)"
-        # Grab the arg
-        @arg = @command_array.shift
-        case @arg
-          when "all" # if [all] we remove all instances
-            setup_data # setup the data object
-            @data.delete_all_objects(:policy) # remove all policy instances
-            slice_success("All Policy deleted") # return success
-          when nil
-            slice_error("Command Error") # return error for no arg
-          else
-            policy = get_object("policy instances", :policy, @arg) # attempt to find policy with uuid
-            case policy
-              when nil
-                slice_error("Cannot Find Policy with UUID: [#@arg]") # error when it is invalid
-              else
-                setup_data
-                @data.delete_object_by_uuid(:policy, @arg)
-                slice_success("Policy deleted")
-            end
-        end
+        @command           = :remove_policy
+        @command_help_text = "razor policy remove (UUID)"
+        policy_uuid        = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID [policy_uuid]" unless validate_arg(policy_uuid)
+        policy = get_object("policy_with_uuid", :policy, policy_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{tagrule.uuid}]" unless @data.delete_object(policy)
+        slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
       end
 
       def get_active_model_all
@@ -214,77 +197,49 @@ module ProjectRazor
       end
 
       def get_active_model_with_uuid
-        @command = :get_active_model_with_uuid
-        @command_help_text = "razor policy get active[am] all|template|(uuid)"
-        @arg = @command_array.shift
-        active_model = get_object("active_model_instance", :active, @arg)
-        case active_model
-          when nil
-            slice_error("Cannot Find Active Model with UUID: [#@arg]")
-          else
-            print_object_array [active_model]
-        end
+        @command           = :get_active_model_with_uuid
+        @command_help_text = "razor policy get active (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
+        active_model             = get_object("active_model_instance", :active, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
+        print_object_array [active_model], "", :success_type => :generic
       end
 
 
       def get_active_log_all
-        @command = :get_active_log_all
+        @command      = :get_active_log_all
         active_models = get_object("active_models", :active)
-        log_items = []
-        active_models.each do
-        |bp|
-          log_items = log_items | bp.print_log_all
-        end
-        log_items.sort! {|a,b| a.print_items[3] <=> b.print_items[3]}
-        log_items.each {|li| li.print_items[3] = Time.at(li.print_items[3]).strftime("%H:%M:%S")}
+        log_items     = []
+        active_models.each { |bp| log_items = log_items | bp.print_log_all }
+        log_items.sort! { |a, b| a.print_items[3] <=> b.print_items[3] }
+        log_items.each { |li| li.print_items[3] = Time.at(li.print_items[3]).strftime("%H:%M:%S") }
         print_object_array(log_items, "All Active Model Logs:", :style => :table)
       end
 
       def get_active_log
-        @command = :get_active_log
-        @command_help_text = "razor policy get active_model[am] log (uuid)"
-        @arg = @command_array.shift
-        active_model = get_object("active_model_instance", :active, @arg)
-        unless active_model.class != Array
-          slice_error("Must provide Active Model UUID")
-          get_active_model_all unless @web_command
-          return
-        end
-        case active_model
-          when nil
-            slice_error("Cannot Find Active Model with UUID: [#@arg]")
-          else
-            print_object_array active_model.print_log, :style => :table
-        end
+        @command           = :get_active_log
+        @command_help_text = "razor policy get active log (uuid)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
+        active_model             = get_object("active_model_instance", :active, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
+        print_object_array [active_model], "", :success_type => :generic
+        print_object_array(active_model.print_log, :style => :table)
       end
 
-      def remove_active
-        @command_help_text = "razor policy remove active_model[am] all|(uuid)"
-        # Grab the arg
-        @arg = @command_array.shift
-        case @arg
-          when "all" # if [all] we remove all instances
-            setup_data # setup the data object
-            @data.delete_all_objects(:active) # remove all policy instances
-            slice_success("All Active Models deleted") # return success
-          when nil
-            slice_error("Command Error") # return error for no arg
-          else
-            active_model = get_object("active model", :active, @arg) # attempt to find policy with uuid
-            case active_model
-              when nil
-                slice_error("Cannot Find Active Model with UUID: [#@arg]") # error when it is invalid
-              else
-                setup_data
-                @data.delete_object_by_uuid(:active, @arg)
-                slice_success("Active Model deleted")
-            end
-        end
 
+      def remove_active
+        @command           = :remove_active
+        @command_help_text = "razor policy active remove (UUID)"
+        active_model_uuid  = @command_array.shift
+        active_model       = get_object("active_model_with_uuid", :active, active_model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{active_model}]" unless active_model
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model.uuid}]" unless @data.delete_object(active_model)
+        slice_success("Active Model [#{active_model.uuid}] removed", :success_type => :removed)
       end
 
       def get_possible_models
-        @command = :get_possible_models
+        @command           = :get_possible_models
         @command_help_text = "razor policy get [model|model_config] [all|(policy template)]"
         # TODO - This parsing get/post/line below for web should be in the Base object or Util. Need to make common and move. Too much repeating
         if @web_command
@@ -293,7 +248,7 @@ module ProjectRazor
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
           if is_valid_json?(json_string)
             # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
+            @vars_hash       = sanitize_hash(JSON.parse(json_string))
             # Policy template (must match a proper policy template)
             @policy_template = @vars_hash['policy_template']
           else
@@ -317,51 +272,35 @@ module ProjectRazor
       end
 
       def get_broker_targets
-        @command = :get_broker_target
+        @command           = :get_broker_target
         @command_help_text = "razor policy [get] broker"
         # Just print all broker targets
         print_object_array get_object("broker_targets", :broker), "All Broker Target"
       end
 
       def get_callback
-        @command = :get_callback
+        @command           = :get_callback
         @command_help_text = ""
-        policy_uuid = @command_array.shift
-        unless validate_arg(policy_uuid)
-          slice_error("MissingUUID")
-          return
-        end
+        active_model_uuid  = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingActiveModelUUID, "Missing active model uuid" unless validate_arg(active_model_uuid)
         callback_namespace = @command_array.shift
-        unless validate_arg(callback_namespace)
-          slice_error("MissingCallbackNamespace")
-          return
-        end
-        # First we check for a bound policy with a matching uuid
-        engine = ProjectRazor::Engine.instance
-        active_policy = nil
-        engine.get_active_models.each do
-        |bp|
-          active_policy = bp if bp.uuid == policy_uuid
-        end
-        if active_policy != nil
-          logger.debug "Active bound policy found for callback: #{callback_namespace}"
-          make_callback(active_policy, callback_namespace)
-          return
-        end
-        slice_error("InvalidPolicyID")
+        raise ProjectRazor::Error::Slice::MissingCallbackNamespace, "Missing callback namespace" unless validate_arg(callback_namespace)
+        engine       = ProjectRazor::Engine.instance
+        active_model = nil
+        engine.get_active_models.each { |am| active_model = am if am.uuid == active_model_uuid }
+        raise ProjectRazor::Error::Slice::ActiveModelInvalid, "Active Model Invalid" unless active_model
+        logger.debug "Active bound policy found for callback: #{callback_namespace}"
+        make_callback(active_model, callback_namespace)
       end
 
       def make_callback(active_model, callback_namespace)
         callback = active_model.model.callback[callback_namespace]
-        if callback != nil
-          setup_data
-          node = @data.fetch_object_by_uuid(:node, active_model.node_uuid)
-          callback_return = active_model.model.callback_init(callback, @command_array, node, active_model.uuid, active_model.broker)
-          active_model.update_self
-          puts callback_return
-        else
-          slice_error("NoCallbackFound")
-        end
+        raise ProjectRazor::Error::Slice::NoCallbackFound, "Missing callback" unless callback
+        setup_data
+        node            = @data.fetch_object_by_uuid(:node, active_model.node_uuid)
+        callback_return = active_model.model.callback_init(callback, @command_array, node, active_model.uuid, active_model.broker)
+        active_model.update_self
+        puts callback_return
       end
     end
   end

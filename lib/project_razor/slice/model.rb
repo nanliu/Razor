@@ -1,8 +1,7 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
-require "json"
-require "yaml"
+MODEL_PREFIX = "ProjectRazor::ModelTemplate::"
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
@@ -17,263 +16,147 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = false
-        # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:default => "get_model",
-                           :get => "get_model",
-                           :add => "add_model",
-                           :remove => "remove_model"}
-        @slice_commands_help = {:get => "razor model ".red + "{get [template]}".blue,
-                                :default => "razor model ".red + "{get [template]}".blue,
-                                :add_cli => "razor model add".red + " (model_template) (model name)".blue,
-                                :add_cli_with_image => "razor model add".red + " (model_template) (model name) {image uuid}".blue,
-                                :add_web => "razor model add".red + " (model_template) (json string)".blue,
-                                :remove => "razor model remove".red + " (model uuid)".blue}
+        @new_slice_style = true
+        @slice_commands = {:add => "add_model",
+                           :get => {
+                               :default => "get_all_models",
+                               :else => "get_model_by_uuid",
+                               :template => {
+                                   :default => "get_all_templates",
+                                   :else => "get_template_by_name"
+                               },
+                           },
+                           :update => {
+                               :default => "get_all_models",
+                               :else => "update_model"
+                           },
+                           :remove => {
+                               :default => "get_all_models",
+                               :all => "remove_all_models",
+                               :else => "remove_model"
+                           },
+                           :default => "get_all_models",
+                           :else => :get,
+                           :help => ""}
         @slice_name = "Model"
       end
 
-      def get_model
-        @command = :get
-        @arg01 =  @command_array.shift
 
-        case @arg01
-          when "config"
-            get_models
-          when "template"
-            get_model_templates
-          when "help"
-            slice_error("Help", false)
-          else
-            get_models
-        end
+      def get_all_models
+        # Get all tag rules and print/return
+        @command = :get_all_models
+        @command_array.unshift(@last_arg) unless @last_arg == 'default'
+        print_object_array get_object("models", :model), "Models", :style => :table, :success_type => :generic
       end
 
-
-      def get_models
-        print_object_array get_object("models", :model), "Models"
+      def get_model_by_uuid
+        @command = :get_model_by_uuid
+        @command_help_text = "razor model [get] (uuid)"
+        model = get_object("get_model_by_uuid", :model, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{@command_array.first}]" unless model
+        print_object_array [model] ,"",:success_type => :generic
       end
 
-      def get_model_templates
-        policies = ProjectRazor::Policies.instance
-        print_model_templates policies.get_model_templates
-      end
-
-
-      def remove_model
-        @command = :remove
-        model_uuid = @command_array.shift
-
-        unless validate_arg(model_uuid)
-          slice_error("MissingUUID")
-          get_models
-          return
-        end
-
-        setup_data
-        model = @data.fetch_object_by_uuid(:model, model_uuid)
-
-        unless models
-          slice_error("CannotFindModelConfig")
-          get_models
-          return
-        end
-
-        if @data.delete_object(model)
-          slice_success("ModelConfigRemoved")
-        else
-          slice_error("ModelConfigNotRemoved")
-        end
+      def get_all_templates
+        # We use the common method in Utility to fetch object templates by providing Namespace prefix
+        print_object_array get_child_templates(MODEL_PREFIX), "Model Templates:"
       end
 
       def add_model
+        @command =:add_model
+        @command_help_text = "razor model add template=(model template) label=(model label) {image_uuid=(Image UUID)}\n"
+        @command_help_text << "\t template: \t" + " The Model Template name to use\n".yellow
+        @command_help_text << "\t label: \t" + " A label to name this Model\n".yellow
+        @command_help_text << "\t image_uuid: \t" + " If the Model Template requires an Image, the Image UUID\n".yellow
+        template, label, image_uuid, req_metadata_hash =
+            *get_web_vars(%w(template label image_uuid req_metadata_hash)) if @web_command
+        template, label, image_uuid =
+            *get_cli_vars(%w(template label image_uuid)) unless template || label || image_uuid
+        # Validate our args are here
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [template]" unless validate_arg(template)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Label [label]" unless validate_arg(label)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Image UUID [image_uuid]" unless validate_arg(image_uuid)
+        model = verify_template(template)
+        raise ProjectRazor::Error::Slice::InvalidModelTemplate, "Invalid Model Template [#{template}] " unless model
+        image = model.image_prefix ? verify_image(model, image_uuid) : true
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image
         if @web_command
-          # REST call
-          add_model_web
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [template]" unless
+              validate_arg(req_metadata_hash)
+          model.web_create_metadata(req_metadata_hash)
         else
-          # CLI call
-          add_model_cli
+          raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Model creation" unless model.cli_create_metadata
         end
-      end
-
-      ##### CLI Add Model
-
-      def add_model_cli
-        @command = :add_cli
-        @model_name =  @command_array.shift
-        policies = ProjectRazor::Policies.instance
-
-        unless @model_name != nil
-          slice_error("Model Template Missing")
-          return
-        end
-
-
-        new_model = policies.is_model_template?(@model_name)
-        unless new_model
-          slice_error("Model Template Missing")
-          return
-        end
-
-        @model_label =  @command_array.shift
-        unless @model_label != nil
-          slice_error("Model Name Missing")
-          return
-        end
-
-        new_model.label = @model_label
-
-
-        if new_model.instance_variable_get(:@image_uuid)
-          @command = :add_cli_with_image
-          @model_image_uuid = @command_array.shift
-          unless @model_image_uuid
-            slice_error("ImageUUIDToBindMissing")
-            valid_images = get_object("images", :images).map! do |i|
-              i.path_prefix == new_model.image_prefix ? i : nil
-            end.compact!
-            if valid_images.count > 0
-              print_images valid_images
-            else
-              puts "There are no valid images in the system. You must add one."
-            end
-
-            return
-          end
-
-          setup_data
-          @image_requested = @data.fetch_object_by_uuid(:images, @model_image_uuid)
-          unless @image_requested != nil
-            slice_error("ImageDoesNotExist")
-            valid_images = get_object("images", :images).map! do |i|
-              i.path_prefix == new_model.image_prefix ? i : nil
-            end.compact!
-            if valid_images.count > 0
-              print_images valid_images
-            else
-              puts "There are no valid images in the system. You must add one."
-            end
-            return
-          end
-
-          unless @image_requested.path_prefix == new_model.image_prefix
-            slice_error("Image Is Not Correct Template")
-            valid_images = get_object("images", :images).map! do |i|
-              i.path_prefix == new_model.image_prefix ? i : nil
-            end.compact!
-            if valid_images.count > 0
-              print_images valid_images
-            else
-              puts "There are no valid images in the system. You must add one."
-            end
-            return
-          end
-
-          new_model.image_uuid = @image_requested.uuid
-        end
-
-
-        if new_model.req_metadata_hash != {}
-          if cli_interactive_metadata(new_model) != nil
-            insert_model_config(new_model)
-          else
-            return
-          end
-        else
-          insert_model_config(new_model)
-        end
-      end
-
-      def insert_model_config(new_model)
+        model.label = label
+        model.image_uuid = image.uuid
+        model.is_template = false
         setup_data
-        new_model = @data.persist_object(new_model)
-        if new_model.refresh_self
-          print_model_configs [new_model]
-        else
-          slice_error("CouldNotSaveModelConfig")
-        end
+        @data.persist_object(model)
+        model ? print_object_array([model], "Model created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Model")
       end
 
-      def cli_interactive_metadata(new_model)
-        req_metadata_hash = new_model.req_metadata_hash
-        puts "\n--- Building Model Config(#{@model_name}): #{@model_config_name}\n".yellow
-        req_metadata_hash.each_key do
-        |md|
-          flag = false
-          default = req_metadata_hash[md][:default]
-          validation = req_metadata_hash[md][:validation]
-          required = req_metadata_hash[md][:required]
-          description = req_metadata_hash[md][:description]
-          example = req_metadata_hash[md][:example]
-          until flag
+      def verify_template(template_name)
+        get_child_templates(MODEL_PREFIX).each { |template| return template if template.name == template_name }
+        nil
+      end
 
-            response = @command_array.shift
+      def verify_image(model, image_uuid)
+        setup_data
+        image = get_object("find_image", :images, image_uuid)
+        if image
+          return image if model.image_prefix == image.path_prefix
+        end
+        nil
+      end
 
-            if response == nil
-              print "\nPlease enter " + "#{description}".yellow.bold
-              print " (example: " + "#{example}}".yellow + ") \n"
-              if default != ""
-                puts "default: " + "#{default}".yellow
-              end
-              if required
-                puts quit_option
-              else
-                puts skip_quit_option
-              end
-              print " > "
-              response = gets.strip
-            end
-
-            case response
-              when "SKIP"
-                if required
-                  puts "Cannot skip, value required".red
-                else
-                  flag = true
-                end
-              when "QUIT"
-                slice_error("AddCanceled")
-                return nil
-              when ""
-                if default != ""
-                  flag = set_metadata_value(new_model, md, default, validation)
-                else
-                  puts "no default value, must enter something".red
-                end
-              else
-                flag = set_metadata_value(new_model, md, response, validation)
-            end
+      def update_model
+        @command = :update_model
+        @command_help_text = "razor model update (model uuid) {label=(Model Label)} {image_uuid=(Image UUID)} {change_metadata=true}\n"
+        @command_help_text << "\t label: \t\t" + " A label to name this Model\n".yellow
+        @command_help_text << "\t image_uuid: \t\t" + " If the Model Template requires an Image, the Image UUID\n".yellow
+        @command_help_text << "\t change_metadata: \t" + " Triggers changing the Model metadata\n".yellow
+        model_uuid = @command_array.shift
+        model = get_object("model_with_uuid", :model, model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
+        label, image_uuid, req_metadata_hash = *get_web_vars(%w(label image_uuid req_metadata_hash)) if @web_command
+        label, image_uuid, change_metadata = *get_cli_vars(%w(label image_uuid change_metadata)) unless label || image_uuid || change_metadata
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless label || image_uuid || change_metadata
+        if @web_command
+          if req_metadata_hash
+            model.web_create_metadata(req_metadata_hash)
+          end
+        else
+          if change_metadata
+            raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Model creation" unless
+                model.cli_create_metadata
           end
         end
-        new_model
+        model.label = label if label
+        p model.label
+        image = model.image_prefix ? verify_image(model, image_uuid) : true if image_uuid
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image || !image_uuid
+        model.image_uuid = image.uuid if image
+        raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Model [#{model.uuid}]" unless model.update_self
+        print_object_array [model] ,"",:success_type => :updated
       end
 
-      def set_metadata_value(new_model, key, value, validation)
-        regex = Regexp.new(validation)
-        if regex =~ value
-          new_model.instance_variable_set(key.to_sym, value)
-          true
-        else
-          puts "Value (".red + "#{value}".yellow + ") is invalid".red
-          false
-        end
+      def remove_all_models
+        @command = :remove_all_models
+        @command_help_text = "razor model remove all"
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:model)
+        slice_success("All Models removed",:success_type => :removed)
       end
 
-      def skip_quit_option
-        "(" + "SKIP".white + " to skip, " + "QUIT".red + " to cancel)"
+      def remove_model
+        @command = :remove_model
+        @command_help_text = "razor model remove (UUID)"
+        model_uuid = @command_array.shift
+        model = get_object("model_with_uuid", :model, model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{tagrule.uuid}]" unless @data.delete_object(model)
+        slice_success("Active Model [#{model.uuid}] removed",:success_type => :removed)
       end
-
-      def quit_option
-        "(" + "QUIT".red + " to cancel)"
-      end
-
-      def add_model_web
-        @command = :add_web
-        @model_template =  @command_array.shift
-        @values_json_string =  @command_array.shift
-        slice_error("NotImplemented")
-      end
-
-      ####################
-
 
     end
   end

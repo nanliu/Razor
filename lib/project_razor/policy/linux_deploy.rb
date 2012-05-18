@@ -13,7 +13,7 @@ module ProjectRazor
         super(hash)
         @hidden = false
         @template = :linux_deploy
-        @description = "Policy for deploying a Linux-based operating system. Compatible with Linux operating system Models"
+        @description = "Policy for deploying a Linux-based operating system."
 
         from_hash(hash) unless hash == nil
       end

@@ -4,7 +4,7 @@
 module ProjectRazor
   # Used for binding of policy+models to a node
   # this is permanent unless a user removed the binding or deletes a node
-  class Policies
+  class Policies < ProjectRazor::Object
     include(ProjectRazor::Logging)
     include(Singleton)
 
@@ -12,11 +12,97 @@ module ProjectRazor
     MODEL_PREFIX = "ProjectRazor::ModelTemplate::"
 
 
+    # table
+    # ensure unique
+    # store as single object
+
+
+    class PolicyTable < ProjectRazor::Object
+      attr_accessor :p_table
+      def initialize(hash)
+        super()
+        @uuid = "policy_table"
+        @_collection = :policy_table
+        @p_table = []
+        from_hash(hash)
+      end
+
+      def get_line_number(policy_uuid)
+        @p_table.each_with_index { |p_item_uuid, index| return index if p_item_uuid == policy_uuid }
+      end
+
+      def add_p_item(policy_uuid)
+        @p_table.push policy_uuid unless exists_in_array?(policy_uuid)
+        update_table
+      end
+
+
+      def resolve_duplicates
+        @p_table.inject(Hash.new(0)) {|h,v| h[v] += 1; h}.reject{|k,v| v==1}.keys
+      end
+
+      def remove_missing
+        policy_uuid_array = get_data.fetch_all_objects(:policy).map {|p| p.uuid}
+        @p_table.map! do
+          |p_item_uuid|
+          p_item_uuid if policy_uuid_array.select {|uuid| uuid == p_item_uuid}.count > 0
+        end
+        @p_table.compact!
+      end
+
+      def exists_in_array?(policy_uuid)
+        @p_table.each { |p_item_uuid|
+          return true if p_item_uuid == policy_uuid }
+        false
+      end
+
+      def update_table
+        resolve_duplicates
+        remove_missing
+        self.update_self
+      end
+
+      def move_higher(policy_uuid)
+        policy_index = find_policy_index(policy_uuid)
+        unless policy_index == 0
+          @p_table[policy_index], @p_table[policy_index - 1] = @p_table[policy_index - 1], @p_table[policy_index]
+          update_table
+          true
+        end
+        false
+      end
+
+      def move_lower(policy_uuid)
+        policy_index = find_policy_index(policy_uuid)
+        puts "#{policy_index} == #{(@p_table.count - 1)}"
+        unless policy_index == (@p_table.count - 1)
+          @p_table[policy_index], @p_table[policy_index + 1] = @p_table[policy_index + 1], @p_table[policy_index]
+          update_table
+          true
+        end
+        false
+      end
+
+      def find_policy_index(policy_uuid)
+        @p_table.index(policy_uuid)
+      end
+
+    end
+
+    def policy_table
+      pt = get_data.fetch_object_by_uuid(:policy_table, "policy_table")
+      return pt if pt
+      pt = ProjectRazor::Policies::PolicyTable.new({})
+      pt = get_data.persist_object(pt)
+      raise ProjectRazor::Error::CannotCreatePolicyTable, "Cannot create policy table" unless pt
+      pt
+    end
+
 
     # Get Array of Models that are compatible with a Policy Template
     def get_models(model_template)
       models = []
-      $data.fetch_all_objects(:model).each do
+      get_data.fetch_all_objects(:model).each do
       |mc|
         models << mc if mc.template == model_template
       end
@@ -93,8 +179,7 @@ module ProjectRazor
 
     def get
       # Get all the policy templates
-      policies_array = $data.fetch_all_objects(:policy)
-
+      policies_array = get_data.fetch_all_objects(:policy)
       logger.debug "Total policies #{policies_array.count}"
       # Sort the policies based on line_number
       policies_array.sort! do
@@ -108,33 +193,34 @@ module ProjectRazor
     # Line number is preserved for updates, line_number is last for new
 
     def add(new_policy)
-      existing_policy = policy_exists?(new_policy)
-      if existing_policy
-        new_policy.line_number = existing_policy.line_number
-      else
-        new_policy.line_number = last_line_number + 1
-      end
-      $data.persist_object(new_policy)
+      get_data.persist_object(new_policy)
+      pt = policy_table
+      pt.add_p_item(new_policy.uuid)
     end
 
     alias :update :add
 
+    def get_line_number(policy_uuid)
+      pt = policy_table
+      pt.add_p_item(policy_uuid)
+      pt.get_line_number(policy_uuid)
+    end
 
     # Down is up in numbers (++)
-    def move_lines_down
+    def move_policy_up(policy_uuid)
+      pt = policy_table
+      pt.add_p_item(policy_uuid)
+      pt.move_higher(policy_uuid)
+    end
 
+    def move_policy_down(policy_uuid)
+      pt = policy_table
+      pt.add_p_item(policy_uuid)
+      pt.move_lower(policy_uuid)
     end
 
     def policy_exists?(new_policy)
-      $data.fetch_object_by_uuid(:policy, new_policy)
-    end
-
-    def last_line_number
-      if get.last
-        get.last.line_number
-      else
-        0
-      end
+      get_data.fetch_object_by_uuid(:policy, new_policy)
     end
 
   end
