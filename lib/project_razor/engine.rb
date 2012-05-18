@@ -127,7 +127,7 @@ module ProjectRazor
         |pl|
           # Make sure there is at least one tag
           if pl.tags.count > 0
-            if check_tags(node.tags, pl.tags)
+            if check_tags(node.tags, pl.tags) && pl.enabled
               logger.debug "Matching policy (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
               # We found a policy that matches
               # we call the policy binding and exit loop

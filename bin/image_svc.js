@@ -36,7 +36,7 @@ app.get('/razor/image/*',
     function(req, res) {
         path = decodeURIComponent(req.path.replace(/^\/razor\/image/, image_svc_path));
         console.log(path);
-        respondWithFile(path, res);
+        respondWithFile(path, res, req);
     });
 
 
@@ -59,17 +59,29 @@ function respondWithFileMK(path, res) {
     }
 }
 
-function respondWithFile(path, res) {
+function respondWithFile(path, res, req) {
     if (path != null) {
         try {
-
+            var start_offset;
+            var end_offset;
             var mimetype = mime.lookup(path);
             var stat = fs.statSync(path);
-
+            if (req.headers['range'] != undefined) {
+                console.log("Range requested: " + req.headers['range']);
+                var range_array = req.headers['range'].replace("bytes=","").split("-");
+                start_offset = parseInt(range_array[0]);
+                end_offset = parseInt(range_array[1]);
+                stat.size = (end_offset - start_offset + 1);
+                console.log("Start offset: " + start_offset);
+                console.log("End offset: " + end_offset);
+                console.log("Size: " + stat.size);
+                var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+            } else {
+                var fileStream = fs.createReadStream(path);
+            }
             res.setHeader('Content-length', stat.size);
             res.writeHead(200, {'Content-Type': mimetype});
 
-            var fileStream = fs.createReadStream(path);
             fileStream.on('data', function(chunk) {
                 res.write(chunk);
             });
@@ -77,6 +89,7 @@ function respondWithFile(path, res) {
                 res.end();
             });
             console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
+            console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
         }
         catch (err)
         {

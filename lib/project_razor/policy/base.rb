@@ -29,7 +29,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
-        @enabled
+        @enabled = false
         @template = :hidden
         @description = "Base policy rule object. Hidden"
         @node_uuid = nil
@@ -93,7 +93,7 @@ module ProjectRazor
           if @is_template
             return "Template", "Description"
           else
-            return "#", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
+            return "#", "Enabled", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
           end
         end
       end
@@ -107,7 +107,7 @@ module ProjectRazor
             return @template.to_s, @description.to_s
           else
             broker_name = @broker ? @broker.name : "none"
-            return line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+            return line_number.to_s, @enabled.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
           end
         end
       end
@@ -128,6 +128,7 @@ module ProjectRazor
           ["UUID",
            "Line Number",
            "Label",
+           "Enabled",
            "Template",
            "Description",
            "Tags",
@@ -155,6 +156,7 @@ module ProjectRazor
           [@uuid,
            line_number.to_s,
            @label,
+           @enabled.to_s,
            @template.to_s,
            @description,
            "[#{@tags.join(", ")}]",
