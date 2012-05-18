@@ -1,5 +1,3 @@
-
-
 # Persistence Controller for ProjectRazor
 module ProjectRazor
   module Persist

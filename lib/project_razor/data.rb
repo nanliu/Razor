@@ -1,4 +1,3 @@
-
 require "yaml"
 require "extlib"
 require "singleton"

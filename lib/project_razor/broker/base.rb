@@ -1,5 +1,3 @@
-
-
 # Root namespace for ProjectRazor
 module ProjectRazor
   module BrokerPlugin

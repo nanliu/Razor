@@ -1,8 +1,6 @@
 # IpmiController Class; a simple wrapper around the ipmitool interface that provides
 # a mechanism for gathering information from an underlying BMC using the BMC's IPMI
 # interface
-#
-#
 
 require 'singleton'
 require 'timeout'
@@ -13,7 +11,6 @@ begin
 rescue
   EXT_COMMAND_TIMEOUT = 2000
 end
-
 
 module ProjectRazor
   module PowerControl

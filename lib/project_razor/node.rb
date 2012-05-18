@@ -1,5 +1,3 @@
-
-
 # Root ProjectRazor::Node namespace
 class ProjectRazor::Node < ProjectRazor::Object
   attr_accessor :name

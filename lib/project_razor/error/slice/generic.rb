@@ -1,5 +1,3 @@
-
-
 module ProjectRazor
   module Error
     module Slice

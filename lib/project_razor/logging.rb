@@ -1,4 +1,3 @@
-
 require "logger"
 
 LOG_LEVEL = Logger::DEBUG
@@ -9,7 +8,6 @@ LOG_MAX_FILES = 10
 # Uses Ruby Logger but overrides and instantiates one for each object that mixes in this module.
 # It auto prefixes each log message with classname and method from which it was called using progname
 module ProjectRazor::Logging
-
 
   # [Hash] holds the loggers for each instance that includes it
   @loggers = {}

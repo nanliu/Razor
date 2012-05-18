@@ -1,4 +1,3 @@
-
 module ProjectRazor
   module ImageService
     # Image construct for generic Operating System install ISOs
@@ -6,7 +5,6 @@ module ProjectRazor
 
       attr_accessor :esxi_version
       attr_accessor :boot_cfg
-
 
       def initialize(hash)
         super(hash)
@@ -32,7 +30,6 @@ module ProjectRazor
           logger.error e.message
           return [false, e.message]
         end
-
       end
 
       def verify(image_svc_path)
@@ -47,8 +44,6 @@ module ProjectRazor
             @esxi_version = File.read("#{image_path}/vmware-esx-base-osl.txt").split("\n")[2].gsub("\r","")
 
             @boot_cfg =  File.read("#{image_path}/boot.cfg")
-
-
 
             if @esxi_version && @boot_cfg
               return true

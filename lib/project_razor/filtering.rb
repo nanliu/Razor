@@ -1,4 +1,3 @@
-
 module ProjectRazor
   module Filtering
 

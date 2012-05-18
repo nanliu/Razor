@@ -1,4 +1,3 @@
-
 # ProjectRazor Policy Base class
 # Root abstract
 module ProjectRazor

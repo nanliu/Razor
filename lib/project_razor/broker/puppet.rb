@@ -1,4 +1,3 @@
-
 # Our puppet plugin which contains the agent & device proxy classes used for hand off
 
 # TODO - Make broker properties open rather than rigid

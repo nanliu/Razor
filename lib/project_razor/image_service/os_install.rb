@@ -1,4 +1,3 @@
-
 module ProjectRazor
   module ImageService
     # Image construct for generic Operating System install ISOs
@@ -6,7 +5,6 @@ module ProjectRazor
 
       attr_accessor :os_name
       attr_accessor :os_version
-
 
       def initialize(hash)
         super(hash)
@@ -29,7 +27,6 @@ module ProjectRazor
           logger.error e.message
           return [false, e.message]
         end
-
       end
 
       def verify(image_svc_path)

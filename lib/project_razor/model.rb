@@ -1,4 +1,3 @@
-
 require "project_razor/model/base"
 require "project_razor/model/debian"
 require "project_razor/model/debian_wheezy"
@@ -17,6 +16,6 @@ module ProjectRazor
   # Root Model object
   # @abstract
   module Model
-    #
+
   end
 end

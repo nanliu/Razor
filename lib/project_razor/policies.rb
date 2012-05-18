@@ -1,4 +1,3 @@
-
 module ProjectRazor
   # Used for binding of policy+models to a node
   # this is permanent unless a user removed the binding or deletes a node

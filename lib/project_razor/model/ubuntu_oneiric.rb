@@ -1,4 +1,3 @@
-
 require "erb"
 
 # TODO - timing between state changes

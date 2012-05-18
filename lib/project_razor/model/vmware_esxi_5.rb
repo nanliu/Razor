@@ -1,4 +1,3 @@
-
 # Root ProjectRazor namespace
 module ProjectRazor
   module ModelTemplate

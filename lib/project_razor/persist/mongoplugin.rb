@@ -1,4 +1,3 @@
-
 require "mongo"
 
 # MongoDB version of ProjectRazor::Controller::Plugin

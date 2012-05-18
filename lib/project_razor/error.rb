@@ -1,4 +1,3 @@
-
 $std_counter = 0
 
 require "project_razor/error/generic"

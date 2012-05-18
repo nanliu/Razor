@@ -1,4 +1,3 @@
-
 module ProjectRazor
   module PolicyTemplate
     # ProjectRazor Policy Default class

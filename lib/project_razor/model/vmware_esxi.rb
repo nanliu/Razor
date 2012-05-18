@@ -1,4 +1,3 @@
-
 require "erb"
 
 # Root ProjectRazor namespace
@@ -17,7 +16,6 @@ module ProjectRazor
 
       # Compatible Image Prefix
       attr_accessor :image_prefix
-
 
       def initialize(hash)
         super(hash)

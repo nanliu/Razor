@@ -1,4 +1,3 @@
-
 require_rel "slice/"
 
 module ProjectRazor

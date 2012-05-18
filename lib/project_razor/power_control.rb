@@ -1,4 +1,3 @@
-
 require "project_razor/power_control/bmc"
 require "project_razor/power_control/ipmi_controller"
 

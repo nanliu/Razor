@@ -1,4 +1,3 @@
-
 require "json"
 
 # Root ProjectRazor namespace

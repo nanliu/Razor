@@ -1,4 +1,3 @@
-
 require "uuid"
 require "base62"
 require "colored"

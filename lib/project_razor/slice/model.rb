@@ -1,4 +1,3 @@
-
 MODEL_PREFIX = "ProjectRazor::ModelTemplate::"
 
 # Root ProjectRazor namespace
