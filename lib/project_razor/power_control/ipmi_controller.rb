@@ -2,10 +2,7 @@
 # a mechanism for gathering information from an underlying BMC using the BMC's IPMI
 # interface
 #
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
 #
-#@author Tom McSweeney
 
 require 'singleton'
 require 'timeout'

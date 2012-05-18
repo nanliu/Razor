@@ -1,5 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
 
 # Our puppet plugin which contains the agent & device proxy classes used for hand off
 
@@ -8,11 +6,9 @@ require "erb"
 require "net/ssh"
 
 # Root namespace for ProjectRazor
-# @author Nicholas Weaver
 module ProjectRazor::BrokerPlugin
 
   # Root namespace for Puppet Broker plugin defined in ProjectRazor for node handoff
-  # @author Nicholas Weaver
   class Puppet < ProjectRazor::BrokerPlugin::Base
     include(ProjectRazor::Logging)
 
