@@ -1,8 +1,7 @@
-#!/bin/bash Kickstart for RHEL 6.0 FiNAL WORKER
-# minimal config.
+#!/bin/bash
+# Kickstart for RHEL/CentOS 6
 # see: http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s1-kickstart2-options.html
 
-#version=RHEL6
 install
 url --url=http://<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>
 text
@@ -21,7 +20,8 @@ bootloader --location=mbr --driveorder=sda --append=crashkernel=auto rhgb quiet
 # not guaranteed to work
 clearpart --all --initlabel
 autopart
-
+# reboot automatically
+reboot
 # followig is MINIMAL https://partner-bugzilla.redhat.com/show_bug.cgi?id=593309
 %packages --nobase
 @core
