@@ -12,6 +12,7 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
+        @hidden          = false
         @new_slice_style = true
         @slice_name = "Node"
         @engine = ProjectRazor::Engine.instance

@@ -93,7 +93,7 @@ module ProjectRazor
           if @is_template
             return "Template", "Description"
           else
-            return "#", "Enabled", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
+            return "#", "Enabled", "Label", "Tags", "Model Label", "Count", "UUID"
           end
         end
       end
@@ -107,7 +107,7 @@ module ProjectRazor
             return @template.to_s, @description.to_s
           else
             broker_name = @broker ? @broker.name : "none"
-            return line_number.to_s, @enabled.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
+            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, @model.counter.to_s, @uuid
           end
         end
       end

@@ -112,6 +112,7 @@ describe ProjectRazor::Engine do
       new_policy = ProjectRazor::PolicyTemplate::LinuxDeploy.new({})
       new_policy.label = "Base Swift Servers - Ubuntu 11.10"
       new_policy.model = ProjectRazor::ModelTemplate::Base.new({})
+      new_policy.enabled = true
       new_policy.tags << "RSPEC_ENGINE"
 
 

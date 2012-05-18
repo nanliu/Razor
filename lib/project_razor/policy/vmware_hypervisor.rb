@@ -13,7 +13,7 @@ module ProjectRazor
         super(hash)
         @hidden = false
         @template = :vmware_hypervisor
-        @description = "Policy for deploying a VMware hypervisor. Compatible with VMware hypervisor Model Configs"
+        @description = "Policy for deploying a VMware hypervisor."
 
         from_hash(hash) unless hash == nil
       end
