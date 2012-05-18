@@ -417,6 +417,7 @@ module ProjectRazor
     def remove_expired_nodes(node_expire_timeout)
       node_array = get_data.fetch_all_objects(:node)
       node_array.each { |node|
+        next if node_status(node) == "bound"
         elapsed_time = Time.now.to_i - node.timestamp.to_i
         if elapsed_time > node_expire_timeout
           node_uuid = node.uuid
