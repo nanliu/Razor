@@ -875,87 +875,6 @@
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
-    <drive>
-      <device>/dev/tmpfs</device>
-      <initialize config:type="boolean">true</initialize>
-      <partitions config:type="list">
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/dev/shm</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/run</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/sys/fs/cgroup</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/var/lock</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/media</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">tmpfs</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/var/run</mount>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
-          <resize config:type="boolean">false</resize>
-        </partition>
-      </partitions>
-      <pesize></pesize>
-      <type config:type="symbol">CT_DISK</type>
-      <use>all</use>
-    </drive>
   </partitioning>
   <report>
     <errors>
@@ -1808,4 +1727,17 @@
       <username>pulse</username>
     </user>
   </users>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>update_razor.sh</filename>
+        <network_needed config:type="boolean">true</network_needed>
+        <source>
+          <![CDATA[
+          wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
+          ]]>
+        </source>
+      </script>
+    </post-scripts>
+  </scripts>
 </profile>
