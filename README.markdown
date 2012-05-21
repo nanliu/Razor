@@ -7,10 +7,10 @@ See LICENSE file.
 ## Introduction
 
 Project Razor is a power control, provisioning, and management application designed
-to deploy both bare-metal and virtual compute resources with tight integration to
+to deploy both bare-metal and virtual computer resources. Razor is tightly integrated with
 DevOps-style tool sets.
 
-This is a 0.x release the API is still in flux and may change. Make sure you read
+This is a 0.x release, so the API is still in flux and may change. Make sure you read
 the release notes before upgrading.
 
 ## Authors
@@ -21,33 +21,33 @@ the release notes before upgrading.
 ## Installation
 
 Razor requires tftp and dhcp service. The razor client will contact the same
-server providing tftp files, so both service must reside on the same server.
+server providing tftp files, so both services must reside on the same server.
 
 ### Puppet Prereqs:
 
-Puppet razor module will perform the installation of dependency on Debian Wheezy system:
+The Puppet razor module is located here:
 
-https://github.com/puppetlabs/puppet-razor
+https://github.com/puppetlabs/puppetlabs-razor
 
-Here's a list of dependency for razor module:
+The razor module will install the following dependecies required for Debian Wheezy systems:
 
 * [Node.js module](https://github.com/nanliu/puppet-nodejs)
 * [Mongodb module](https://github.com/nanliu/puppet-mongodb)
 * [tftp module](https://github.com/nanliu/puppet-tftp)
 
-Puppet master, add razor class to target node:
+On the Puppet master, add the `razor` class to the target node:
 
     node razor_system {
       include razor
     }
 
-Puppet apply, apply test manifests:
+Run `puppet apply` to apply the test manifests:
 
     puppet apply razor/tests/init.pp
 
 ### Manual Prereqs:
 
-Install the following software requirement for your platform:
+For other systems, install the following software requirements as appropriate for your platform:
 
 * Ruby >= 1.9.3
 * Assorted gems - see (Gemfile)
@@ -60,7 +60,7 @@ Install the following software requirement for your platform:
 
 ### Razor:
 
-Configure dhcpd configuration to retrieve pexlinux.0 from Razor system running tftp:
+Configure dhcpd to retrieve pexlinux.0 from the Razor system running tftp:
 MacOS Fusion 4: /Library/Preferences/VMware Fusion/vmnet8/dhcpd.conf
 
     filename "pxelinux.0";
