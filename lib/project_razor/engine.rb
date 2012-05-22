@@ -396,11 +396,11 @@ module ProjectRazor
     def remove_image(image)
       # ensure image is not actively part of a policy_rule or bound_policy within a model;
       # if so, then raise an exception (and return to the caller without removing the image)
-      policies = ProjectRazor::Policies.instance
-      policies.each { |policy|
-        if policy.model.image_uuid == image.uuid
-          logger.warn "Cannot remove image '#{image.uuid}' because it is used in model '#{policy.model.image_uuid}'"
-          raise Exception, "Cannot remove image '#{image.uuid}' because it is used in model '#{policy.model.image_uuid}'"
+      models = get_active_models
+      models.each { |model|
+        if model.image_uuid == image.uuid
+          logger.warn "Cannot remove image '#{image.uuid}' because it is used in model '#{model.image_uuid}'"
+          raise Exception, "Cannot remove image '#{image.uuid}' because it is used in model '#{model.image_uuid}'"
         end
       }
       data = get_data
