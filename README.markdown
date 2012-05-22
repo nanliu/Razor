@@ -11,7 +11,9 @@ to deploy both bare-metal and virtual compute resources with tight integration t
 DevOps-style tool sets.
 
 More info:
+
 [Nickapedia.com](http://nickapedia.com/2012/05/21/lex-parsimoniae-cloud-provisioning-with-a-razor)
+
 [Puppetlabs.com](http://puppetlabs.com/blog/introducing-razor-a-next-generation-provisioning-solution/)
 
 ## Authors
