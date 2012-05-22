@@ -10,6 +10,10 @@ Project Razor is a power control, provisioning, and management application desig
 to deploy both bare-metal and virtual compute resources with tight integration to
 DevOps-style tool sets.
 
+More info:
+[Nickapedia.com](http://nickapedia.com/2012/05/21/lex-parsimoniae-cloud-provisioning-with-a-razor)
+[Puppetlabs.com](http://puppetlabs.com/blog/introducing-razor-a-next-generation-provisioning-solution/)
+
 ## Authors
 
 [Nicholas Weaver](https://github.com/lynxbat)
