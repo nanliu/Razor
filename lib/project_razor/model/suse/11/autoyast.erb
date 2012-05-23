@@ -60,31 +60,8 @@
         <type>image</type>
         <vgamode>0x317</vgamode>
       </section>
-      <section>
-        <blockoffset>1</blockoffset>
-        <chainloader>/dev/fd0</chainloader>
-        <lines_cache_id>2</lines_cache_id>
-        <name>Floppy</name>
-        <noverifyroot>true</noverifyroot>
-        <original_name>floppy</original_name>
-        <root></root>
-        <type>other</type>
-      </section>
     </sections>
   </bootloader>
-  <ca_mgm>
-    <CAName>YaST_Default_CA</CAName>
-    <ca_commonName>YaST Default CA (<%= hostname %>)</ca_commonName>
-    <country>US</country>
-    <locality></locality>
-    <organisation></organisation>
-    <organisationUnit></organisationUnit>
-    <password>ENTER PASSWORD HERE</password>
-    <server_commonName><%= hostname %>.localdomain</server_commonName>
-    <server_email>postmaster@localdomain</server_email>
-    <state></state>
-    <takeLocalServerName config:type="boolean">false</takeLocalServerName>
-  </ca_mgm>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
@@ -109,7 +86,6 @@
       <accept_verification_failed config:type="boolean">false</accept_verification_failed>
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
-    <storage/>
   </general>
   <groups config:type="list">
     <group>
@@ -481,11 +457,6 @@
       </hosts_entry>
     </hosts>
   </host>
-  <iscsi-client>
-    <initiatorname></initiatorname>
-    <targets config:type="list"/>
-    <version>1.0</version>
-  </iscsi-client>
   <kdump>
     <add_crash_kernel config:type="boolean">false</add_crash_kernel>
     <crash_kernel>128M-:64M</crash_kernel>
@@ -560,7 +531,7 @@
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>
+        <device>eth1</device>
         <name>82545EM Gigabit Ethernet Controller (Copper)</name>
         <startmode>auto</startmode>
         <usercontrol>no</usercontrol>
@@ -587,7 +558,7 @@
     <managed config:type="boolean">false</managed>
     <net-udev config:type="list">
       <rule>
-        <name>eth0</name>
+        <name>eth1</name>
         <rule>ATTR{address}</rule>
         <value>00:0c:29:e9:1d:55</value>
       </rule>
@@ -758,10 +729,6 @@
       <use>all</use>
     </drive>
   </partitioning>
-  <printer>
-    <cups_remote_server/>
-    <server_settings/>
-  </printer>
   <proxy>
     <enabled config:type="boolean">false</enabled>
     <ftp_proxy></ftp_proxy>
@@ -805,112 +772,12 @@
         <interpreter>shell</interpreter>
         <!-- <network_needed config:type="boolean">false</network_needed> -->
         <source><![CDATA[#!/bin/bash
-curl <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
 ]]></source>
       </script>
     </post-scripts>
   </scripts>
   <software>
-    <packages config:type="list">
-      <package>ConsoleKit-32bit</package>
-      <package>Mesa-32bit</package>
-      <package>PolicyKit-32bit</package>
-      <package>audit-libs-32bit</package>
-      <package>bind-libs-32bit</package>
-      <package>cpufrequtils-32bit</package>
-      <package>cracklib-32bit</package>
-      <package>cryptconfig-32bit</package>
-      <package>cyrus-sasl-32bit</package>
-      <package>cyrus-sasl-gssapi-32bit</package>
-      <package>cyrus-sasl-plain-32bit</package>
-      <package>dbus-1-32bit</package>
-      <package>dbus-1-glib-32bit</package>
-      <package>device-mapper-32bit</package>
-      <package>file-32bit</package>
-      <package>freeglut-32bit</package>
-      <package>freetype-32bit</package>
-      <package>fribidi-32bit</package>
-      <package>gconf2-32bit</package>
-      <package>gconf2-branding-SLES</package>
-      <package>gettext-runtime-32bit</package>
-      <package>giflib-32bit</package>
-      <package>glibc-locale-32bit</package>
-      <package>gpm-32bit</package>
-      <package>hal-32bit</package>
-      <package>hunspell-32bit</package>
-      <package>libHX13-32bit</package>
-      <package>libacl-32bit</package>
-      <package>libaio-32bit</package>
-      <package>libattr-32bit</package>
-      <package>libblkid1-32bit</package>
-      <package>libbz2-1-32bit</package>
-      <package>libcap2-32bit</package>
-      <package>libcurl4-32bit</package>
-      <package>libdrm-32bit</package>
-      <package>libfreebl3-32bit</package>
-      <package>libgcrypt11-32bit</package>
-      <package>libgpg-error0-32bit</package>
-      <package>libgthread-2_0-0-32bit</package>
-      <package>libidl-32bit</package>
-      <package>libidn-32bit</package>
-      <package>liblcms1-32bit</package>
-      <package>libldap-2_4-2-32bit</package>
-      <package>libltdl7-32bit</package>
-      <package>liblzma5-32bit</package>
-      <package>libmng-32bit</package>
-      <package>libnetpbm10-32bit</package>
-      <package>libnscd-32bit</package>
-      <package>libnsssharedhelper0-32bit</package>
-      <package>libopenct1-32bit</package>
-      <package>libopensc2-32bit</package>
-      <package>libpciaccess0-32bit</package>
-      <package>libproxy0-config-gnome</package>
-      <package>libproxy0-config-kde4</package>
-      <package>libqt4-32bit</package>
-      <package>libqt4-qt3support-32bit</package>
-      <package>libqt4-sql-32bit</package>
-      <package>libqt4-x11-32bit</package>
-      <package>libreiserfs-32bit</package>
-      <package>libsepol1-32bit</package>
-      <package>libsmbios2-32bit</package>
-      <package>libsqlite3-0-32bit</package>
-      <package>libstdc++33-32bit</package>
-      <package>libtool-32bit</package>
-      <package>libudev0-32bit</package>
-      <package>libxcrypt-32bit</package>
-      <package>libxml2-32bit</package>
-      <package>libxslt-32bit</package>
-      <package>mozilla-kde4-integration</package>
-      <package>mozilla-nspr-32bit</package>
-      <package>mozilla-nss-32bit</package>
-      <package>mozilla-xulrunner192-32bit</package>
-      <package>opensc-32bit</package>
-      <package>openslp-32bit</package>
-      <package>opie-32bit</package>
-      <package>orbit2-32bit</package>
-      <package>pam-32bit</package>
-      <package>pam-modules-32bit</package>
-      <package>pam_mount-32bit</package>
-      <package>parted-32bit</package>
-      <package>pciutils-32bit</package>
-      <package>pcsc-lite-32bit</package>
-      <package>popt-32bit</package>
-      <package>qt3-32bit</package>
-      <package>qtcurve-gtk2-32bit</package>
-      <package>rpm-32bit</package>
-      <package>sles-manuals_en</package>
-      <package>sound-theme-freedesktop</package>
-      <package>startup-notification-32bit</package>
-      <package>strace-32bit</package>
-      <package>sysfsutils-32bit</package>
-      <package>tcl-32bit</package>
-      <package>tcpd-32bit</package>
-      <package>tk-32bit</package>
-      <package>utempter-32bit</package>
-      <package>xaw3d-32bit</package>
-      <package>xorg-x11-driver-video-radeonhd</package>
-      <package>yast2-trans-en_US</package>
-    </packages>
     <patterns config:type="list">
       <pattern>Minimal</pattern>
       <pattern>apparmor</pattern>
@@ -918,38 +785,6 @@ curl <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
       <pattern>kde</pattern>
       <pattern>x11</pattern>
     </patterns>
-    <remove-packages config:type="list">
-      <package>apache2</package>
-      <package>apache2-prefork</package>
-      <package>apache2-utils</package>
-      <package>apache2-worker</package>
-      <package>gnome-desktop</package>
-      <package>gnome-desktop-lang</package>
-      <package>gnome-menus</package>
-      <package>gnome-menus-branding-SLED</package>
-      <package>gnome-menus-lang</package>
-      <package>libapr-util1</package>
-      <package>libapr1</package>
-      <package>libcroco-0_6-3</package>
-      <package>libgnome-desktop-2-11</package>
-      <package>libgnome-menu2</package>
-      <package>libgnomesu</package>
-      <package>libgnomesu-lang</package>
-      <package>libgnomesu0</package>
-      <package>libgsf-1-114</package>
-      <package>libqt4-sql-sqlite</package>
-      <package>librsvg</package>
-      <package>libslab-lang</package>
-      <package>libslab0</package>
-      <package>libunique-1_0-0</package>
-      <package>lprng</package>
-      <package>pcmciautils</package>
-      <package>portmap</package>
-      <package>rsyslog</package>
-      <package>sendmail</package>
-      <package>susehelp_de</package>
-      <package>yast2-control-center-gnome</package>
-    </remove-packages>
   </software>
   <timezone>
     <hwclock>UTC</hwclock>
