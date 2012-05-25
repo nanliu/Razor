@@ -121,8 +121,8 @@ module ProjectRazor
         # has no private IP addresses, so look for a public IP address
         # to use instead
         ip = Socket.ip_address_list.detect { |intf| intf.ipv4? } unless ip
-        # if the "ip" value is still nil, raise an error
-        raise RuntimeError, "No valid IP address found for the Razor server" unless ip
+        # if the "ip" value is still nil, default to the localhost
+        ip = '127.0.0.1' unless ip
         ip.ip_address.force_encoding("UTF-8")
       end
 
