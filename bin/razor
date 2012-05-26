@@ -8,6 +8,8 @@
 lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
 $LOAD_PATH.unshift(lib_path)
 
+
+require 'rubygems' if RUBY_VERSION < '1.9'
 # We require the root lib
 require "project_razor"
 
@@ -64,7 +66,14 @@ def get_slices_loaded
   |object_class|
 
     if object_class.to_s.start_with?(SLICE_PREFIX) && object_class.to_s != SLICE_PREFIX
-      temp_hash[object_class.to_s] = object_class.to_s.sub(SLICE_PREFIX,"").strip
+      if object_class.is_a? Hash
+        object_class.keys.each do |x|
+          temp_hash[x.to_s] = x.to_s.sub(SLICE_PREFIX,"").strip
+        end
+      else
+        #puts object_class.to_s
+        temp_hash[object_class.to_s] = object_class.to_s.sub(SLICE_PREFIX,"").strip
+      end
     end
   end
   @slice_array = {}
@@ -95,7 +104,7 @@ def print_loaded_slices
   print "\nLoaded slices:\n\t"
   x = 1
   @slice_array.sort.each do |slice|
-    slice_obj = Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
+    slice_obj = ::Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
     unless slice_obj.hidden
       print "[#{slice.downcase}] ".white
       if x > 5
