@@ -62,20 +62,14 @@ end
 # Load slices
 def get_slices_loaded
   temp_hash = {}
-  ObjectSpace.each_object do
-  |object_class|
 
-    if object_class.to_s.start_with?(SLICE_PREFIX) && object_class.to_s != SLICE_PREFIX
-      if object_class.is_a? Hash
-        object_class.keys.each do |x|
-          temp_hash[x.to_s] = x.to_s.sub(SLICE_PREFIX,"").strip
-        end
-      else
-        #puts object_class.to_s
-        temp_hash[object_class.to_s] = object_class.to_s.sub(SLICE_PREFIX,"").strip
-      end
-    end
+  slice_path = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib/project_razor/slice/*.rb"))
+
+  Dir.glob(slice_path) do |f|
+    name = File.basename(f,File.extname(f)).capitalize
+    temp_hash[SLICE_PREFIX+name] = name unless name == 'Slice'
   end
+
   @slice_array = {}
   temp_hash.each_value {|x| @slice_array[x] = x}
   @slice_array = @slice_array.each_value.collect {|x| x}

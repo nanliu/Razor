@@ -147,16 +147,9 @@ module ProjectRazor
       # Returns all child templates from prefix
       def get_child_templates(namespace_prefix)
         temp_hash = {}
-        ObjectSpace.each_object do
-        |object_class|
-
+        ObjectSpace.each_object do |object_class|
           if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix && !(object_class.to_s =~ /#/)
-            if object_class.is_a? Hash
-              object_class.keys.each do |x|
-                temp_hash[x.to_s] = x.to_s.sub(namespace_prefix,"").strip
-              end
-            else
-            #puts object_class.to_s
+            unless object_class.is_a? String or object_class.is_a? Hash or object_class.is_a? Array
               temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
             end
           end
