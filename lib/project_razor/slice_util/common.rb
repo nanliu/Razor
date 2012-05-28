@@ -80,24 +80,19 @@ module ProjectRazor
       end
 
       # Returns all child templates from prefix
-      def get_child_templates(namespace_prefix)
-        temp_hash = {}
-        ObjectSpace.each_object do |object_class|
-          if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix && !(object_class.to_s =~ /#/)
-            unless object_class.is_a? String or object_class.is_a? Hash or object_class.is_a? Array
-              temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
-            end
-          end
+      def get_child_templates(namespace)
+        if [Symbol, String].include? namespace.class
+          namespace.gsub!(/::$/, '') if namespace.is_a? String
+          namespace = Object.full_const_get namespace
         end
 
-        object_array = {}
-        temp_hash.each_value {|x| object_array[x] = x}
-
-        objects = object_array.values.sort.collect {|x| ::Object::full_const_get((namespace_prefix + x)).new({}) }
-        objects.each {|object| object.is_template = true}
-        valid_objects = []
-        objects.each {|object| valid_objects << object unless object.hidden}
-        valid_objects
+        namespace.class_children.map do |child|
+          new_object = child.new({})
+          new_object.is_template = true
+          new_object
+        end.reject do |object|
+          object.hidden
+        end
       end
 
       alias :get_child_types :get_child_templates

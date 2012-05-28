@@ -31,3 +31,12 @@ require "project_razor/broker"
 module ProjectRazor
 
 end
+
+class ::Object
+  # Returns hash of classes that are children of
+  # the namespace that called the method.
+  # For example: ProjectRazor::Slice.class_children
+  def class_children
+    constants.map {|e| const_get(e) }.select {|e| e.is_a?(Module) } - [self]
+  end
+end
