@@ -83,7 +83,7 @@ module ProjectRazor
       def get_child_templates(namespace)
         if [Symbol, String].include? namespace.class
           namespace.gsub!(/::$/, '') if namespace.is_a? String
-          namespace = Object.full_const_get namespace
+          namespace = ::Object.full_const_get namespace
         end
 
         namespace.class_children.map do |child|

@@ -109,14 +109,14 @@ module ProjectRazor
     # Get Array of Policy Templates available
     def get_templates
       ProjectRazor::PolicyTemplate.class_children.map do |policy_template|
-        policy_template_obj = Object.full_const_get(POLICY_PREFIX + policy_template[0]).new({})
+        policy_template_obj = ::Object.full_const_get(POLICY_PREFIX + policy_template[0]).new({})
         !policy_template_obj.hidden ? policy_template_obj : nil
       end.reject { |e| e.nil? }
     end
 
     def get_model_templates
       ProjectRazor::ModelTemplate.class_children.map do |policy_template|
-        policy_template_obj = Object.full_const_get(MODEL_PREFIX + policy_template[0]).new({})
+        policy_template_obj = ::Object.full_const_get(MODEL_PREFIX + policy_template[0]).new({})
         !policy_template_obj.hidden ? policy_template_obj : nil
       end.reject { |e| e.nil? }
     end
