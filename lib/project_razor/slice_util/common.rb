@@ -36,66 +36,6 @@ module ProjectRazor
 
       end
 
-      #class ObjectTemplate < ProjectRazor::Object
-      #  attr_accessor :template, :description
-      #
-      #  def initialize(options = {})
-      #    @template = options[:template]
-      #    @description = options[:description]
-      #  end
-      #
-      #  def print_header
-      #    return "Template", "Description"
-      #  end
-      #
-      #  def print_items
-      #    return @template, @description
-      #  end
-      #
-      #  def line_color
-      #    :white_on_black
-      #  end
-      #
-      #  def header_color
-      #    :red_on_black
-      #  end
-      #end
-      #
-      #class ObjectPlugin < ObjectTemplate
-      #  attr_accessor :plugin, :description
-      #
-      #  def initialize(options = {})
-      #    @plugin = options[:plugin]
-      #    @description = options[:description]
-      #  end
-      #
-      #  def print_header
-      #    return "Plugin", "Description"
-      #  end
-      #
-      #  def print_items
-      #    return @plugin, @description
-      #  end
-      #end
-      #
-      #class ObjectModelTemplate < ObjectTemplate
-      #  attr_accessor :template, :description, :req_metadata
-      #
-      #  def initialize(options = {})
-      #    @template = options[:template]
-      #    @description = options[:description]
-      #    @req_metadata_hash = options[:req_metadata_hash]
-      #  end
-      #
-      #  def print_header
-      #    return "Template", "Description"
-      #  end
-      #
-      #  def print_items
-      #    return @template, @description
-      #  end
-      #end
-
       def get_web_vars(vars_array)
           json_string = @command_array.shift
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
@@ -164,35 +104,7 @@ module ProjectRazor
         valid_objects
       end
 
-
       alias :get_child_types :get_child_templates
-
-      # returns child templates as ObjectTemplate (used for printing)
-      #def get_object_template(namespace_prefix)
-      #  get_child_templates(namespace_prefix).map do
-      #  |template|
-      #    ObjectTemplate.new(:template => template.template.to_s,
-      #                       :description => template.description) unless template.hidden
-      #  end.compact
-      #end
-      #
-      ## returns model templates as ObjectModelTemplate (used for printing)
-      #def get_object_model_template(namespace_prefix)
-      #  get_child_templates(namespace_prefix).map do
-      #  |template|
-      #    ObjectModelTemplate.new(:template => template.template.to_s,
-      #                            :description => template.description,
-      #                            :req_metadata_hash => template.req_metadata_hash) unless template.hidden
-      #  end.compact
-      #end
-      #
-      #def get_plugin_template(namespace_prefix)
-      #  get_child_templates(namespace_prefix).map do
-      #  |plugin|
-      #    ObjectPlugin.new(:plugin => plugin.plugin.to_s,
-      #                     :description => plugin.description) unless plugin.hidden
-      #  end.compact
-      #end
 
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(*arg)
@@ -207,8 +119,6 @@ module ProjectRazor
           arg && (arg.to_s =~ /^\{.*\}$/) == nil && arg != ''
         end
       end
-
-
 
       # Gets a selection of objects for slice
       # @param noun [String] name of the object for logging
@@ -440,38 +350,6 @@ module ProjectRazor
           slice_success(node_array,false)
         end
       end
-
-      #def print_policy_bound_log(bound_policy)
-      #  unless @web_command
-      #    puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
-      #
-      #    unless @verbose
-      #      print "\t" + "(Model call) (Action) | (Original state) => (New state) | (Time)\n".red_on_black
-      #      bound_policy.model.log.each do
-      #      |log_item|
-      #        print "\t#{log_item["method"]}##{log_item["action"]} | ".white_on_black
-      #        print "#{log_item["old_state"]} => #{log_item["state"]}".white_on_black
-      #        print " | #{Time.at(log_item["timestamp"].to_i)}\n".white_on_black
-      #      end
-      #
-      #    else
-      #      bound_policy.model.log.each do
-      #      |log_item|
-      #        log_item.instance_variables.each do
-      #        |iv|
-      #          unless iv.to_s.start_with?("@_")
-      #            key = iv.to_s.sub("@", "")
-      #            print "#{key}: "
-      #            print "#{log_item.instance_variable_get(iv)}  ".green
-      #          end
-      #        end
-      #        print "\n"
-      #      end
-      #    end
-      #  else
-      #    slice_success(bound_policy.model.log, false)
-      #  end
-      #end
 
       def print_tag_rule_old(rule_array)
         if rule_array.respond_to?(:each)
