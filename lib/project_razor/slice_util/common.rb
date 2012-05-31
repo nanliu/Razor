@@ -37,25 +37,22 @@ module ProjectRazor
       end
 
       def get_web_vars(vars_array)
-          json_string = @command_array.shift
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          return nil unless is_valid_json?(json_string)
-          vars_hash = sanitize_hash(JSON.parse(json_string))
-          vars_found_array = []
-          vars_array.each do
-            |vars_name|
-            vars_found_array << vars_hash[vars_name]
-          end
-          vars_found_array
+        json_string = @command_array.shift
+        # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
+        return nil unless is_valid_json?(json_string)
+        vars_hash = sanitize_hash(JSON.parse(json_string))
+        vars_found_array = []
+        vars_array.each do |vars_name|
+          vars_found_array << vars_hash[vars_name]
+        end
+        vars_found_array
       end
 
       def get_cli_vars(vars_array)
         vars_found_array = []
-        vars_array.each do
-        |vars_name|
+        vars_array.each do |vars_name|
           var_value = nil
-          @command_array.each do
-            |arg|
+          @command_array.each do |arg|
             var_value = arg.sub(/^#{vars_name}=/,"") if arg.start_with?(vars_name)
           end
           vars_found_array << var_value
@@ -66,13 +63,11 @@ module ProjectRazor
       def get_noun(classname)
         noun = nil
         begin
-          File.open(File.join(File.dirname(__FILE__), "api_mapping.yaml")) do
-          |file|
+          File.open(File.join(File.dirname(__FILE__), "api_mapping.yaml")) do |file|
             api_map = YAML.load(file)
 
             api_map.sort! {|a,b| a[:namespace].length <=> b[:namespace].length}.reverse!
-            api_map.each do
-            |api|
+            api_map.each do |api|
               noun = api[:noun] if classname.start_with?(api[:namespace])
             end
           end
@@ -109,8 +104,7 @@ module ProjectRazor
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(*arg)
         if arg.is_a? Array
-          arg.each do
-          |a|
+          arg.each do |a|
             unless a && (a.to_s =~ /^\{.*\}$/) == nil && a != ''
               return false
             end
@@ -219,7 +213,7 @@ module ProjectRazor
           # be returned)
           idx = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
           raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
+            "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
           # and add this name/value pair to the return_vals Hash map
           return_vals[name] = value
         end while @command_array.size > 0     # continue as long as there are more arguments to parse
@@ -236,8 +230,7 @@ module ProjectRazor
       end
 
       def print_object_details_cli(obj)
-        obj.instance_variables.each do
-        |iv|
+        obj.instance_variables.each do |iv|
           unless iv.to_s.start_with?("@_")
             key = iv.to_s.sub("@", "")
             print "#{key}: "
@@ -289,16 +282,13 @@ module ProjectRazor
           puts "Images:"
 
           unless @verbose
-            images_array.each do
-            |image|
+            images_array.each do |image|
               image.print_image_info(@data.config.image_svc_path)
               print "\n"
             end
           else
-            images_array.each do
-            |image|
-              image.instance_variables.each do
-              |iv|
+            images_array.each do |image|
+              image.instance_variables.each do |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
@@ -321,8 +311,7 @@ module ProjectRazor
           puts "Nodes:"
 
           unless @verbose
-            node_array.each do
-            |node|
+            node_array.each do |node|
               print "\tuuid: "
               print "#{node.uuid}  ".green
               print "last state: "
@@ -332,10 +321,8 @@ module ProjectRazor
               print "\n"
             end
           else
-            node_array.each do
-            |node|
-              node.instance_variables.each do
-              |iv|
+            node_array.each do |node|
+              node.instance_variables.each do |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
@@ -371,8 +358,7 @@ module ProjectRazor
             line_color = :green
             header_color = :white
 
-            object_array.each do
-            |rule|
+            object_array.each do |rule|
               print_array << rule.print_items
               header = rule.print_header
               line_color = rule.line_color
@@ -382,10 +368,8 @@ module ProjectRazor
             print_array.unshift header if header != []
             print_table(print_array, line_color, header_color)
           else
-            object_array.each do
-            |rule|
-              rule.instance_variables.each do
-              |iv|
+            object_array.each do |rule|
+              rule.instance_variables.each do |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
@@ -406,8 +390,7 @@ module ProjectRazor
           puts "\t\tTag Matchers:"
 
           unless @verbose
-            object_array.each do
-            |matcher|
+            object_array.each do |matcher|
               print "   Key: " + "#{matcher.key}".yellow
               print "  Compare: " + "#{matcher.compare}".yellow
               print "  Value: " + "#{matcher.value}".yellow
@@ -415,10 +398,8 @@ module ProjectRazor
               print "\n"
             end
           else
-            object_array.each do
-            |matcher|
-              matcher.instance_variables.each do
-              |iv|
+            object_array.each do |matcher|
+              matcher.instance_variables.each do |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
@@ -451,8 +432,7 @@ module ProjectRazor
             if object_array.count == 1 && options[:style] != :table
               puts print_single_item(object_array.first)
             else
-              object_array.each do
-              |obj|
+              object_array.each do |obj|
                 print_array << obj.print_items
                 header = obj.print_header
                 line_colors << obj.line_color
@@ -463,10 +443,8 @@ module ProjectRazor
               puts print_table(print_array, line_colors, header_color)
             end
           else
-            object_array.each do
-            |obj|
-              obj.instance_variables.each do
-              |iv|
+            object_array.each do |obj|
+              obj.instance_variables.each do |iv|
                 unless iv.to_s.start_with?("@_")
                   key = iv.to_s.sub("@", "")
                   print "#{key}: "
@@ -500,11 +478,9 @@ module ProjectRazor
       end
 
       def iterate_obj(obj_hash)
-        obj_hash.each do
-          |k,v|
+        obj_hash.each do |k,v|
           if obj_hash[k].class == Array
-            obj_hash[k].each do
-              |item|
+            obj_hash[k].each do |item|
               if item.class == Hash
                 add_uri_to_object_hash(item)
               end
@@ -536,8 +512,7 @@ module ProjectRazor
         end
         line_color = obj.line_color
         header_color = obj.header_color
-        print_array.each_with_index do
-        |val, index|
+        print_array.each_with_index do |val, index|
           if header_color
             print_output << " " + "#{header[index]}".send(header_color)
           else
@@ -556,11 +531,9 @@ module ProjectRazor
 
       def print_table(print_array, line_colors, header_color)
         table = ""
-        print_array.each_with_index do
-        |line, li|
+        print_array.each_with_index do |line, li|
           line_string = ""
-          line.each_with_index do
-          |col, ci|
+          line.each_with_index do |col, ci|
             max_col = print_array.collect {|x| x[ci].length}.max
             if li == 0
               if header_color
