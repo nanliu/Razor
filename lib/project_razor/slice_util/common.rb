@@ -36,16 +36,22 @@ module ProjectRazor
 
       end
 
+      # This allows stubbing
+      def command_shift
+        @command_array.shift
+      end
+
       def get_web_vars(vars_array)
-        json_string = @command_array.shift
-        # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-        return nil unless is_valid_json?(json_string)
-        vars_hash = sanitize_hash(JSON.parse(json_string))
-        vars_found_array = []
-        vars_array.each do |vars_name|
-          vars_found_array << vars_hash[vars_name]
+        begin
+          vars_hash = sanitize_hash(JSON.parse(command_shift))
+          vars_array.collect{ |k| vars_hash[k] if vars_hash.has_key? k }
+        rescue JSON::ParserError
+          # TODO: Determine if logging appropriate
+          return nil
+        rescue Exception => e
+          # TODO: Determine if throwing exception appropriate
+          raise e
         end
-        vars_found_array
       end
 
       def get_cli_vars(vars_array)
