@@ -32,6 +32,38 @@ describe ProjectRazor::SliceUtil::Common do
     end
   end
 
+  describe "get_cli_args" do
+    it "should return value for matching key" do
+      @test.stub(:command_array){["template=debian_wheezy", "label=debian", "image_uuid=3RpS0x2KWmITuAsHALa3Ni"]}
+      @test.get_cli_vars(['template', 'label']).should == ['debian_wheezy','debian']
+    end
+
+    it "should return nil element for nonmatching key" do
+      @test.stub(:command_array){["template=debian_wheezy", "label=debian", "image_uuid=3RpS0x2KWmITuAsHALa3Ni"]}
+      @test.get_cli_vars(['template', 'foo']).should == ['debian_wheezy', nil]
+    end
+  end
+
+  describe "get_noun" do
+    it "should return noun for matching class" do
+      { "ProjectRazor::Node::Foo" => 'node',
+        "ProjectRazor::ModelTemplate::Foo" => 'model',
+        "ProjectRazor::PolicyTemplate::Bar" => 'policy',
+        "ProjectRazor::BrokerPlugin::Foo" => 'broker',
+        "ProjectRazor::PowerControl::Bmc::Foo" => 'bmc',
+        "ProjectRazor::Tagging::TagRule::Baz" => 'tag',
+        "ProjectRazor::Tagging::TagMatcher::Baz" => 'tag/matcher',
+        "ProjectRazor::Config::Bar" => 'config',
+      }.each do |k, v|
+        @test.get_noun(k).should == v
+      end
+    end
+
+    it "should return nil for non-matching class" do
+      @test.get_noun('ProjectRazor::Foo').should == nil
+    end
+  end
+
   describe "validate_arg" do
     it "should return false for empty values" do
       [ nil, {}, '', '{}', '{1}', ['', 1], [nil, 1], ['{}', 1] ].each do |val|

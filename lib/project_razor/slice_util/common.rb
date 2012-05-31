@@ -54,34 +54,29 @@ module ProjectRazor
         end
       end
 
+      # This allows stubbing
+      def command_array
+        @command_array
+      end
+
       def get_cli_vars(vars_array)
-        vars_found_array = []
-        vars_array.each do |vars_name|
-          var_value = nil
-          @command_array.each do |arg|
-            var_value = arg.sub(/^#{vars_name}=/,"") if arg.start_with?(vars_name)
-          end
-          vars_found_array << var_value
-        end
-        vars_found_array
+        vars_hash = Hash[command_array.collect{|x| x.split("=")}]
+        vars_array.collect{ |k| vars_hash[k] if vars_hash.has_key? k }
       end
 
       def get_noun(classname)
-        noun = nil
         begin
-          File.open(File.join(File.dirname(__FILE__), "api_mapping.yaml")) do |file|
-            api_map = YAML.load(file)
+          filepath = File.join(File.dirname(__FILE__), "api_mapping.yaml")
+          api_map = YAML.load_file(filepath)
 
-            api_map.sort! {|a,b| a[:namespace].length <=> b[:namespace].length}.reverse!
-            api_map.each do |api|
-              noun = api[:noun] if classname.start_with?(api[:namespace])
-            end
+          api_map = api_map.sort_by{|x| x[:namespace].length}.reverse
+          api_map.each do |api|
+            return api[:noun] if classname.start_with?(api[:namespace])
           end
         rescue => e
           logger.error e.message
-          return nil
         end
-        noun
+        return nil
       end
 
       # Returns all child templates from prefix
