@@ -105,7 +105,6 @@ module ProjectRazor
           if @is_template
             return @template.to_s, @description.to_s
           else
-            broker_name = @broker ? @broker.name : "none"
             return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, @model.counter.to_s, @uuid
           end
         end
