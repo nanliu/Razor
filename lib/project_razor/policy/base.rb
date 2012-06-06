@@ -10,6 +10,7 @@ module ProjectRazor
       attr_accessor :model
       attr_accessor :broker
       attr_accessor :tags
+      attr_accessor :maximum_count
       attr_reader :hidden
       attr_reader :template
       attr_reader :description
@@ -26,6 +27,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
+        @maximum_count = 0 # Default to no maximum
         @enabled = false
         @template = :hidden
         @description = "Base policy rule object. Hidden"
