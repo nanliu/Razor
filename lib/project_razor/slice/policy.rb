@@ -168,7 +168,7 @@ module ProjectRazor
 
       def update_policy
         @command           =:update_policy
-        @command_help_text = "razor policy update label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
+        @command_help_text = "razor policy update (policy uuid) label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
         @command_help_text << "\t label: \t" + " A label to name this Policy\n".yellow
         @command_help_text << "\t model_uuid: \t" + " The Model to attach to the Policy\n".yellow
         @command_help_text << "\t broker_uuid: \t" + " The Broker to attach to the Policy or 'none'\n".yellow
