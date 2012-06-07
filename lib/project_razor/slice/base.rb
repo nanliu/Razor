@@ -22,7 +22,7 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         @command_array = args
-        @command_help_text = nil
+        @command_help_text = ""
         @slice_commands = {}
         @web_command = false
         @last_arg = nil
