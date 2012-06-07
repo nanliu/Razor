@@ -230,181 +230,6 @@ module ProjectRazor
         print "\n"
       end
 
-      def print_model_configs(model_array)
-        unless @web_command
-          puts "Model Configs:"
-          unless @verbose
-            model_array.each do |model|
-              print "   Label: " + "#{model.label}".yellow
-              print "  Type: " + "#{model.name}".yellow
-              print "  Description: " + "#{model.description}".yellow
-              print "\n  Model UUID: " + "#{model.uuid}".yellow
-              print "  Image UUID: " + "#{model.image_uuid}".yellow if model.instance_variable_get(:@image_uuid) != nil
-              print "\n\n"
-            end
-          else
-            model_array.each { |model| print_object_details_cli(model) }
-          end
-        else
-          model_array = model_array.collect { |model| model.to_hash }
-          slice_success(model_array, false)
-        end
-      end
-
-      def print_model_templates(templates_array)
-        if @web_command
-          templates_array = templates_array.collect { |template| template.to_hash }
-          slice_success(templates_array, false)
-        else
-          puts "Valid Model Templates:"
-          if @verbose
-            templates_array.each { |template| print_object_details_cli(template) }
-          else
-            templates_array.each { |template| puts "\t#{template.name} ".yellow + " :  #{template.description}" }
-          end
-        end
-      end
-
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      def print_images(images_array)
-        unless @web_command
-          puts "Images:"
-
-          unless @verbose
-            images_array.each do |image|
-              image.print_image_info(@data.config.image_svc_path)
-              print "\n"
-            end
-          else
-            images_array.each do |image|
-              image.instance_variables.each do |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{image.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          images_array = images_array.collect { |image| image.to_hash }
-          slice_success(images_array, false)
-        end
-      end
-
-      # Handles printing of node details to CLI or REST
-      # @param [Hash] node_array
-      def print_node(node_array)
-        unless @web_command
-          puts "Nodes:"
-
-          unless @verbose
-            node_array.each do |node|
-              print "\tuuid: "
-              print "#{node.uuid}  ".green
-              print "last state: "
-              print "#{node.last_state}  ".green
-              print "name: " unless node.name == nil
-              print "#{node.name}  ".green unless node.name == nil
-              print "\n"
-            end
-          else
-            node_array.each do |node|
-              node.instance_variables.each do |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{node.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          node_array = node_array.collect { |node| node.to_hash }
-          slice_success(node_array,false)
-        end
-      end
-
-      def print_tag_rule_old(rule_array)
-        if rule_array.respond_to?(:each)
-          rule_array = rule_array.collect { |rule| rule.to_hash }
-          slice_success(rule_array, false)
-        else
-          slice_success(rule_array.to_hash, false)
-        end
-      end
-
-      def print_tag_rule(object_array)
-        unless @web_command
-          puts "Tag Rules:"
-
-          unless @verbose
-
-            print_array = []
-            header = []
-            line_color = :green
-            header_color = :white
-
-            object_array.each do |rule|
-              print_array << rule.print_items
-              header = rule.print_header
-              line_color = rule.line_color
-              header_color = rule.header_color
-            end
-
-            print_array.unshift header if header != []
-            print_table(print_array, line_color, header_color)
-          else
-            object_array.each do |rule|
-              rule.instance_variables.each do |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{rule.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          object_array = object_array.collect { |rule| rule.to_hash }
-          slice_success(object_array, false)
-        end
-      end
-
-      def print_tag_matcher(object_array)
-        unless @web_command
-          puts "\t\tTag Matchers:"
-
-          unless @verbose
-            object_array.each do |matcher|
-              print "   Key: " + "#{matcher.key}".yellow
-              print "  Compare: " + "#{matcher.compare}".yellow
-              print "  Value: " + "#{matcher.value}".yellow
-              print "  Inverse: " + "#{matcher.inverse}".yellow
-              print "\n"
-            end
-          else
-            object_array.each do |matcher|
-              matcher.instance_variables.each do |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{matcher.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          object_array = object_array.collect { |matcher| matcher.to_hash }
-          slice_success(object_array, false)
-        end
-      end
-
       def print_object_array(object_array, title = nil, options = {})
         # This is for backwards compatibility
         title = options[:title] unless title
@@ -419,8 +244,11 @@ module ProjectRazor
             line_colors = []
             header_color = :white
 
-            if object_array.count == 1 && options[:style] != :table
-              puts print_single_item(object_array.first)
+            if (object_array.count == 1 || options[:style] == :item) && options[:style] != :table
+              object_array.each do
+              |object|
+                puts print_single_item(object)
+              end
             else
               object_array.each do |obj|
                 print_array << obj.print_items
@@ -516,7 +344,7 @@ module ProjectRazor
           end
 
         end
-        print_output
+        print_output + "\n"
       end
 
       def print_table(print_array, line_colors, header_color)

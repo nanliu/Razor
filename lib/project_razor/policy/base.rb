@@ -92,7 +92,7 @@ module ProjectRazor
           if @is_template
             return "Template", "Description"
           else
-            return "#", "Enabled", "Label", "Tags", "Model Label", "Count", "UUID"
+            return "#", "Enabled", "Label", "Tags", "Model Label", "#/Max", "UUID"
           end
         end
       end
@@ -105,7 +105,8 @@ module ProjectRazor
           if @is_template
             return @template.to_s, @description.to_s
           else
-            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, @model.counter.to_s, @uuid
+            max_num = @maximum_count = 0 ? '-' : @maximum_count
+            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, "#{@model.counter.to_s}/#{max_num}", @uuid
           end
         end
       end
