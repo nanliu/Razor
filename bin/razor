@@ -137,14 +137,30 @@ def get_optparse
   end
 end
 
+def get_first_args
+  first_args = []
+
+end
+
 # Initialise some values
 init
-
-
+l = lambda {
+  f = []
+  ARGV.each do |a|
+    if a.start_with?("-")
+      f << a
+    else
+      return f
+    end
+  end
+  return f
+}
+first_args = l.call
+(0..first_args.count-1).each {ARGV.shift} if first_args.count > 0
 @options = {}
 optparse = get_optparse
 begin
-  optparse.parse(ARGV)
+  optparse.parse(first_args)
 rescue OptionParser::InvalidOption => e
   # We may use this option later so we will continue
   #puts e.message
@@ -152,9 +168,9 @@ rescue OptionParser::InvalidOption => e
   #exit
 end
 
-@web_command = @options[:webcommand] && %w(-w --webcommand).each {|sw| ARGV.delete(sw)}
-@debug = @options[:debug] && %w(-d --debug).each {|sw| ARGV.delete(sw)}
-@verbose = @options[:verbose] && %w(-v --verbose).each {|sw| ARGV.delete(sw)}
+@web_command = @options[:webcommand]
+@debug = @options[:debug]
+@verbose = @options[:verbose]
 
 if @options[:nocolor] or !STDOUT.tty?
   # if this flag is set, override the default behavior of the underlying "colorize" method
@@ -168,7 +184,6 @@ if @options[:nocolor] or !STDOUT.tty?
     end
   end
   String.send(:include, Colored)
-  %w(-c --no-color).each {|sw| ARGV.delete(sw)}
   optparse = get_optparse # reload optparse with color disabled
 end
 
