@@ -130,9 +130,9 @@ module ProjectRazor
       end
 
       def add_policy
-        @command           =:add_policy
-        options            = {}
-        option_items       = [
+        @command     =:add_policy
+        options      = { }
+        option_items = [
             {
                 :name        => :template,
                 :default     => nil,
@@ -189,11 +189,17 @@ module ProjectRazor
                 :description => 'Sets the policy maximum count for nodes [default: 0].',
                 :required    => false
             }]
-        optparse           = get_options(options, option_items, "razor policy add [options...]")
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse     = get_options(options, option_items, "razor policy add [options...]")
+        # set the command help text to the string output from optparse
         @command_help_text << optparse.to_s
+        # if it is a web command, get options from JSON
         options = get_options_web if @web_command
+        # parse our ARGV with the optparse unless options are already set from get_options_web
         optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options
         validate_options(option_items, options)
+        # Main validation
         policy = new_object_from_template_name(POLICY_PREFIX, options[:template])
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
         setup_data
@@ -206,14 +212,16 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingTags, "Must provide at least one tag [tags]" unless options[:tags].count > 0
         raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be a valid integer" unless options[:maximum].to_i.to_s == options[:maximum]
         raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be > 0" unless options[:maximum].to_i >= 0
-        policy.label  = options[:label]
-        policy.model  = model
-        policy.broker = broker
-        policy.tags = options[:tags]
-        policy.enabled = options[:enabled]
-        policy.is_template = false
+        # Flesh out the policy
+        policy.label         = options[:label]
+        policy.model         = model
+        policy.broker        = broker
+        policy.tags          = options[:tags]
+        policy.enabled       = options[:enabled]
+        policy.is_template   = false
         policy.maximum_count = options[:maximum]
-        policy_rules       = ProjectRazor::Policies.instance
+        # Add policy
+        policy_rules         = ProjectRazor::Policies.instance
         policy_rules.add(policy) ? print_object_array([policy], "Policy created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Policy")
       end
 
