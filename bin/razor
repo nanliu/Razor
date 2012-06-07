@@ -125,7 +125,7 @@ def get_optparse
     end
 
     @options[:nocolor] = false
-    opts.on( '-n', '--no-color-out', 'Disables console color. Useful for script wrapping.'.yellow ) do
+    opts.on( '-n', '--no-color', 'Disables console color. Useful for script wrapping.'.yellow ) do
       @options[:nocolor] = true
     end
 
@@ -144,17 +144,17 @@ init
 @options = {}
 optparse = get_optparse
 begin
-  optparse.parse!
+  optparse.parse(ARGV)
 rescue OptionParser::InvalidOption => e
-  puts e.message
-  puts optparse
-  exit
+  # We may use this option later so we will continue
+  #puts e.message
+  #puts optparse
+  #exit
 end
 
-
-@web_command = true if @options[:webcommand]
-@debug = true if @options[:debug]
-@verbose = true if @options[:verbose]
+@web_command = @options[:webcommand] && %w(-w --webcommand).each {|sw| ARGV.delete(sw)}
+@debug = @options[:debug] && %w(-d --debug).each {|sw| ARGV.delete(sw)}
+@verbose = @options[:verbose] && %w(-v --verbose).each {|sw| ARGV.delete(sw)}
 
 if @options[:nocolor] or !STDOUT.tty?
   # if this flag is set, override the default behavior of the underlying "colorize" method
@@ -168,6 +168,7 @@ if @options[:nocolor] or !STDOUT.tty?
     end
   end
   String.send(:include, Colored)
+  %w(-c --no-color).each {|sw| ARGV.delete(sw)}
   optparse = get_optparse # reload optparse with color disabled
 end
 
