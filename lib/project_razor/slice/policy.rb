@@ -135,7 +135,7 @@ module ProjectRazor
         # Load our command options from yaml
         option_items = load_option_items(:command => :add)
         # Get our optparse object passing our options hash, option_items hash, and our banner
-        optparse     = get_options(options, option_items, "razor policy add [options...]")
+        optparse     = get_options(options, :options_items => option_items, :banner => "razor policy add [options...]", :list_required => true)
         # set the command help text to the string output from optparse
         @command_help_text << optparse.to_s
         # if it is a web command, get options from JSON
@@ -143,7 +143,7 @@ module ProjectRazor
         # parse our ARGV with the optparse unless options are already set from get_options_web
         optparse.parse! unless option_items.any? { |k| options[k] }
         # validate required options
-        validate_options(option_items, options)
+        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
         # Main validation
         policy = new_object_from_template_name(POLICY_PREFIX, options[:template])
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
@@ -172,42 +172,59 @@ module ProjectRazor
 
       def update_policy
         @command           =:update_policy
-        @command_help_text = "razor policy update (policy uuid) label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
-        @command_help_text << "\t label: \t" + " A label to name this Policy\n".yellow
-        @command_help_text << "\t model_uuid: \t" + " The Model to attach to the Policy\n".yellow
-        @command_help_text << "\t broker_uuid: \t" + " The Broker to attach to the Policy or 'none'\n".yellow
-        @command_help_text << "\t tags: \t" + " At least one tag to trigger the Policy. Comma delimited\n".yellow
-        @command_help_text << "\t enabled: \t" + " Whether the Policy is enabled or not. Optional and defaults to false\n".yellow
+        @command_help_text << "Description: Updates a Razor Policy properties\n"
+        options      = {}
+        # Load our command options from yaml
+        option_items = load_option_items(:command => :update)
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse     = get_options(options, :options_items => option_items, :banner => "razor policy add [options...]")
+        # set the command help text to the string output from optparse
+        @command_help_text << optparse.to_s
+
+        # Validate UUID
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
         policy_uuid = @command_array.shift
         policy      = get_object("policy_with_uuid", :policy, policy_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
-        label, model_uuid, broker_uuid, tags, enabled = *get_web_vars(%w(label model_uuid broker_uuid tags enabled)) if @web_command
-        label, model_uuid, broker_uuid, tags, enabled = *get_cli_vars(%w(label model_uuid broker_uuid tags enabled)) unless label || model_uuid || broker_uuid || tags || enabled
 
-
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless label || model_uuid || broker_uuid || tags || enabled
-        if tags
-          tags = tags.split(",") if tags.is_a? String
-          raise ProjectRazor::Error::Slice::MissingArgument, "Policy Tags [tag(,tag)]" unless tags.count > 0
+        # if it is a web command, get options from JSON
+        options = get_options_web if @web_command
+        # parse our ARGV with the optparse unless options are already set from get_options_web
+        optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options, we use the :require_one logic to check if at least one :required value is present
+        validate_options(:option_items => option_items, :options => options, :logic => :require_one)
+        # Main validation
+        if options[:tags]
+          options[:tags] = options[:tags].split(",") if options[:tags].is_a? String
+          raise ProjectRazor::Error::Slice::MissingArgument, "Policy Tags [tag(,tag)]" unless options[:tags].count > 0
         end
-        if model_uuid
-          model = get_object("model_by_uuid", :model, model_uuid)
-          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model
+        if options[:model_uuid]
+          model = get_object("model_by_uuid", :model, options[:model_uuid])
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model
           raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.label}]" unless policy.template == model.template
         end
-        if broker_uuid
-          broker = get_object("model_by_uuid", :broker, broker_uuid)
-          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{broker_uuid}]" unless broker || broker_uuid == "none"
+        if options[:broker_uuid]
+          broker = get_object("model_by_uuid", :broker, options[:broker_uuid])
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless broker || options[:broker_uuid] == "none"
         end
-
-        policy.label = label if label
+        raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --enable and --disable at the same time." if options[:enable] && options[:disable]
+        raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --move-priority-higher and --move-priority-lower at the same time." if options[:movehigher] && options[:movelower]
+        if options[:maximum]
+          raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be a valid integer" unless options[:maximum].to_i.to_s == options[:maximum]
+          raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be > 0" unless options[:maximum].to_i >= 0
+        end
+        # Update object properties
+        policy.label = options[:label] if options[:label]
         policy.model = model if model
         policy.broker = broker if broker
-        policy.tags = tags if tags
-        policy.enabled = true if enabled == "true"
-        policy.enabled = false if enabled == "false"
-
+        policy.tags = options[:tags] if options[:tags]
+        policy.enabled = true if options[:enable]
+        policy.enabled = false if options[:disable]
+        policy.maximum_count = options[:maximum] if options[:maximum]
+        policy_rules = ProjectRazor::Policies.instance
+        policy_rules.move_policy_up(policy.uuid) if options[:movehigher]
+        policy_rules.move_policy_down(policy.uuid) if options[:movelower]
+        # Update object
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Broker Target [#{broker.uuid}]" unless policy.update_self
         print_object_array [policy], "", :success_type => :updated
       end
@@ -271,12 +288,14 @@ module ProjectRazor
 
       def remove_active
         @command           = :remove_active
+
         @command_help_text = "razor policy active remove (UUID)"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
         active_model_uuid  = @command_array.shift
         active_model       = get_object("active_model_with_uuid", :active, active_model_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{active_model}]" unless active_model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{active_model_uuid}]" unless active_model
         setup_data
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model.uuid}]" unless @data.delete_object(active_model)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model_uuid}]" unless @data.delete_object(active_model)
         slice_success("Active Model [#{active_model.uuid}] removed", :success_type => :removed)
       end
 

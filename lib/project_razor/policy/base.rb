@@ -28,6 +28,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
+
         @maximum_count = 0 # Default to no maximum
         @enabled = false
         @template = :hidden
@@ -35,7 +36,7 @@ module ProjectRazor
         @node_uuid = nil
         @bind_timestamp = nil
         @bound = false
-        @root_policy = nil
+
         from_hash(hash) unless hash == nil
         # If our policy is bound it is stored in a different collection
         if @bound
@@ -49,6 +50,16 @@ module ProjectRazor
         @tags = new_tags.uniq
       end
 
+      def current_count
+        engine = ProjectRazor::Engine.instance
+        engine.policy_active_model_count(@uuid)
+      end
+
+      def is_under_maximum?
+        return true if @maximum_count == 0
+        current_count < @maximum_count.to_i
+      end
+
       def line_number
         policies = ProjectRazor::Policies.instance
         policies.get_line_number(self.uuid)
@@ -56,12 +67,10 @@ module ProjectRazor
 
       def bind_me(node)
         if node
-
           @model.counter = @model.counter + 1 # increment model counter
           self.update_self # save increment
-
           @bound = true
-          @root_policy = @uuid
+          @root_policy = @uuid.to_s
           @uuid = create_uuid
           @_collection = :active
           @bind_timestamp = Time.now.to_i
@@ -99,7 +108,7 @@ module ProjectRazor
           if @is_template
             return "Template", "Description"
           else
-            return "#", "Enabled", "Label", "Tags", "Model Label", "#/Max", "UUID"
+            return "#", "Enabled", "Label", "Tags", "Model Label", "#/Max", "Counter", "UUID"
           end
         end
       end
@@ -107,13 +116,13 @@ module ProjectRazor
       def print_items
         if @bound
           broker_name = @broker ? @broker.name : "none"
-          return @label, @model.current_state.to_s, @node_uuid, broker_name, @model.counter.to_s, @uuid
+          return @label, @model.current_state.to_s, @node_uuid, broker_name, current_count.to_s, @uuid
         else
           if @is_template
             return @template.to_s, @description.to_s
           else
-            max_num = @maximum_count == 0 ? '-' : @maximum_count
-            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, "#{@model.counter.to_s}/#{max_num}", @uuid
+            max_num = @maximum_count.to_i == 0 ? '-' : @maximum_count
+            return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, "#{current_count.to_s}/#{max_num}", @model.counter.to_s, @uuid
           end
         end
       end
@@ -140,8 +149,9 @@ module ProjectRazor
            "Tags",
            "Model Label",
            "Broker Target",
-           "Bound Count",
-           "Maximum Count"]
+           "Currently Bound",
+           "Maximum Bound",
+           "Bound Counter"]
         end
       end
 
@@ -169,8 +179,9 @@ module ProjectRazor
            "[#{@tags.join(", ")}]",
            @model.label.to_s,
            broker_name,
-           @model.counter.to_s,
-           @maximum_count.to_s]
+           current_count.to_s,
+           @maximum_count.to_s,
+           @model.counter.to_s]
         end
       end
 

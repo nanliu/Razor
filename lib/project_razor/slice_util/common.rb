@@ -44,7 +44,7 @@ module ProjectRazor
       def get_web_vars(vars_array)
         begin
           vars_hash = sanitize_hash(JSON.parse(command_shift))
-          vars_array.collect{ |k| vars_hash[k] if vars_hash.has_key? k }
+          vars_array.collect { |k| vars_hash[k] if vars_hash.has_key? k }
         rescue JSON::ParserError
           # TODO: Determine if logging appropriate
           return nil
@@ -60,20 +60,21 @@ module ProjectRazor
       end
 
       def get_cli_vars(vars_array)
-        vars_hash = Hash[command_array.collect{|x| x.split("=")}]
-        vars_array.collect{ |k| vars_hash[k] if vars_hash.has_key? k }
+        vars_hash = Hash[command_array.collect { |x| x.split("=") }]
+        vars_array.collect { |k| vars_hash[k] if vars_hash.has_key? k }
       end
 
-      def get_options(options, options_items, banner = "razor [command] [options...]")
+      def get_options(options = { }, optparse_options = { })
+        optparse_options[:banner] ||= "razor [command] [options...]"
         OptionParser.new do |opts|
-          opts.banner = banner
-          options_items.each do |opt_item|
+          opts.banner = optparse_options[:banner]
+          optparse_options[:options_items].each do |opt_item|
             options[opt_item[:name]] = opt_item[:default]
-            opts.on(opt_item[:short_form], opt_item[:long_form], "#{opt_item[:description]} #{" - required" if opt_item[:required]}" ) do |param|
+            opts.on(opt_item[:short_form], opt_item[:long_form], "#{opt_item[:description]} #{" - required" if opt_item[:required] && optparse_options[:list_required]}") do |param|
               options[opt_item[:name]] = param ? param : true
             end
           end
-          opts.on( '-h', '--help', 'Display this screen.' ) do
+          opts.on('-h', '--help', 'Display this screen.') do
             puts opts
             exit
           end
@@ -82,7 +83,7 @@ module ProjectRazor
 
       def get_options_web
         begin
-          return Hash[sanitize_hash(JSON.parse(command_shift)).map{|(k,v)| [k.to_sym,v]}]
+          return Hash[sanitize_hash(JSON.parse(command_shift)).map { |(k, v)| [k.to_sym, v] }]
         rescue JSON::ParserError => e
           # TODO: Determine if logging appropriate
           puts e.message
@@ -93,19 +94,31 @@ module ProjectRazor
         end
       end
 
-      def validate_options(option_items, options)
-        option_items.each do
-        |opt_item|
-          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide: [#{opt_item[:description]}]" if opt_item[:required] && !validate_arg(options[opt_item[:name]])
+      def validate_options(validate_options = { })
+        validate_options[:logic] ||= :require_all
+        case validate_options[:logic]
+          when :require_one
+            count = 0
+            validate_options[:option_items].each do
+            |opt_item|
+              count += 1 if opt_item[:required] && validate_arg(validate_options[:options][opt_item[:name]])
+            end
+            raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update." if count < 1
+          else
+            validate_options[:option_items].each do
+            |opt_item|
+              raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide: [#{opt_item[:description]}]" if opt_item[:required] && !validate_arg(validate_options[:options][opt_item[:name]])
+            end
         end
+
       end
 
       def get_noun(classname)
         begin
           filepath = File.join(File.dirname(__FILE__), "api_mapping.yaml")
-          api_map = YAML.load_file(filepath)
+          api_map  = YAML.load_file(filepath)
 
-          api_map = api_map.sort_by{|x| x[:namespace].length}.reverse
+          api_map = api_map.sort_by { |x| x[:namespace].length }.reverse
           api_map.each do |api|
             return api[:noun] if classname.start_with?(api[:namespace])
           end
@@ -123,7 +136,7 @@ module ProjectRazor
         end
 
         namespace.class_children.map do |child|
-          new_object = child.new({})
+          new_object             = child.new({ })
           new_object.is_template = true
           new_object
         end.reject do |object|
@@ -212,8 +225,8 @@ module ProjectRazor
       # @return [Hash] name/value pairs parsed from the command-line
       def get_name_value_args(expected_names = nil)
         # initialize the return values (to nil) by pre-allocating an appropriately size array
-        return_vals = {}
-                                              # parse the @command_array for "name=value" pairs
+        return_vals = { }
+                                          # parse the @command_array for "name=value" pairs
         begin
           # get the check the next value in the @command_array, continue only if
           # it's a name/value pair in the format 'name=value'
@@ -229,7 +242,7 @@ module ProjectRazor
           @last_arg = @command_array.shift
           @prev_args.push(@last_arg)
           # break apart the match array into the name and value parts
-          name = match[1]
+          name  = match[1]
           value = match[2]
           # if a list of expected names was passed into the function, then test
           # to see if this name is one of the expected names.  If it is in the list
@@ -237,12 +250,12 @@ module ProjectRazor
           # list was passed in or if the value that was passed in has a zero length,
           # then any name will be accepted (and any corresponding name/value pair will
           # be returned)
-          idx = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
+          idx   = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
           raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
                 "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
           # and add this name/value pair to the return_vals Hash map
           return_vals[name] = value
-        end while @command_array.size > 0     # continue as long as there are more arguments to parse
+        end while @command_array.size > 0 # continue as long as there are more arguments to parse
         return return_vals
       end
 
@@ -250,12 +263,12 @@ module ProjectRazor
       # instance variables are kept consistent as it does so)
       def get_next_arg
         return_val = @command_array.shift
-        @last_arg = return_val
+        @last_arg  = return_val
         @prev_args.push(return_val)
         return_val
       end
 
-      def print_object_array(object_array, title = nil, options = {})
+      def print_object_array(object_array, title = nil, options = { })
         # This is for backwards compatibility
         title = options[:title] unless title
         if @web_command
@@ -321,7 +334,7 @@ module ProjectRazor
       end
 
       def iterate_obj(obj_hash)
-        obj_hash.each do |k,v|
+        obj_hash.each do |k, v|
           if obj_hash[k].class == Array
             obj_hash[k].each do |item|
               if item.class == Hash
@@ -340,20 +353,20 @@ module ProjectRazor
       end
 
       def print_single_item(obj)
-        print_array = []
-        header = []
-        line_color = []
+        print_array  = []
+        header       = []
+        line_color   = []
         print_output = ""
         header_color = :white
 
         if obj.respond_to?(:print_item) && obj.respond_to?(:print_item_header)
           print_array = obj.print_item
-          header = obj.print_item_header
+          header      = obj.print_item_header
         else
           print_array = obj.print_items
-          header = obj.print_header
+          header      = obj.print_header
         end
-        line_color = obj.line_color
+        line_color   = obj.line_color
         header_color = obj.header_color
         print_array.each_with_index do |val, index|
           if header_color
@@ -377,7 +390,7 @@ module ProjectRazor
         print_array.each_with_index do |line, li|
           line_string = ""
           line.each_with_index do |col, ci|
-            max_col = print_array.collect {|x| x[ci].length}.max
+            max_col = print_array.collect { |x| x[ci].length }.max
             if li == 0
               if header_color
                 line_string << "#{col.center(max_col)}  ".send(header_color)
