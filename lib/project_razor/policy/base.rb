@@ -17,6 +17,7 @@ module ProjectRazor
 
       # Used for binding
       attr_accessor :bound
+      attr_accessor :root_policy
       attr_accessor :node_uuid
       attr_accessor :bind_timestamp
 
@@ -34,6 +35,7 @@ module ProjectRazor
         @node_uuid = nil
         @bind_timestamp = nil
         @bound = false
+        @root_policy = nil
         from_hash(hash) unless hash == nil
         # If our policy is bound it is stored in a different collection
         if @bound
@@ -41,6 +43,10 @@ module ProjectRazor
         else
           @_collection = :policy
         end
+      end
+
+      def tags=(new_tags)
+        @tags = new_tags.uniq
       end
 
       def line_number
@@ -55,6 +61,7 @@ module ProjectRazor
           self.update_self # save increment
 
           @bound = true
+          @root_policy = @uuid
           @uuid = create_uuid
           @_collection = :active
           @bind_timestamp = Time.now.to_i
