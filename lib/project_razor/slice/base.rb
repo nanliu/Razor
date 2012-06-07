@@ -106,7 +106,6 @@ module ProjectRazor
           else
             #puts "No (default) action defined"
             raise ProjectRazor::Error::Slice::Generic, "No Default Action"
-            return
           end
         end
 
@@ -169,7 +168,6 @@ module ProjectRazor
         else
           #puts "No (else) action defined"
           raise ProjectRazor::Error::Slice::InvalidCommand, "System Error: no else action for slice"
-          return
         end
       end
 

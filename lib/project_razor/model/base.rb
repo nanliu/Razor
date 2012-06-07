@@ -136,7 +136,6 @@ module ProjectRazor
           else
             return false # Brokers disabled for model
         end
-        false
       end
 
       def broker_agent_handoff

@@ -222,15 +222,46 @@ module ProjectRazor
       def print_object_array(object_array, title = nil, options = {})
         # This is for backwards compatibility
         title = options[:title] unless title
-        unless @web_command
+        if @web_command
+          if @uri_root
+            object_array = object_array.collect do |object|
+
+              if object.is_template
+                object.to_hash
+              else
+                obj_web = object.to_hash
+                obj_web = Hash[obj_web.reject { |k, v| !['@uuid', '@classname'].include?(k) }] unless object_array.count == 1
+
+                add_uri_to_object_hash(obj_web)
+                iterate_obj(obj_web)
+                obj_web
+              end
+            end
+          else
+            object_array = object_array.collect { |object| object.to_hash }
+          end
+
+          slice_success(object_array, options)
+        else
           puts title if title
           unless object_array.count > 0
             puts "< none >".red
           end
-          unless @verbose
-            print_array = []
-            header = []
-            line_colors = []
+          if @verbose
+            object_array.each do |obj|
+              obj.instance_variables.each do |iv|
+                unless iv.to_s.start_with?("@_")
+                  key = iv.to_s.sub("@", "")
+                  print "#{key}: "
+                  print "#{obj.instance_variable_get(iv)}  ".green
+                end
+              end
+              print "\n"
+            end
+          else
+            print_array  = []
+            header       = []
+            line_colors  = []
             header_color = :white
 
             if (object_array.count == 1 || options[:style] == :item) && options[:style] != :table
@@ -249,38 +280,7 @@ module ProjectRazor
               print_array.unshift header if header != []
               puts print_table(print_array, line_colors, header_color)
             end
-          else
-            object_array.each do |obj|
-              obj.instance_variables.each do |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{obj.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
           end
-        else
-          if @uri_root
-            object_array = object_array.collect do |object|
-
-              if object.is_template
-                object.to_hash
-              else
-                obj_web = object.to_hash
-                obj_web = Hash[obj_web.reject { |k,v| !['@uuid', '@classname'].include?(k) }] unless object_array.count == 1
-
-                add_uri_to_object_hash(obj_web)
-                iterate_obj(obj_web)
-                obj_web
-              end
-            end
-          else
-            object_array = object_array.collect { |object| object.to_hash }
-          end
-
-          slice_success(object_array, options)
         end
       end
 
@@ -299,7 +299,7 @@ module ProjectRazor
 
       def add_uri_to_object_hash(object_hash)
         noun = get_noun(object_hash["@classname"])
-        object_hash["@uri"] = "#{@uri_root}#{noun}/#{object_hash["@uuid"]}" if noun
+        object_hash["@uri"] = "#@uri_root#{noun}/#{object_hash["@uuid"]}" if noun
         object_hash
       end
 

@@ -58,6 +58,8 @@ class ProjectRazor::Node < ProjectRazor::Object
         status = "I"
       when "active"
         status = "A"
+      else
+        status = "U"
     end
     return @uuid, pretty_time(time_diff), status, "[#{temp_tags.join(",")}]"
   end

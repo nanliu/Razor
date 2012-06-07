@@ -41,7 +41,7 @@ module ProjectRazor
           @filename = File.basename(fullpath)
 
           logger.debug "fullpath: #{fullpath}"
-          logger.debug "filename: #{@filename}"
+          logger.debug "filename: #@filename"
           logger.debug "mount path: #{mount_path}"
 
           # Make sure file exists
