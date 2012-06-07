@@ -64,6 +64,42 @@ module ProjectRazor
         vars_array.collect{ |k| vars_hash[k] if vars_hash.has_key? k }
       end
 
+      def get_options(options, options_items, banner = "razor [command] [options...]")
+        OptionParser.new do |opts|
+          opts.banner = banner
+          options_items.each do |opt_item|
+            options[opt_item[:name]] = opt_item[:default]
+            opts.on(opt_item[:short_form], opt_item[:long_form], "#{opt_item[:description]} #{" - required" if opt_item[:required]}" ) do |param|
+              options[opt_item[:name]] = param ? param : true
+            end
+          end
+          opts.on( '-h', '--help', 'Display this screen.' ) do
+            puts opts
+            exit
+          end
+        end
+      end
+
+      def get_options_web
+        begin
+          return Hash[sanitize_hash(JSON.parse(command_shift)).map{|(k,v)| [k.to_sym,v]}]
+        rescue JSON::ParserError => e
+          # TODO: Determine if logging appropriate
+          puts e.message
+          return nil
+        rescue Exception => e
+          # TODO: Determine if throwing exception appropriate
+          raise e
+        end
+      end
+
+      def validate_options(option_items, options)
+        option_items.each do
+        |opt_item|
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide: [#{opt_item[:description]}]" if opt_item[:required] && !validate_arg(options[opt_item[:name]])
+        end
+      end
+
       def get_noun(classname)
         begin
           filepath = File.join(File.dirname(__FILE__), "api_mapping.yaml")
@@ -121,7 +157,7 @@ module ProjectRazor
           # Get request filter JSON string
           @filter_json_string = @command_array.shift
           @filter_json_string = '{}' if @filter_json_string == 'null' # handles bad PUT requests
-          # Check if we were passed a filter string
+                                                                      # Check if we were passed a filter string
           if @filter_json_string != "{}" && @filter_json_string != nil
             @command = "query_with_filter"
             begin
@@ -177,7 +213,7 @@ module ProjectRazor
       def get_name_value_args(expected_names = nil)
         # initialize the return values (to nil) by pre-allocating an appropriately size array
         return_vals = {}
-        # parse the @command_array for "name=value" pairs
+                                              # parse the @command_array for "name=value" pairs
         begin
           # get the check the next value in the @command_array, continue only if
           # it's a name/value pair in the format 'name=value'
@@ -203,7 +239,7 @@ module ProjectRazor
           # be returned)
           idx = (expected_names && expected_names.size > 0 ? expected_names.index(name) : -1)
           raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-            "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
+                "unrecognized field with name #{name}; valid values are #{expected_names.inspect}" unless idx
           # and add this name/value pair to the return_vals Hash map
           return_vals[name] = value
         end while @command_array.size > 0     # continue as long as there are more arguments to parse
