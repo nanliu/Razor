@@ -105,7 +105,7 @@ module ProjectRazor
           if @is_template
             return @template.to_s, @description.to_s
           else
-            max_num = @maximum_count = 0 ? '-' : @maximum_count
+            max_num = @maximum_count == 0 ? '-' : @maximum_count
             return line_number.to_s, @enabled.to_s, @label, "[#{@tags.join(",")}]", @model.label.to_s, "#{@model.counter.to_s}/#{max_num}", @uuid
           end
         end
@@ -133,7 +133,8 @@ module ProjectRazor
            "Tags",
            "Model Label",
            "Broker Target",
-           "Bound Count"]
+           "Bound Count",
+           "Maximum Count"]
         end
       end
 
@@ -161,7 +162,8 @@ module ProjectRazor
            "[#{@tags.join(", ")}]",
            @model.label.to_s,
            broker_name,
-           @model.counter.to_s]
+           @model.counter.to_s,
+           @maximum_count.to_s]
         end
       end
 
