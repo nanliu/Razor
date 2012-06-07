@@ -131,64 +131,9 @@ module ProjectRazor
 
       def add_policy
         @command     =:add_policy
-        options      = { }
-        option_items = [
-            {
-                :name        => :template,
-                :default     => nil,
-                :short_form  => '-p',
-                :long_form   => '--template TEMPLATE_NAME',
-                :description => 'The policy template name to use.',
-                :required    => true
-            },
-            {
-                :name        => :label,
-                :default     => nil,
-                :short_form  => '-l',
-                :long_form   => '--label POLICY_LABEL',
-                :description => 'A label to name this policy.',
-                :required    => true
-            },
-            {
-                :name        => :model_uuid,
-                :default     => nil,
-                :short_form  => '-m',
-                :long_form   => '--model-uuid MODEL_UUID',
-                :description => 'The model to attach to the policy.',
-                :required    => true
-            },
-            {
-                :name        => :broker_uuid,
-                :default     => 'none',
-                :short_form  => '-b',
-                :long_form   => '--broker-uuid BROKER_UUID',
-                :description => 'The broker to attach to the policy [default: none].',
-                :required    => false
-            },
-            {
-                :name        => :tags,
-                :default     => nil,
-                :short_form  => '-t',
-                :long_form   => '--tags TAG{,TAG,TAG}',
-                :description => 'Policy tags. Comma delimited.',
-                :required    => true
-            },
-            {
-                :name        => :enabled,
-                :default     => false,
-                :short_form  => '-e',
-                :long_form   => '--enabled',
-                :description => 'Sets the policy to enabled on creation.',
-                :required    => false
-            },
-            {
-                :name        => :maximum,
-                :default     => "0",
-                :short_form  => '-x',
-                :long_form   => '--maximum MAXIMUM_COUNT',
-                :description => 'Sets the policy maximum count for nodes [default: 0].',
-                :required    => false
-            }]
+        options      = {}
+        # Load our command options from yaml
+        option_items = load_option_items(:command => :add)
         # Get our optparse object passing our options hash, option_items hash, and our banner
         optparse     = get_options(options, option_items, "razor policy add [options...]")
         # set the command help text to the string output from optparse
