@@ -149,7 +149,7 @@ module ProjectRazor
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(*arg)
         arg.each do |a|
-          return false unless a && (a.to_s =~ /^\{.*\}$/) == nil && a != ''
+          return false unless a && (a.to_s =~ /^\{.*\}$/) == nil && a != '' && a != {}
         end
       end
 

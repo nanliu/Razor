@@ -150,7 +150,7 @@ l = lambda {
     if a.start_with?("-")
       f << a
     else
-      return f
+      break f
     end
   end
   return f
