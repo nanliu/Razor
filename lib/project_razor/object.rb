@@ -52,6 +52,12 @@ class ProjectRazor::Object
     logger
   end
 
+  def get_data
+    data = ProjectRazor::Data.instance
+    data.check_init
+    data
+  end
+
   private
 
   # Return a new UUID string
@@ -84,11 +90,4 @@ class ProjectRazor::Object
     end
     self.class.const_set :HashPrint, hash_print_class
   end
-
-  def get_data
-    data = ProjectRazor::Data.instance
-    data.check_init
-    data
-  end
-
 end
