@@ -19,7 +19,7 @@ module ProjectRazor
       def initialize(hash)
         super()
         @path_prefix = "base"
-        @_collection = :images
+        @_namespace = :images
         @description = "Image Base"
         @hidden = true
         from_hash(hash) unless hash == nil

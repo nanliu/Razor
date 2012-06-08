@@ -40,9 +40,9 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
         # If our policy is bound it is stored in a different collection
         if @bound
-          @_collection = :active
+          @_namespace = :active
         else
-          @_collection = :policy
+          @_namespace = :policy
         end
       end
 
@@ -72,7 +72,7 @@ module ProjectRazor
           @bound = true
           @root_policy = @uuid.to_s
           @uuid = create_uuid
-          @_collection = :active
+          @_namespace = :active
           @bind_timestamp = Time.now.to_i
           @node_uuid = node.uuid
           true

@@ -12,7 +12,7 @@ class ProjectRazor::Node < ProjectRazor::Object
   # @param hash [Hash]
   def initialize(hash)
     super()
-    @_collection = :node
+    @_namespace = :node
     @hw_id = []
     @attributes_hash = {}
     from_hash(hash)

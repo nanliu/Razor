@@ -41,7 +41,7 @@ module ProjectRazor
         @result = nil
                                # Model Log
         @log = []
-        @_collection = :model
+        @_namespace = :model
         from_hash(hash) unless hash == nil
       end
 

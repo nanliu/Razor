@@ -107,7 +107,7 @@ module ProjectRazor
     # @return [ProjectProjectRazor::Object] returned object is a copy of passed {ProjectRazor::Object} with bindings enabled for {ProjectRazor::ProjectRazor#refresh_self} and {ProjectRazor::ProjectRazor#update_self}
     def persist_object(object)
       logger.debug "Persisting an object (#{object.uuid})"
-      persist_ctrl.object_hash_update(object.to_hash, object._collection)
+      persist_ctrl.object_hash_update(object.to_hash, object._namespace)
       object._persist_ctrl = persist_ctrl
       object.refresh_self
       object
@@ -128,7 +128,7 @@ module ProjectRazor
     # @return [true, false]
     def delete_object(object)
       logger.debug "Deleting an object (#{object.uuid})"
-      persist_ctrl.object_hash_remove(object.to_hash, object._collection)
+      persist_ctrl.object_hash_remove(object.to_hash, object._namespace)
     end
 
     # Removes specific {ProjectRazor::Object} that exist in the collection name with given 'uuid'
