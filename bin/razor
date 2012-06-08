@@ -137,11 +137,6 @@ def get_optparse
   end
 end
 
-def get_first_args
-  first_args = []
-
-end
-
 # Initialise some values
 init
 l = lambda {
