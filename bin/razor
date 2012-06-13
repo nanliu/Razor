@@ -137,20 +137,20 @@ def get_optparse
   end
 end
 
-# Initialise some values
-init
-l = lambda {
+def get_first_args
   f = []
   ARGV.each do |a|
     if a.start_with?("-")
       f << a
     else
-      break f
+      return f
     end
   end
-  return f
-}
-first_args = l.call
+  f
+end
+# Initialise some values
+init
+first_args = get_first_args
 (0..first_args.count-1).each {ARGV.shift} if first_args.count > 0
 @options = {}
 optparse = get_optparse
