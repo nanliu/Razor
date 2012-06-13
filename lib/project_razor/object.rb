@@ -16,7 +16,7 @@ class ProjectRazor::Object
   attr_accessor :version # All objects must have a version that is incremented on updates
   attr_accessor :classname # Classname will contain a string representation of the end Class / used for dynamically loading back from DB
   attr_accessor :_persist_ctrl # instance ref pointing to ProjectRazor::Persist::Controller of ProjectRazor::Data that created/fetched this object used for update/refresh
-  attr_reader   :_namespace # Collection/Table symbol for ProjectRazor::Persist::Controller / Must be specified(overridden) in each child class
+  attr_accessor   :_namespace # Collection/Table symbol for ProjectRazor::Persist::Controller / Must be specified(overridden) in each child class
   attr_accessor :is_template
 
   # Set default values
@@ -52,6 +52,12 @@ class ProjectRazor::Object
     logger
   end
 
+  def get_data
+    data = ProjectRazor::Data.instance
+    data.check_init
+    data
+  end
+
   private
 
   # Return a new UUID string
@@ -84,11 +90,4 @@ class ProjectRazor::Object
     end
     self.class.const_set :HashPrint, hash_print_class
   end
-
-  def get_data
-    data = ProjectRazor::Data.instance
-    data.check_init
-    data
-  end
-
 end
