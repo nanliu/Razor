@@ -36,8 +36,7 @@ module ProjectRazor
 
     def opts
       opts_parser = OptionParser.new do |opts|
-        opts.banner = "\nRazor - #{@version}".bold.green
-        opts.separator "Usage: "+"razor [global options] [slice] [command] [slice options] ...".red
+        opts.banner = "Usage: "+"razor [global options] [slice] [command] [command options] ...".red
         opts.separator ""
         opts.separator "Global Options:".yellow
 
@@ -65,6 +64,7 @@ module ProjectRazor
     end
 
     def display_help
+      puts "\nRazor - #{@version}".bold.green
       display_usage
       puts "\n"
       puts "Available Slices:"
@@ -84,10 +84,8 @@ module ProjectRazor
       trap('TERM') { print "\nTerminated\n"; exit(1) }
 
       parse_options!
-
-      # TODO: this does not suppress color for parse_options exceptions
+      # Disable color output.
       require 'project_razor/cli/colored' unless @options[:colorize]
-
       parse_slice!
 
       if @namespace && available_slices.has_key?(@namespace)
@@ -107,13 +105,17 @@ module ProjectRazor
         end
       end
     rescue OptionParser::InvalidOption => e
-      puts(e.message.red) unless @options[:webcommand]
+      unless @options[:webcommand]
+        puts(e.message.red)
+        puts(opts)
+      end
       @exit_code = 129
     rescue Exception => e
-      puts(e.backtrace) if @options[:debug]
-      puts(e.message.red) unless @options[:webcommand]
+      unless @options[:webcommand]
+        puts(e.backtrace) if @options[:debug]
+        puts(e.message.red)
+      end
       @exit_code = 1
-      #raise e unless @options[:webcommand]
     ensure
       return @exit_code
     end
