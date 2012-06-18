@@ -68,7 +68,7 @@ module ProjectRazor
       display_usage
       puts "\n"
       puts "Available Slices:"
-      puts "\t" + available_slices.keys.collect { |x| "[#{x}]".white }.join(' ')
+      puts "\t" + cli_slices.keys.collect { |x| "[#{x}]".white }.join(' ')
     end
 
     def puts(*val)
@@ -77,6 +77,10 @@ module ProjectRazor
 
     def available_slices
       slices = Hash[ ProjectRazor::Slice.class_children.map{|s| [s.to_s.gsub(SLICE_PREFIX,'').downcase, s] } ]
+    end
+
+    def cli_slices
+      slices = available_slices
       slices.delete_if { |k, v| v.new([]).hidden }
     end
 
@@ -106,8 +110,14 @@ module ProjectRazor
       end
     rescue OptionParser::InvalidOption => e
       unless @options[:webcommand]
+        puts(e.backtrace) if @options[:debug]
         puts(e.message.red)
-        puts(opts)
+        # if we successfully loaded the slice, print the slice options
+        if slice && slice.respond_to?(:command_opts)
+          puts(slice.command_opts)
+        else
+          puts(opts)
+        end
       end
       @exit_code = 129
     rescue Exception => e
