@@ -24,7 +24,7 @@ module ProjectRazor
         image_svc_uri = "http://#{@config.image_svc_host}:#{@config.image_svc_port}/razor/image"
         boot_script = ""
         boot_script << "#!ipxe\n"
-        boot_script << "kernel #{image_svc_uri}/mk/kernel || goto error\n"
+        boot_script << "kernel #{image_svc_uri}/mk/kernel maxcpus=1 quiet || goto error\n"
         boot_script << "initrd #{image_svc_uri}/mk/initrd || goto error\n"
         boot_script << "boot || goto error\n"
         boot_script << "\n\n\n"
