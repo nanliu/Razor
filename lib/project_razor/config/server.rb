@@ -59,7 +59,7 @@ module ProjectRazor
 
       # Set defaults
       def use_defaults
-        @image_svc_host = "#{get_an_ip}"
+        @image_svc_host = " #{get_an_ip}".strip!
         @persist_mode = :mongo
         @persist_host = "127.0.0.1"
         @persist_port = 27017
