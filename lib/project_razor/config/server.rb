@@ -50,6 +50,8 @@ module ProjectRazor
 
       attr_accessor :node_expire_timeout
 
+      attr_accessor :rz_mk_boot_debug_level
+
       # init
       def initialize
         use_defaults
@@ -98,6 +100,10 @@ module ProjectRazor
         # is allowed to pass before a node is removed from the system.  If the
         # node has not checked in for this long, it'll be removed
         @node_expire_timeout = 300
+
+        # used to set the Microkernel boot debug level; valid values are
+        # either the empty string (the default), "debug", or "quiet"
+        @rz_mk_boot_debug_level = ""
 
       end
 
