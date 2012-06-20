@@ -146,7 +146,7 @@ module ProjectRazor
         # if we're using a version of Ruby other than v1.8.x, force encoding to be UTF-8
         # (to avoid an issue with how these values are saved in the configuration
         # file as YAML that occurs after Ruby 1.8.x)
-        return str_address.force_encoding("UTF-8") unless /^1\.8\../.match(RUBY_VERSION)
+        return str_address.force_encoding("UTF-8") unless /^1\.8\.\d+/.match(RUBY_VERSION)
         # if we're using Ruby v1.8.x, just return the string
         str_address
       end
