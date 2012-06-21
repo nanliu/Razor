@@ -21,8 +21,9 @@ module ProjectRazor
       # Initializes the Slice Base
       # @param [Array] args
       def initialize(args)
-        @command_array = args
+        @command_array = args.dup
         @command_help_text = ""
+
         @slice_commands = {}
         @web_command = false
         @last_arg = nil
