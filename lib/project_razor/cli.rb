@@ -15,7 +15,8 @@ module ProjectRazor
     SLICE_PREFIX = "ProjectRazor::Slice::"
 
     def self.run(args)
-      exit(new(args, $stdout).run)
+      exit_code = new(args, $stdout).run
+      exit(exit_code)
     end
 
     def initialize(args=[], output=$stdout)
@@ -84,6 +85,19 @@ module ProjectRazor
       slices.delete_if { |k, v| v.new([]).hidden }
     end
 
+    def error(e, slice)
+      unless @options[:webcommand]
+        puts(e.backtrace) if @options[:debug]
+        puts(e.message.red)
+        # if we successfully loaded the slice, print the slice options
+        if slice && slice.respond_to?(:opts)
+          puts(slice.opts)
+        else
+          puts(opts)
+        end
+      end
+    end
+
     def run
       trap('TERM') { print "\nTerminated\n"; exit(1) }
 
@@ -108,26 +122,15 @@ module ProjectRazor
           @exit_code = 1
         end
       end
+      @exit_code
     rescue OptionParser::InvalidOption => e
-      unless @options[:webcommand]
-        puts(e.backtrace) if @options[:debug]
-        puts(e.message.red)
-        # if we successfully loaded the slice, print the slice options
-        if slice && slice.respond_to?(:command_opts)
-          puts(slice.command_opts)
-        else
-          puts(opts)
-        end
-      end
+      error(e, slice)
       @exit_code = 129
     rescue Exception => e
-      unless @options[:webcommand]
-        puts(e.backtrace) if @options[:debug]
-        puts(e.message.red)
-      end
+      error(e, slice)
       @exit_code = 1
     ensure
-      return @exit_code
+      @exit_code
     end
   end
 end
