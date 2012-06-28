@@ -1,3 +1,5 @@
+require 'json'
+
 # Root ProjectRazor namespace
 module ProjectRazor
   module Slice
@@ -76,7 +78,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image
         if @web_command
           raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [req_metadata_hash]" unless
-              validate_arg(req_metadata_hash)
+              req_metadata_hash
           model.web_create_metadata(req_metadata_hash)
         else
           raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Model creation" unless model.cli_create_metadata
