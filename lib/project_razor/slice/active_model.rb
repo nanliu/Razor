@@ -35,7 +35,7 @@ module ProjectRazor
         puts "\trazor active_model (active model uuid) [options...]    " + "View specific active model".yellow
         puts "\trazor active_model logview                             " + "Prints an aggregate active model log view".yellow
         puts "\trazor active_model remove (active model uuid)|all      " + "Remove an existing active model(s)".yellow
-        puts "\trazor policy help                                      " + "Display this screen".yellow
+        puts "\trazor active_model help                                " + "Display this screen".yellow
       end
 
       def get_active_model_all
