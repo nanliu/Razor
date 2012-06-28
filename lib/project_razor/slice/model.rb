@@ -75,7 +75,7 @@ module ProjectRazor
         image = model.image_prefix ? verify_image(model, image_uuid) : true
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image
         if @web_command
-          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [template]" unless
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [req_metadata_hash]" unless
               validate_arg(req_metadata_hash)
           model.web_create_metadata(req_metadata_hash)
         else
