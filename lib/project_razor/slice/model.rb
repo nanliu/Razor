@@ -15,8 +15,9 @@ module ProjectRazor
                                :default => "get_all_models",
                                :else => "get_model_by_uuid",
                                :template => {
+                                   ['{}'] => "get_all_templates",
                                    :default => "get_all_templates",
-                                   :else => "get_template_by_name"
+                                   :else => "get_all_templates"
                                },
                            },
                            :update => {
