@@ -66,7 +66,7 @@ function respondWithFile(path, res, req) {
                 var range_array = req.headers['range'].replace("bytes=","").split("-");
                 start_offset = parseInt(range_array[0]);
                 end_offset = parseInt(range_array[1]);
-                if (start_offset != undefined && end_offset != undefined ) {
+                if (!isNaN(start_offset) && !isNaN(end_offset)) {
                     stat.size = (end_offset - start_offset + 1);
                     var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
                 } else {
@@ -86,7 +86,7 @@ function respondWithFile(path, res, req) {
                 res.end();
             });
             console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
-            if (start_offset != undefined && end_offset != undefined ) {
+            if (!isNaN(start_offset) && !isNaN(end_offset)) {
                 console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
             }
         }
