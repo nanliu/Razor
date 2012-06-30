@@ -66,11 +66,13 @@ function respondWithFile(path, res, req) {
                 var range_array = req.headers['range'].replace("bytes=","").split("-");
                 start_offset = parseInt(range_array[0]);
                 end_offset = parseInt(range_array[1]);
-                stat.size = (end_offset - start_offset + 1);
-                console.log("Start offset: " + start_offset);
-                console.log("End offset: " + end_offset);
-                console.log("Size: " + stat.size);
-                var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+                if (start_offset != undefined && end_offset != undefined ) {
+                    stat.size = (end_offset - start_offset + 1);
+                    var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+                } else {
+                    console.log("Range requested partial offset provided. Ignoring range request.")
+                    var fileStream = fs.createReadStream(path);
+                }
             } else {
                 var fileStream = fs.createReadStream(path);
             }
@@ -84,7 +86,9 @@ function respondWithFile(path, res, req) {
                 res.end();
             });
             console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
-            console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
+            if (start_offset != undefined && end_offset != undefined ) {
+                console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
+            }
         }
         catch (err)
         {
