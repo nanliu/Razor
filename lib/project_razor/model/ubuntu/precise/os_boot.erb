@@ -10,7 +10,7 @@ apt-get -y update
 apt-get -y upgrade
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
 
-apt-get -y install rubygems facter
+apt-get -y install ruby rubygems facter openssh-server
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
 
 # Get current IP
