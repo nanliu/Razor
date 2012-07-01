@@ -32,8 +32,8 @@ exports.getRange = function getRange(range_header, size) {
 
     // Check for missing end
     if  (isNaN(end_offset)) {
-        if (start_offset > size) {
-            console.log('HTTP Range: Range requested start greater than size.');
+        if (start_offset >= size) {
+            console.log('HTTP Range: Range requested start greater or equal to size.');
             console.log("HTTP Range: Returning entire file.");
             return [0, size - 1];
         } else {
