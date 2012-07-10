@@ -2,6 +2,7 @@
 
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
+sed -i 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\([^[:blank:]]\{1,\}\)\([[:blank:]]\{1,\}\)\([^[:blank:]]\{1,\}\)$/\1\2'<%= hostname %>.<%= domainname %>'\4'<%= hostname %>'/' /etc/hosts
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
 
 sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
