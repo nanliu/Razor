@@ -260,7 +260,7 @@ module ProjectRazor
           if @uri_root
             object_array = object_array.collect do |object|
 
-              if object.is_template
+              if object.respond_to?("is_template") && object.is_template
                 object.to_hash
               else
                 obj_web = object.to_hash
