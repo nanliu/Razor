@@ -23,30 +23,14 @@ module ProjectRazor
       def get_node
         @command = :get_node
         @command_help_text << "Description: Gets the Properties Associated with one or more Nodes\n"
-        options = {}
-        includes_uuid = false
-        node_uuid = nil
-        # Load our command options from yaml
-        option_items = load_option_items(:command => :get)
-        # Get our optparse object passing our options hash, option_items hash, and our banner
-        optparse = get_options(options, :options_items => option_items, :banner => "razor node get [uuid] [options...]")
-        # set the command help text to the string output from optparse
-        @command_help_text << optparse.to_s
-        # Check for UUID
-        if @web_command
-          includes_uuid = true if validate_arg(@command_array.first)
-          node_uuid = @command_array.shift if includes_uuid
-          # if it is a web command, get options from JSON
-          options = get_options_web
-        end
-        # parse our ARGV with the optparse unless options are already set from get_options_web
-        optparse.parse! unless option_items.any? { |k| options[k] }
-        # validate required options, we use the :require_one logic to check if at least one :required value is present
-        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        node_uuid, options = parse_and_validate_options(:get, "razor node get [uuid] [options...]")
         if !@web_command
           node_uuid = @command_array.shift
-          includes_uuid = true if node_uuid
         end
+        includes_uuid = true if node_uuid
         # check for usage errors
         if options.count { |key, val| val } > 1
           raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,

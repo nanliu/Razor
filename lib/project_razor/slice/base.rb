@@ -108,9 +108,9 @@ module ProjectRazor
 
         @command_hash.each do |k,v|
           if (k.instance_of? Symbol and @command_array.first.to_s == k.to_s) or
-             (k.instance_of? String and @command_array.first.to_s == k.to_s) or
-             (k.instance_of? Regexp and @command_array.first =~ k) or
-             (k.instance_of? Array and eval_command_array(k))
+              (k.instance_of? String and @command_array.first.to_s == k.to_s) or
+              (k.instance_of? Regexp and @command_array.first =~ k) or
+              (k.instance_of? Array and eval_command_array(k))
             @last_arg =  @command_array.shift
             @prev_args.push(@last_arg)
             return eval_action(@command_hash[k])
@@ -130,8 +130,8 @@ module ProjectRazor
       def eval_command_array(command_array)
         command_array.each do |command_item|
           if (command_item.instance_of? String and @command_array.first.to_s == command_item) or
-             (command_item.instance_of? Regexp and @command_array.first =~ command_item)
-              return true
+              (command_item.instance_of? Regexp and @command_array.first =~ command_item)
+            return true
           else
           end
         end
@@ -272,6 +272,14 @@ module ProjectRazor
           puts "\nCommand help:\n" +  @command_help_text
         else
           puts "\nCommand help:\n" +  @command_hash[:help]
+        end
+      end
+
+      def load_option_items(options = {})
+        begin
+          return YAML.load_file(slice_option_items_file(options))
+        rescue => e
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse option items file"
         end
       end
 

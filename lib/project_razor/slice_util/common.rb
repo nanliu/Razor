@@ -138,6 +138,31 @@ module ProjectRazor
         end
       end
 
+      # used by slices to parse and validate the options for a particular subcommand
+      def parse_and_validate_options(subcommand, banner)
+        options = {}
+        includes_uuid = false
+        uuid_val = nil
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => subcommand)
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse = get_options(options, :options_items => option_items, :banner => banner)
+        # set the command help text to the string output from optparse
+        @command_help_text << optparse.to_s
+        # Check for UUID
+        if @web_command
+          includes_uuid = true if validate_arg(@command_array.first)
+          uuid_val = @command_array.shift if includes_uuid
+          # if it is a web command, get options from JSON
+          options = get_options_web
+        end
+        # parse our ARGV with the optparse unless options are already set from get_options_web
+        optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options, we use the :require_one logic to check if at least one :required value is present
+        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
+        return [uuid_val, options]
+      end
+
       # Gets a selection of objects for slice
       # @param noun [String] name of the object for logging
       # @param collection [Symbol] collection for object
