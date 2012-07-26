@@ -11,22 +11,8 @@ module ProjectRazor
         @new_slice_style = true
         @slice_name = "Node"
         @engine = ProjectRazor::Engine.instance
-        # load_slice_commands
-        #@slice_commands = {
-        #    :get => {
-        #        ["all", nil, /^\{.*\}$/] => "get_nodes_all",
-        #        [/[Aa]ttrib/, /^[Aa]$/] => "get_node_attributes",
-        #        [/[H]ardware/, /^[Hh]$/] => "get_node_hardware_ids",
-        #        :default => "get_nodes_all",
-        #        :else => "get_node_with_uuid"
-        #    },
-        #    ["register", /^[Rr]$/] => "register_node",
-        #    ["checkin", /^[Cc]$/] => "checkin_node",
-        #    :default => :get,
-        #    :else => :get
-        #}
         @slice_commands = {
-            :get => "get_node_info",
+            :get => "get_node",
             ["register", /^[Rr]$/] => "register_node",
             ["checkin", /^[Cc]$/] => "checkin_node",
             :default => :get,
@@ -34,7 +20,7 @@ module ProjectRazor
         }
       end
 
-      def get_node_info
+      def get_node
         @command = :get_node
         @command_help_text << "Description: Gets the Properties Associated with one or more Nodes\n"
         options = {}
