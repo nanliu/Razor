@@ -23,85 +23,170 @@ module ProjectRazor
         @hidden = false
         @new_slice_style = true # switch to new slice style
 
-        # define few of "help strings"
-        register_help_string = "bmc register (JSON STRING)"
-        get_help_string = "bmc get info|enables|guid|chassis_status (JSON STRING)"
-        power_help_string = "bmc power on|off|cycle|reset|status (JSON STRING)"
-        lan_help_string = "bmc lan print (JSON STRING)"
-        fru_help_string = "bmc fru print (JSON STRING)"
-        general_help_string = "bmc [power|get|lan|fru [subcommand_action] (JSON STRING)]"
-
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = { :register => "register_bmc",
-                            :get => { :info => "run_ipmi_query_cmd",
-                                      :enables => "run_ipmi_query_cmd",
-                                      :guid => "run_ipmi_query_cmd",
-                                      :chassis_status => "run_ipmi_query_cmd",
-                                      :all => "query_bmc",
-                                      :default => "query_bmc",
-                                      :else => "query_bmc_by_uuid",
-                                      :help => get_help_string},
-                            :power => { :on => "change_bmc_power_state",
-                                        :off => "change_bmc_power_state",
-                                        :cycle => "change_bmc_power_state",
-                                        :reset => "change_bmc_power_state",
-                                        :status => "run_ipmi_query_cmd",
-                                        :default => :help,
-                                        :else => :print,
-                                        :help => power_help_string},
-                            :lan => { :print => "run_ipmi_query_cmd",
-                                      :default => :help,
-                                      :else => :print,
-                                      :help => lan_help_string},
-                            :fru => { :print => "run_ipmi_query_cmd",
-                                      :default => :help,
-                                      :else => :print,
-                                      :help => fru_help_string},
-                            :default => "query_bmc",
-                            :else => "query_bmc_by_uuid",
-                            :help => general_help_string}
+                            :get => "get_bmc",
+                            :power => "power_bmc",
+                            :lan => "lan_bmc",
+                            :fru => "fru_bmc",
+                            :default => :get,
+                            :else => :get}
         @slice_name = "Bmc"
         config = get_data.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
       end
 
+      def get_bmc
+        @command = :get_bmc
+        @command_help_text << "Description: Gets the properties associated with one or more BMCs\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc get [UUID] [OPTION]", :require_all)
+        if !@web_command
+          bmc_uuid = @command_array.shift
+        end
+        includes_uuid = true if bmc_uuid
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
+
+        # and then invoke the right method (based on usage)
+        selected_option = options.select { |k, v| v }.keys[0].to_s
+        if selected_option && selected_option.length > 0 && selected_option != "all"
+          # get the output of an ipmitool "get" command for the selected option and bmc
+          run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
+        elsif includes_uuid
+          # get the details for a specific node
+          query_bmc_by_uuid(bmc_uuid)
+        else
+          # get a summary view of all nodes; will end up here
+          # if the option chosen is the :all option (or if nothing but the
+          # 'get' subcommand was specified as this is the default action)
+          query_bmc
+        end
+      end
+
+      def power_bmc
+        @command = :power_bmc
+        @command_help_text << "Description: Used for power control and to obtain power-state info\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :power)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc power UUID OPERATION")
+        if !@web_command
+          bmc_uuid = @command_array.shift
+        end
+        includes_uuid = true if bmc_uuid
+        # if no option was specified, default to checking power status
+        options[:status] = true if options.select { |k, v| v }.length == 0
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
+
+        # and then invoke the right method (based on usage)
+        selected_option = options.select { |k, v| v }.keys[0].to_s
+        if selected_option && selected_option != "status"
+          # get the output of an ipmitool "power" command for the seelcted option and bmc
+          change_bmc_power_state(bmc_uuid, selected_option)
+        else
+          # get the power status for the chosen bmc
+          run_ipmi_query_cmd(bmc_uuid, "power", selected_option)
+        end
+      end
+
+      def lan_bmc
+        @command = :lan_bmc
+        @command_help_text << "Description: Gets the LAN information for a specified BMC\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :lan)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc lan UUID OPERATION")
+        if !@web_command
+          bmc_uuid = @command_array.shift
+        end
+        includes_uuid = true if bmc_uuid
+        # if no option was specified, default to printing the LAN info
+        options[:print] = true if options.select { |k, v| v }.length == 0
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
+
+        # and then invoke the right method (based on usage)
+        selected_option = options.select { |k, v| v }.keys[0].to_s
+        run_ipmi_query_cmd(bmc_uuid, "lan", selected_option)
+      end
+
+      def fru_bmc
+        @command = :lan_bmc
+        @command_help_text << "Description: Gets the LAN information for a specified BMC\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :fru)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc fru UUID OPERATION")
+        if !@web_command
+          bmc_uuid = @command_array.shift
+        end
+        includes_uuid = true if bmc_uuid
+        # if no option was specified, default to printing the FRU info
+        options[:print] = true if options.select { |k, v| v }.length == 0
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
+
+        # and then invoke the right method (based on usage)
+        selected_option = options.select { |k, v| v }.keys[0].to_s
+        if selected_option && selected_option.length > 0
+          # get the output of an ipmitool "fru" command for the selected option and bmc
+          run_ipmi_query_cmd(bmc_uuid, "fru", selected_option)
+        else
+          # get the FRU information for the chosen bmc
+          run_ipmi_query_cmd(bmc_uuid, "fru", "print")
+        end
+      end
+
       # This function is used to registers a BMC with Razor (or to change the values associated
       # with an existing BMC in the Razor database)
       def register_bmc
-        logger.debug "Register bmc called"
-        # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            @uuid = @vars_hash['uuid']
-            @mac = @vars_hash['mac']
-            @ip = @vars_hash['ip']
-          else
-            #Same vars as above but pulled from CLI arg / Web PATH
-            @uuid, @mac, @ip = *@command_array
-          end
-        end
-        unless @uuid || @mac || @ip
-          command_name = @prev_args.look
-          @current_power_state, @board_serial_number = nil, nil
-          return_vals = get_name_value_args(%W[uuid mac ip])
-          @uuid, @mac, @ip = return_vals["uuid"], return_vals["mac"], return_vals["ip"]
-          puts "#{return_vals['uuid']}, #{return_vals['mac']}, #{return_vals['ip']}"
-        end
+        @command = :register_bmc
+        @command_help_text << "Description: Used to register a new BMC with Razor\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :register)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        tmp, options = parse_and_validate_options(option_items, "razor bmc register OPTIONS", :require_all)
+        includes_uuid = true if tmp
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, false)
+        bmc_uuid = options[:uuid]
+        mac_addr = options[:mac_address]
+        ip_addr = options[:ip_address]
+
         begin
           # if we have the details we need, then insert this bmc into the database (or
           # update the matching bmc object, if one exists, otherwise, raise an exception)
-          raise ProjectRazor::Error::Slice::MissingArgument, "cannot register BMC without specifying the uuid, mac, and ip" unless @uuid && @mac && @ip
-          logger.debug "bmc: #{@mac} #{@ip}"
+          # raise ProjectRazor::Error::Slice::MissingArgument, "cannot register BMC without specifying the uuid, mac, and ip" unless bmc_uuid && mac_addr && ip_addr
+          logger.debug "bmc: #{mac_addr} #{ip_addr}"
           timestamp = Time.now.to_i
-          bmc_hash = {"@uuid" => @uuid,
-                      "@mac" => @mac,
-                      "@ip" => @ip,
+          bmc_hash = {"@uuid" => bmc_uuid,
+                      "@mac" => mac_addr,
+                      "@ip" => ip_addr,
                       "@current_power_state" => @current_power_state,
                       "@board_serial_number" => @board_serial_number,
                       "@timestamp" => timestamp}
@@ -120,36 +205,11 @@ module ProjectRazor
       # This function is the handler for all of the IPMI-style queries against the underlying bmc node
       # This method is invoked by all of the commands in the @slice_commands map that query the underlying
       # BMC on a node for information about that node
-      def run_ipmi_query_cmd
-        ipmitool_cmd = ""
-        # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            @uuid = @vars_hash['uuid']
-          else
-            #Same vars as above but pulled from CLI arg / Web PATH
-            sub_command = @prev_args.peek(1)
-            sub_command_action = @prev_args.look
-            ipmitool_cmd = map_to_ipmitool_cmd(sub_command, sub_command_action)
-            lcl_command_array = *@command_array
-            @uuid = lcl_command_array[0]
-          end
-        end
-        unless @uuid
-          sub_command = @prev_args.peek(1)      # will be a string like "get", "lan", "power", or "fru"
-          sub_command_action = @prev_args.look
-          ipmitool_cmd = map_to_ipmitool_cmd(sub_command, sub_command_action)
-          @uuid = get_next_arg
-        end
-        raise ProjectRazor::Error::Slice::MissingArgument, "uuid value not specified" unless @uuid
+      def run_ipmi_query_cmd(bmc_uuid, sub_command, sub_command_action)
+        ipmitool_cmd = map_to_ipmitool_cmd(sub_command, sub_command_action)
         begin
-          bmc = get_bmc(@uuid)
-          raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{@uuid}') found" unless bmc
+          bmc = get_bmc_with_uuid(bmc_uuid)
+          raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{bmc_uuid}') found" unless bmc
           command_success, output = bmc.run_ipmi_query_cmd(ipmitool_cmd, @ipmi_username, @ipmi_password)
           # handle the returned values;
           # throw an error if the command failed to execute properly
@@ -166,34 +226,13 @@ module ProjectRazor
       # This function is the handler for changing power state of a bmc node to a new state.
       # This method is invoked by all of the commands in the @slice_commands map that make
       # changes to the power-state of the node
-      def change_bmc_power_state
-        new_state = ""
-        # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            @uuid = @vars_hash['uuid']
-          else
-            #Same vars as above but pulled from CLI arg / Web PATH
-            new_state = @prev_args.look
-            lcl_command_array = *@command_array
-            @uuid = lcl_command_array[0]
-          end
-        end
-        unless @uuid
-          new_state = @prev_args.look
-          @uuid = get_next_arg
-        end
+      def change_bmc_power_state(bmc_uuid, new_state)
         raise ProjectRazor::Error::Slice::InvalidCommand, "missing details for command to change power state" unless
             new_state && new_state.length > 0
         begin
-          raise ProjectRazor::Error::Slice::MissingArgument, "missing the uuid value for command to change power state" unless @uuid
-          logger.debug "Changing power-state of bmc: #{@uuid} to #{new_state}"
-          bmc = get_bmc(@uuid)
+          raise ProjectRazor::Error::Slice::MissingArgument, "missing the uuid value for command to change power state" unless bmc_uuid
+          logger.debug "Changing power-state of bmc: #{bmc_uuid} to #{new_state}"
+          bmc = get_bmc_with_uuid(bmc_uuid)
           power_state_changed, status_string = bmc.change_power_state(new_state, @ipmi_username, @ipmi_password)
           # handle the returned values; how the returned values should be handled will vary
           # depending on the "new_state" that the node is being transitioned into.  For example,
@@ -207,13 +246,13 @@ module ProjectRazor
             when new_state = "on"
               if power_state_changed && /Up\/On/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} now powering on"
+                result_string = "node #{bmc_uuid} now powering on"
               elsif !power_state_changed && /Up\/On/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} already powered on"
+                result_string = "node #{bmc_uuid} already powered on"
               else
                 # error condition
-                result_string = "attempt to power on Node #{@uuid} failed"
+                result_string = "attempt to power on Node #{bmc_uuid} failed"
               end
               raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
                   power_state_changed && /Up\/On/.match(status_string) ||
@@ -221,13 +260,13 @@ module ProjectRazor
             when new_state = "off"
               if power_state_changed && /Down\/Off/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} now powering off"
+                result_string = "node #{bmc_uuid} now powering off"
               elsif !power_state_changed && /Down\/Off/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} already powered off"
+                result_string = "node #{bmc_uuid} already powered off"
               else
                 # error condition
-                result_string = "attempt to power off Node #{@uuid} failed"
+                result_string = "attempt to power off Node #{bmc_uuid} failed"
               end
               raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
                   power_state_changed && /Down\/Off/.match(status_string) ||
@@ -235,26 +274,26 @@ module ProjectRazor
             when new_state = "cycle"
               if power_state_changed && /Cycle/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} now power cycling"
+                result_string = "node #{bmc_uuid} now power cycling"
               elsif !power_state_changed && /Off/.match(status_string)
                 # error condition
-                result_string = "node #{@uuid} powered off, cannot power cycle"
+                result_string = "node #{bmc_uuid} powered off, cannot power cycle"
               else
                 # error condition
-                result_string = "attempt to power cycle Node #{@uuid} failed"
+                result_string = "attempt to power cycle Node #{bmc_uuid} failed"
               end
               raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
                   power_state_changed && /Cycle/.match(status_string)
             when new_state = "reset"
               if power_state_changed && /Reset/.match(status_string)
                 # success condition
-                result_string = "node #{@uuid} now powering off"
+                result_string = "node #{bmc_uuid} now powering off"
               elsif !power_state_changed && /Off/.match(status_string)
                 # error condition
-                result_string = "node #{@uuid} powered off, cannot reset"
+                result_string = "node #{bmc_uuid} powered off, cannot reset"
               else
                 # error condition
-                result_string = "attempt to reset Node #{@uuid} failed"
+                result_string = "attempt to reset Node #{bmc_uuid} failed"
               end
               raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
                   power_state_changed && /Reset/.match(status_string)
@@ -361,12 +400,10 @@ module ProjectRazor
 
       # This function is used to print out a single matching BMC object (where the match
       # is made based on the UUID value passed into the function)
-      def query_bmc_by_uuid
-        @uuid = get_next_arg unless @uuid
-        matching_bmc = get_bmc(@uuid)
+      def query_bmc_by_uuid(bmc_uuid)
+        matching_bmc = get_bmc_with_uuid(bmc_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{@uuid}') found" unless matching_bmc
-        bmc_array = [matching_bmc]
-        print_object_array bmc_array, "Bmc Nodes"
+        print_object_array [matching_bmc], "Bmc Nodes"
       end
 
       # This function searches for a Bmc node that matches the '@uuid' value contained
@@ -375,7 +412,7 @@ module ProjectRazor
       #
       # @param [String] uuid
       # @return [ProjectRazor::PowerControl::Bmc]
-      def get_bmc(uuid)
+      def get_bmc_with_uuid(uuid)
         setup_data
         existing_bmc = @data.fetch_object_by_uuid(:bmc, uuid)
         existing_bmc.refresh_power_state if existing_bmc

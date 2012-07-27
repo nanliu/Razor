@@ -28,7 +28,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        node_uuid, options = parse_and_validate_options(option_items, "razor node get [uuid] [options...]", :require_all)
+        node_uuid, options = parse_and_validate_options(option_items, "razor node get [UUID] [OPTION]", :require_all)
         if !@web_command
           node_uuid = @command_array.shift
         end

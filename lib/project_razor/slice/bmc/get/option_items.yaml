@@ -1,0 +1,36 @@
+---
+- :name: :info
+  :default: false
+  :short_form: -i
+  :long_form: --info
+  :description: Get the info returned by an ipmitool 'bmc info' command
+  :uuid_is: required
+  :required: false
+- :name: :enables
+  :default: false
+  :short_form: -e
+  :long_form: --enables
+  :description: Get the info returned by an ipmitool 'bmc getenables' command
+  :uuid_is: required
+  :required: false
+- :name: :guid
+  :default: false
+  :short_form: -g
+  :long_form: --guid
+  :description: Get the info returned by an ipmitool 'bmc guid' command
+  :uuid_is: required
+  :required: false
+- :name: :chassis_status
+  :default: false
+  :short_form: -c
+  :long_form: --chassis_status
+  :description: Get the info returned by an ipmitool 'chassis status' command
+  :uuid_is: required
+  :required: false
+- :name: :all
+  :default: false
+  :short_form: -a
+  :long_form: --all
+  :description: Get a summary list of the BMCs registered with Razor
+  :uuid_is: not_allowed
+  :required: false

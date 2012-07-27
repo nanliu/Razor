@@ -95,7 +95,9 @@ module ProjectRazor
       end
 
       def validate_options(validate_options = { })
-        validate_options[:logic] ||= :require_all
+        #validate_options[:logic] ||= :require_all
+        validate_options[:logic] ||= :require_none
+        option_names = validate_options[:options].map { |key, value| key }
         case validate_options[:logic]
           when :require_one
             count = 0
@@ -103,8 +105,8 @@ module ProjectRazor
             |opt_item|
               count += 1 if opt_item[:required] && validate_arg(validate_options[:options][opt_item[:name]])
             end
-            raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update." if count < 1
-          else
+            raise ProjectRazor::Error::Slice::MissingArgument, "Must provide one option from #{option_names.inspect}." if count < 1
+          when :require_all
             validate_options[:option_items].each do
             |opt_item|
               raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide: [#{opt_item[:description]}]" if opt_item[:required] && !validate_arg(validate_options[:options][opt_item[:name]])
@@ -139,7 +141,7 @@ module ProjectRazor
       end
 
       # used by slices to parse and validate the options for a particular subcommand
-      def parse_and_validate_options(option_items, banner, logic)
+      def parse_and_validate_options(option_items, banner, logic = nil)
         options = {}
         includes_uuid = false
         uuid_val = nil
