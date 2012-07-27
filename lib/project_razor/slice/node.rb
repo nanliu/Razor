@@ -23,31 +23,21 @@ module ProjectRazor
       def get_node
         @command = :get_node
         @command_help_text << "Description: Gets the Properties Associated with one or more Nodes\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        node_uuid, options = parse_and_validate_options(:get, "razor node get [uuid] [options...]")
+        node_uuid, options = parse_and_validate_options(option_items, "razor node get [uuid] [options...]", :require_all)
         if !@web_command
           node_uuid = @command_array.shift
         end
         includes_uuid = true if node_uuid
-        # check for usage errors
-        if options.count { |key, val| val } > 1
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Only one of the '--all', '--attributes' or '--hardware_id' flags may be used" if !@web_command
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Only one of the 'all', 'attrib' or 'hw_id' flags may be used"
-        elsif options[:all] && includes_uuid
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Cannot specify a UUID value when using the '--all' flag" if !@web_command
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Cannot specify a UUID value when using the 'all' flag"
-        elsif (options[:attrib] || options[:hw_id]) && !includes_uuid
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Must specify a UUID value when using the '--attributes' and '--hardware_id' flags" if !@web_command
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-                "Must specify a UUID value when using the 'attrib' and 'hw_id' flags"
-        end
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
+
         # and then invoke the right method (based on usage)
         if options[:attrib]
           # get the list of attributes for the chosen node

@@ -139,12 +139,10 @@ module ProjectRazor
       end
 
       # used by slices to parse and validate the options for a particular subcommand
-      def parse_and_validate_options(subcommand, banner)
+      def parse_and_validate_options(option_items, banner, logic)
         options = {}
         includes_uuid = false
         uuid_val = nil
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => subcommand)
         # Get our optparse object passing our options hash, option_items hash, and our banner
         optparse = get_options(options, :options_items => option_items, :banner => banner)
         # set the command help text to the string output from optparse
@@ -159,8 +157,33 @@ module ProjectRazor
         # parse our ARGV with the optparse unless options are already set from get_options_web
         optparse.parse! unless option_items.any? { |k| options[k] }
         # validate required options, we use the :require_one logic to check if at least one :required value is present
-        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
+        validate_options(:option_items => option_items, :options => options, :logic => logic)
         return [uuid_val, options]
+      end
+
+      # used by slices to ensure that the usage of options for any given
+      # subcommand is consistent with the usage declared in the option_items
+      # Hash map for that subcommand
+      def check_option_usage(option_items, options, uuid_included, exclusive_choice)
+        selected_option_names = options.select { |key, val| val }.keys
+        selected_options = option_items.select{ |item| selected_option_names.include?(item[:name]) }
+        if exclusive_choice && selected_options.length > 1
+          # if it's an exclusive choice and more than one option was chosen, it's an error
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "Only one of the #{options.map { |key, val| key }.inspect} flags may be used"
+        end
+        # check all of the flags that were passed to see if the UUID was included
+        # if it's required for that flag (and if it was not if it is not allowed
+        # for that flag)
+        selected_options.each { |selected_option|
+          if (!uuid_included && selected_option[:uuid_is] == "required")
+            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                  "Must specify a UUID value when using the '#{selected_option[:name]}' option"
+          elsif (uuid_included &&  selected_option[:uuid_is] == "not_allowed")
+            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                  "Cannot specify a UUID value when using the '#{selected_option[:name]}' option"
+          end
+        }
       end
 
       # Gets a selection of objects for slice
