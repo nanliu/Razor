@@ -30,11 +30,25 @@ module ProjectRazor
                             :lan => "lan_bmc",
                             :fru => "fru_bmc",
                             :default => :get,
-                            :else => :get}
+                            :else => :get,
+                            ["--help", "-h"] => "bmc_help"
+        }
         @slice_name = "Bmc"
         config = get_data.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
+      end
+
+      def bmc_help
+        puts "Node Slice: used to view the current list of nodes; also used by the Microkernel".red
+        puts "    for the node registration and checkin processes.".red
+        puts "Node Commands:".yellow
+        puts "\trazor bmc [get] [--all]            " + "Display list of available BMCs".yellow
+        puts "\trazor bmc [get] (UUID)             " + "Display details for a BMC".yellow
+        puts "\trazor bmc [get] (UUID) [OPTION]    " + "Display BMC info gathered via ipmitool".yellow
+        puts "\trazor bmc power (UUID) [OPTION]    " + "Controls or displays power state of a node".yellow
+        puts "\trazor bmc lan (UUID) [OPTION]      " + "Displays LAN info gathered via ipmitool".yellow
+        puts "\trazor bmc fru (UUID) [OPTION]      " + "Displays FRU info gathered via ipmitool".yellow
       end
 
       def get_bmc

@@ -1,0 +1,15 @@
+---
+- :name: :logs
+  :default: false
+  :short_form: -l
+  :long_form: --logs
+  :description: Print the log for an Active Model.
+  :uuid_is: required
+  :required: false
+- :name: :all
+  :default: false
+  :short_form: -a
+  :long_form: --all
+  :description: Print a summary list of all Active Models.
+  :uuid_is: not_allowed
+  :required: false

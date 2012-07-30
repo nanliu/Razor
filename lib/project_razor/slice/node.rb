@@ -16,8 +16,22 @@ module ProjectRazor
             ["register", /^[Rr]$/] => "register_node",
             ["checkin", /^[Cc]$/] => "checkin_node",
             :default => :get,
-            :else => :get
+            :else => :get,
+            ["--help", "-h"] => "node_help"
         }
+      end
+
+      def node_help
+        puts "Node Slice: used to view the current list of nodes; also used by the Microkernel".red
+        puts "    for the node registration and checkin processes.".red
+        puts "Node Commands:".yellow
+        puts "\trazor node [get] [--all]              " + "Display list of available nodes".yellow
+        puts "\trazor node [get] (UUID)               " + "Display details for a node".yellow
+        puts "\trazor node [get] (UUID) --attributes  " + "Display detailed attributes for a node".yellow
+        puts "\trazor node [get] (UUID) --hardware    " + "Display hardware ID values for a node".yellow
+        puts "\trazor checkin (OPTIONS)               " + "Used for node checkin".yellow
+        puts "\trazor register (OPTIONS)              " + "Used for node registration".yellow
+        puts "\trazor active_model --help             " + "Display this screen".yellow
       end
 
       def get_node
