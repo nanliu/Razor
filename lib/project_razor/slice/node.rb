@@ -29,9 +29,9 @@ module ProjectRazor
         puts "\trazor node [get] (UUID)               " + "Display details for a node".yellow
         puts "\trazor node [get] (UUID) --attributes  " + "Display detailed attributes for a node".yellow
         puts "\trazor node [get] (UUID) --hardware    " + "Display hardware ID values for a node".yellow
-        puts "\trazor checkin (OPTIONS)               " + "Used for node checkin".yellow
-        puts "\trazor register (OPTIONS)              " + "Used for node registration".yellow
-        puts "\trazor active_model --help             " + "Display this screen".yellow
+        puts "\trazor node checkin (OPTIONS)          " + "Used for node checkin".yellow
+        puts "\trazor node register (OPTIONS)         " + "Used for node registration".yellow
+        puts "\trazor node --help                     " + "Display this screen".yellow
       end
 
       def get_node
