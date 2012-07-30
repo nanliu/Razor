@@ -35,7 +35,7 @@ module ProjectRazor
 
       def broker_help
         puts "Broker Slice: used to add, view, update, and remove Broker Targets.".red
-        puts "Broekr Commands:".yellow
+        puts "Broker Commands:".yellow
         puts "\trazor broker [get] [--all]            " + "View all broker targets".yellow
         puts "\trazor broker [get] (UUID)             " + "View specific broker target".yellow
         puts "\trazor broker add (UUID) (OPTIONS)     " + "View specific broker target".yellow
