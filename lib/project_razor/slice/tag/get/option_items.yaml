@@ -1,0 +1,8 @@
+---
+- :name: :all
+  :default: false
+  :short_form: -a
+  :long_form: --all
+  :description: Print a summary list of all Tags.
+  :uuid_is: not_allowed
+  :required: false

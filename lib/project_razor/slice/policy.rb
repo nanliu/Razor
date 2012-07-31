@@ -43,7 +43,7 @@ module ProjectRazor
         puts "\trazor policy update (UUID) (options...)       " + "Update an existing policy".yellow
         puts "\trazor policy move (UUID) (--higher|--lower)   " + "Move an existing policy up/down in list".yellow
         puts "\trazor policy remove (UUID)|--all              " + "Remove an existing policy(s)".yellow
-        puts "\trazor policy help                             " + "Display this screen".yellow
+        puts "\trazor policy --help|-h                        " + "Display this screen".yellow
       end
 
       def get_policy

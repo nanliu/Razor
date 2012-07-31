@@ -66,11 +66,11 @@ module ProjectRazor
           # get a summary view of all nodes; will end up here
           # if the option chosen is the :all option (or if nothing but the
           # 'get' subcommand was specified as this is the default action)
-          get_nodes_all
+          get_all_nodes
         end
       end
 
-      def get_nodes_all
+      def get_all_nodes
         # Get all node instances and print/return
         #@command = :get_nodes_all
         #@command_array.unshift(@last_arg) unless @last_arg == 'default'
