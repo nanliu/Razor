@@ -1,0 +1,13 @@
+---
+- :name: :higher
+  :default: 
+  :short_form: -h
+  :long_form: --higher
+  :description: Move the specified policy higher in the list.
+  :required: true
+- :name: :lower
+  :default: 
+  :short_form: -l
+  :long_form: --lower
+  :description: Move the specified policy lower in the list.
+  :required: true

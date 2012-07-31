@@ -19,35 +19,15 @@ module ProjectRazor
         @hidden          = false
         @new_slice_style = true # switch to new slice style
                                 # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands  = { :add                           => "add_policy",
-                             :update                        => "update_policy",
-                             :move                          => {
-                                 :higher => "move_policy_higher",
-                                 :lower  => "move_policy_lower",
-                             },
-                             :enable                        => "enable_policy",
-                             :disable                       => "disable_policy",
-                             :get                           => { ["all", '{}', /^\{.*\}$/, nil, /^[Aa]$/]                   => "get_policy_all",
-                                                                 [/type/, /^[Tt]$/, /template/]                             => "get_policy_templates",
-                                                                 [/^[Mm]odel/, /^[Mm]$/, "model_config", "possible_models"] => { :default => "get_possible_models",
-                                                                                                                                 :help    => "razor policy get [models] [all|(policy template)]",
-                                                                                                                                 :else    => "get_possible_models" },
-                                                                 [/^[Bb][Tt]$/, /broker/]                                   => "get_broker_targets",
-                                                                 :default                                                   => "get_policy_all",
-                                                                 :else                                                      => "get_policy_by_uuid",
-                                                                 :help                                                      => "razor policy get all[a]|template[t]|(uuid)" },
-                             :template                      => "get_policy_templates",
-                             :callback                      => "get_callback",
-                             [/type/, /^[Tt]$/, /template/] => "get_policy_templates",
-                             # TODO - Add :move => :up + :down for Policy Rules
-                             :default                       => "get_policy_all",
-                             :remove                        => { :all                                     => "remove_all_policies",
-                                                                 :policy                                  => "remove_policy",
-                                                                 :default                                 => :policy,
-                                                                 :else                                    => :policy,
-                                                                 :help                                    => "razor policy remove all|(policy uuid)" },
-                             :else                          => :get,
-                             ["help","--help","-h"]                          => "policy_help" }
+        @slice_commands  = { :add => "add_policy",
+                             :update => "update_policy",
+                             :move => "move_policy",
+                             :get => "get_policy",
+                             :callback => "get_callback",
+                             :remove  => "remove_policy",
+                             :default => :get,
+                             :else => :get,
+                             ["help","--help","-h"] => "policy_help" }
         @slice_name      = "Policy"
         @policies        = ProjectRazor::Policies.instance
       end
@@ -55,54 +35,75 @@ module ProjectRazor
       def policy_help
         puts "Policy Slice:".red
         puts "Used to view, create, update, and remove policies.".red
-        puts "To print current Policies use:".yellow
-        puts "\trazor policy"
         puts "Policy commands:".yellow
-        puts "\trazor policy add [options...]                      " + "Create a new policy".yellow
-        puts "\trazor policy update (policy uuid) [options...]     " + "Update an existing policy".yellow
-        puts "\trazor policy remove (policy uuid)|all              " + "Remove an existing policy(s)".yellow
-        puts "\trazor policy help                                  " + "Display this screen".yellow
+        puts "\trazor policy [get] [--all]                    " + "View all policies".yellow
+        puts "\trazor policy [get] (UUID)                     " + "View a specific policy".yellow
+        puts "\trazor policy [get] --templates                " + "View available policy templates".yellow
+        puts "\trazor policy add (options...)                 " + "Create a new policy".yellow
+        puts "\trazor policy update (UUID) (options...)       " + "Update an existing policy".yellow
+        puts "\trazor policy move (UUID) (--higher|--lower)   " + "Move an existing policy up/down in list".yellow
+        puts "\trazor policy remove (UUID)|--all              " + "Remove an existing policy(s)".yellow
+        puts "\trazor policy help                             " + "Display this screen".yellow
       end
 
-      # Returns all policy instances
-      def get_policy_all
-        # Get all policy instances and print/return
-        @command_array.unshift(@last_arg) unless @last_arg == 'default'
-        policy_all = get_object("policies", :policy)
-        print_object_array @policies.get, "Policies", :style => :table
-      end
+      def get_policy
+        @command = :get_policy
+        @command_help_text << "Description: Gets the properties associated with one or more Policies\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        policy_uuid, options =
+            parse_and_validate_options(option_items,
+                                       "razor policy get [UUID]|[--all]|[--possible-models][--templates]|[--broker-targets]",
+                                       :require_all)
+        if !@web_command
+          policy_uuid = @command_array.shift
+        end
+        includes_uuid = true if policy_uuid
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
 
-      # Returns the policy templates available
-      def get_policy_templates
-        # We use the common method in Utility to fetch object templates by providing Namespace prefix
-        print_object_array get_child_templates(ProjectRazor::PolicyTemplate), "\nPolicy Templates:"
-      end
-
-      def get_policy_by_uuid
-        @command           = :get_policy_by_uuid
-        @command_help_text = "razor policy [get] (uuid)"
-        policy             = get_object("get_policy_by_uuid", :policy, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{@command_array.first}]" unless policy
-        print_object_array [policy], "", :success_type => :generic
+        # and then invoke the right method (based on usage)
+        if options[:templates] || options[:types]
+          # get the list of policy templates
+          get_policy_templates
+        elsif options[:possible_models] || options[:model_configs]
+          # get the list of possible models available in the system
+          get_possible_models
+        elsif options[:broker_targets]
+          # get the list of broker targets available in the system
+          get_broker_targets
+        elsif includes_uuid
+          # get the details for a specific policy
+          get_policy_with_uuid(broker_uuid)
+        else
+          # get a summary view of all policies; will end up here
+          # if the option chosen is the :all option (or if nothing but the
+          # 'get' subcommand was specified as this is the default action)
+          get_all_policies
+        end
       end
 
       def add_policy
-        @command     =:add_policy
-        options      = {}
-        ARGV << "--help" if ARGV.count == 0
-        # Load our command options from yaml
+        @command = :add_policy
+        @command_help_text << "Description: Used to add a new Policy to Razor\n"
+        # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :add)
-        # Get our optparse object passing our options hash, option_items hash, and our banner
-        optparse     = get_options(options, :options_items => option_items, :banner => "razor policy add [options...]", :list_required => true)
-        # set the command help text to the string output from optparse
-        @command_help_text << optparse.to_s
-        # if it is a web command, get options from JSON
-        options = get_options_web if @web_command
-        # parse our ARGV with the optparse unless options are already set from get_options_web
-        optparse.parse! unless option_items.any? { |k| options[k] }
-        # validate required options
-        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
-        # Main validation
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        tmp, options = parse_and_validate_options(option_items, "razor policy add (options...)", :require_all)
+        includes_uuid = true if tmp
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, false)
+
+        # check the values that were passed in
         policy = new_object_from_template_name(POLICY_PREFIX, options[:template])
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
         setup_data
@@ -125,37 +126,28 @@ module ProjectRazor
         policy.maximum_count = options[:maximum]
         # Add policy
         policy_rules         = ProjectRazor::Policies.instance
-        policy_rules.add(policy) ? print_object_array([policy], "Policy created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Policy")
+        policy_rules.add(policy) ? print_object_array([policy], "Policy created", :success_type => :created) :
+            raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Policy")
       end
 
       def update_policy
-        @command           =:update_policy
-        @command_help_text << "Description: Updates a Razor Policy properties\n"
-        options      = {}
-        if ARGV.count == 0
-          ARGV << "0"
-          ARGV << "--help"
-        end
-        # Load our command options from yaml
+        @command = :update_policy
+        @command_help_text << "Description: Used to update an existing Policy\n"
+        # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :update)
-        # Get our optparse object passing our options hash, option_items hash, and our banner
-        optparse     = get_options(options, :options_items => option_items, :banner => "razor policy update (policy uuid) [options...]")
-        # set the command help text to the string output from optparse
-        @command_help_text << optparse.to_s
-
-        # Validate UUID
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
-        policy_uuid = @command_array.shift
-        policy      = get_object("policy_with_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
-
-        # if it is a web command, get options from JSON
-        options = get_options_web if @web_command
-        # parse our ARGV with the optparse unless options are already set from get_options_web
-        optparse.parse! unless option_items.any? { |k| options[k] }
-        # validate required options, we use the :require_one logic to check if at least one :required value is present
-        validate_options(:option_items => option_items, :options => options, :logic => :require_one)
-        # Main validation
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        policy_uuid, options = parse_and_validate_options(option_items, "razor policy update UUID (options...)", :require_one)
+        if !@web_command
+          policy_uuid = @command_array.shift
+        end
+        includes_uuid = true if policy_uuid
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, false)
+        # check the values that were passed in
         if options[:tags]
           options[:tags] = options[:tags].split(",") if options[:tags].is_a? String
           raise ProjectRazor::Error::Slice::MissingArgument, "Policy Tags [tag(,tag)]" unless options[:tags].count > 0
@@ -191,27 +183,60 @@ module ProjectRazor
         print_object_array [policy], "", :success_type => :updated
       end
 
+      def remove_policy
+        @command = :remove_policy
+        @command_help_text << "Description: Remove one Policy (or all Policies) from Razor\n"
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :remove)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        policy_uuid, options = parse_and_validate_options(option_items, "razor policy remove (UUID)|(--all)", :require_all)
+        if !@web_command
+          policy_uuid = @command_array.shift
+        end
+        includes_uuid = true if policy_uuid
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, true)
 
-      def remove_all_policies
-        @command           = :remove_all_policies
-        @command_help_text = "razor policy remove all"
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Policies" unless @data.delete_all_objects(:policy)
-        slice_success("All policies removed", :success_type => :removed)
+        # and then invoke the right method (based on usage)
+        # selected_option = options.select { |k, v| v }.keys[0].to_s
+        if options[:all]
+          # remove all Policies from the system
+          remove_all_policies
+        elsif includes_uuid
+          # remove a specific Policy (by UUID)
+          remove_policy_with_uuid(broker_uuid)
+        else
+          # if get to here, no UUID was specified and the '--all' option was
+          # no included, so raise an error and exit
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a UUID for the policy to remove (or select the '--all' option)"
+        end
       end
 
-      def remove_policy
-        @command           = :remove_policy
-        @command_help_text = "razor policy remove (UUID)"
-        policy_uuid        = @command_array.shift
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID [policy_uuid]" unless validate_arg(policy_uuid)
-        policy = get_object("policy_with_uuid", :policy, policy_uuid)
+      # Returns all policy instances
+      def get_all_policies
+        # Get all policy instances and print/return
+        policy_all = get_object("policies", :policy)
+        print_object_array @policies.get, "Policies", :style => :table
+      end
+
+      # Returns the policy templates available
+      def get_policy_templates
+        # We use the common method in Utility to fetch object templates by providing Namespace prefix
+        print_object_array get_child_templates(ProjectRazor::PolicyTemplate), "\nPolicy Templates:"
+      end
+
+      def get_policy_with_uuid(policy_uuid)
+        policy = get_object("get_policy_by_uuid", :policy, policy_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
-        setup_data
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{tagrule.uuid}]" unless @data.delete_object(policy)
-        slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
+        print_object_array [policy], "", :success_type => :generic
       end
 
       def get_possible_models
+        # TODO - Need to sort out how this method is used so that it can be updated... (tjmcs; 30-Jul-2012)
         @command           = :get_possible_models
         @command_help_text = "razor policy get [model|model_config] [all|(policy template)]"
         # TODO - This parsing get/post/line below for web should be in the Base object or Util. Need to make common and move. Too much repeating
@@ -245,8 +270,6 @@ module ProjectRazor
       end
 
       def get_broker_targets
-        @command           = :get_broker_target
-        @command_help_text = "razor policy [get] broker"
         # Just print all broker targets
         print_object_array get_object("broker_targets", :broker), "All Broker Target"
       end
@@ -275,6 +298,21 @@ module ProjectRazor
         active_model.update_self
         puts callback_return
       end
+
+      def remove_all_policies
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Policies" unless @data.delete_all_objects(:policy)
+        slice_success("All policies removed", :success_type => :removed)
+      end
+
+      def remove_policy_with_uuid(policy_uuid)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID [policy_uuid]" unless validate_arg(policy_uuid)
+        policy = get_object("policy_with_uuid", :policy, policy_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{tagrule.uuid}]" unless @data.delete_object(policy)
+        slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
+      end
+
     end
   end
 end

@@ -91,9 +91,7 @@ module ProjectRazor
           # remove all Active Models from the system
           remove_all_active_models
         elsif includes_uuid
-          # remove a specific Active Model (by UUID); this is the default
-          # action if no options are specified (the only option currently for
-          # this subcommand is the '--all' option)
+          # remove a specific Active Model (by UUID)
           remove_active_model_by_uuid(active_model_uuid)
         else
           # if get to here, no UUID was specified and the '--all' option was

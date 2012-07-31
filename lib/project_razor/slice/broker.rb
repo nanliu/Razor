@@ -36,12 +36,12 @@ module ProjectRazor
       def broker_help
         puts "Broker Slice: used to add, view, update, and remove Broker Targets.".red
         puts "Broker Commands:".yellow
-        puts "\trazor broker [get] [--all]            " + "View all broker targets".yellow
-        puts "\trazor broker [get] (UUID)             " + "View specific broker target".yellow
-        puts "\trazor broker add (UUID) (OPTIONS)     " + "View specific broker target".yellow
-        puts "\trazor broker update (UUID) (OPTIONS)  " + "View specific broker target".yellow
-        puts "\trazor broker remove (UUID)|(--all)    " + "Remove existing (or all) broker target(s)".yellow
-        puts "\trazor broker --help                   " + "Display this screen".yellow
+        puts "\trazor broker [get] [--all]               " + "View all broker targets".yellow
+        puts "\trazor broker [get] (UUID)                " + "View specific broker target".yellow
+        puts "\trazor broker add (UUID) (options...)     " + "View specific broker target".yellow
+        puts "\trazor broker update (UUID) (options...)  " + "View specific broker target".yellow
+        puts "\trazor broker remove (UUID)|(--all)       " + "Remove existing (or all) broker target(s)".yellow
+        puts "\trazor broker --help                      " + "Display this screen".yellow
       end
 
       def get_broker
@@ -67,13 +67,13 @@ module ProjectRazor
 
         # and then invoke the right method (based on usage)
         if options[:plugin] || options[:template]
-          # get the list of attributes for the chosen node
+          # get the list of broker plugins
           get_broker_plugins
         elsif includes_uuid
-          # get the details for a specific node
+          # get the details for a broker
           get_broker_with_uuid(broker_uuid)
         else
-          # get a summary view of all nodes; will end up here
+          # get a summary view of all brokers; will end up here
           # if the option chosen is the :all option (or if nothing but the
           # 'get' subcommand was specified as this is the default action)
           get_broker_all
@@ -88,7 +88,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        tmp, options = parse_and_validate_options(option_items, "razor broker add OPTIONS", :require_all)
+        tmp, options = parse_and_validate_options(option_items, "razor broker add (options...)", :require_all)
         includes_uuid = true if tmp
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
@@ -123,7 +123,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        broker_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (OPTIONS)", :require_one)
+        broker_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (options...)", :require_one)
         if !@web_command
           broker_uuid = @command_array.shift
         end
@@ -152,14 +152,14 @@ module ProjectRazor
       end
 
       def remove_broker
-        @command = :remove_active_model
-        @command_help_text << "Description: Remove one (or all) Active Models from Razor\n"
+        @command = :remove_broker
+        @command_help_text << "Description: Remove a Broker (or all Brokers) from Razor\n"
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :remove)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        broker_uuid, options = parse_and_validate_options(option_items, "razor active_model remove (UUID)|(--all)", :require_all)
+        broker_uuid, options = parse_and_validate_options(option_items, "razor broker remove (UUID)|(--all)", :require_all)
         if !@web_command
           broker_uuid = @command_array.shift
         end
@@ -172,13 +172,11 @@ module ProjectRazor
         # and then invoke the right method (based on usage)
         # selected_option = options.select { |k, v| v }.keys[0].to_s
         if options[:all]
-          # remove all Active Models from the system
+          # remove all Brokers from the system
           remove_all_brokers
         elsif includes_uuid
-          # remove a specific Active Model (by UUID); this is the default
-          # action if no options are specified (the only option currently for
-          # this subcommand is the '--all' option)
-          remove_broker_by_uuid(broker_uuid)
+          # remove a specific Broker (by UUID)
+          remove_broker_with_uuid(broker_uuid)
         else
           # if get to here, no UUID was specified and the '--all' option was
           # no included, so raise an error and exit
@@ -208,7 +206,7 @@ module ProjectRazor
         slice_success("All brokers removed", :success_type => :removed)
       end
 
-      def remove_broker_by_uuid(broker_uuid)
+      def remove_broker_with_uuid(broker_uuid)
         broker = get_object("broker_with_uuid", :broker, broker_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find broker with UUID: [#{broker_uuid}]" unless broker
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove broker [#{broker.uuid}]" unless get_data.delete_object(broker)

@@ -40,15 +40,16 @@ module ProjectRazor
       end
 
       def bmc_help
-        puts "Node Slice: used to view the current list of nodes; also used by the Microkernel".red
+        puts "BMC Slice: used to view the current list of nodes; also used by the Microkernel".red
         puts "    for the node registration and checkin processes.".red
-        puts "Node Commands:".yellow
+        puts "BMC Commands:".yellow
+        puts "\trazor bmc register (options...)    " + "Registers a new BMC with Razor".yellow
         puts "\trazor bmc [get] [--all]            " + "Display list of available BMCs".yellow
         puts "\trazor bmc [get] (UUID)             " + "Display details for a BMC".yellow
-        puts "\trazor bmc [get] (UUID) [OPTION]    " + "Display BMC info gathered via ipmitool".yellow
-        puts "\trazor bmc power (UUID) [OPTION]    " + "Controls or displays power state of a node".yellow
-        puts "\trazor bmc lan (UUID) [OPTION]      " + "Displays LAN info gathered via ipmitool".yellow
-        puts "\trazor bmc fru (UUID) [OPTION]      " + "Displays FRU info gathered via ipmitool".yellow
+        puts "\trazor bmc [get] (UUID) [option]    " + "Display BMC info gathered via ipmitool".yellow
+        puts "\trazor bmc power (UUID) [option]    " + "Controls or displays power state of a node".yellow
+        puts "\trazor bmc lan (UUID) [option]      " + "Displays LAN info gathered via ipmitool".yellow
+        puts "\trazor bmc fru (UUID) [option]      " + "Displays FRU info gathered via ipmitool".yellow
       end
 
       def get_bmc
@@ -59,7 +60,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc get [UUID] [OPTION]", :require_all)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc get [UUID] [option]", :require_all)
         if !@web_command
           bmc_uuid = @command_array.shift
         end
@@ -75,10 +76,10 @@ module ProjectRazor
           # get the output of an ipmitool "get" command for the selected option and bmc
           run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
         elsif includes_uuid
-          # get the details for a specific node
+          # get the details for a specific BMC
           query_bmc_by_uuid(bmc_uuid)
         else
-          # get a summary view of all nodes; will end up here
+          # get a summary view of all BMCs; will end up here
           # if the option chosen is the :all option (or if nothing but the
           # 'get' subcommand was specified as this is the default action)
           query_bmc
@@ -93,7 +94,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc power UUID OPERATION")
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc power (UUID) [option]")
         if !@web_command
           bmc_uuid = @command_array.shift
         end
@@ -124,7 +125,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc lan UUID OPERATION")
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc lan (UUID) [option]")
         if !@web_command
           bmc_uuid = @command_array.shift
         end
@@ -149,7 +150,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc fru UUID OPERATION")
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc fru (UUID) [option]")
         if !@web_command
           bmc_uuid = @command_array.shift
         end
@@ -182,7 +183,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        tmp, options = parse_and_validate_options(option_items, "razor bmc register OPTIONS", :require_all)
+        tmp, options = parse_and_validate_options(option_items, "razor bmc register (options...)", :require_all)
         includes_uuid = true if tmp
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the

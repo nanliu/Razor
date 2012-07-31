@@ -1,0 +1,43 @@
+---
+- :name: :templates
+  :default: false
+  :short_form: -t
+  :long_form: --templates
+  :description: Used to get a list of available policy templates.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :types
+  :default: false
+  :short_form: -y
+  :long_form: --types
+  :description: Alias for the --templates flag.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :possible_models
+  :default: false
+  :short_form: -p
+  :long_form: --possible-models
+  :description: Used to get a list of possible models.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :model_configs
+  :default: false
+  :short_form: -m
+  :long_form: --model-configs
+  :description: Alias for the --possible_models flag.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :broker_targets
+  :default: false
+  :short_form: -g
+  :long_form: --broker-targets
+  :description: Used to get a list of available broker targets.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :all
+  :default: false
+  :short_form: -a
+  :long_form: --all
+  :description: Used to get a summary list of available models.
+  :uuid_is: not_allowed
+  :required: false

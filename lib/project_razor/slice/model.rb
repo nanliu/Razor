@@ -25,12 +25,12 @@ module ProjectRazor
       def model_help
         puts "Model Slice: used to add, view, update, and remove models.".red
         puts "Model Commands:".yellow
-        puts "\trazor model [get] [--all]            " + "View all broker targets".yellow
-        puts "\trazor model [get] (UUID)             " + "View specific broker target".yellow
-        puts "\trazor model add (UUID) (OPTIONS)     " + "View specific broker target".yellow
-        puts "\trazor model update (UUID) (OPTIONS)  " + "View specific broker target".yellow
-        puts "\trazor model remove (UUID)|(--all)    " + "Remove existing (or all) broker target(s)".yellow
-        puts "\trazor model --help                   " + "Display this screen".yellow
+        puts "\trazor model [get] [--all]               " + "View all broker targets".yellow
+        puts "\trazor model [get] (UUID)                " + "View specific broker target".yellow
+        puts "\trazor model add (UUID) (options...)     " + "View specific broker target".yellow
+        puts "\trazor model update (UUID) (options...)  " + "View specific broker target".yellow
+        puts "\trazor model remove (UUID)|(--all)       " + "Remove existing (or all) broker target(s)".yellow
+        puts "\trazor model --help                      " + "Display this screen".yellow
       end
 
       def get_model
@@ -55,13 +55,13 @@ module ProjectRazor
 
         # and then invoke the right method (based on usage)
         if options[:template]
-          # get the list of attributes for the chosen node
+          # get the list of model templates available in the system
           get_all_templates
         elsif includes_uuid
-          # get the details for a specific node
+          # get the details for a specific model
           get_model_with_uuid(model_uuid)
         else
-          # get a summary view of all nodes; will end up here
+          # get a summary view of all models; will end up here
           # if the option chosen is the :all option (or if nothing but the
           # 'get' subcommand was specified as this is the default action)
           get_all_models
@@ -76,7 +76,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        tmp, options = parse_and_validate_options(option_items, "razor model add (OPTIONS)", :require_all)
+        tmp, options = parse_and_validate_options(option_items, "razor model add (options...)", :require_all)
         includes_uuid = true if tmp
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
@@ -114,7 +114,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        model_uuid, options = parse_and_validate_options(option_items, "razor model update UUID (OPTIONS)", :require_one)
+        model_uuid, options = parse_and_validate_options(option_items, "razor model update UUID (options...)", :require_one)
         if !@web_command
           model_uuid = @command_array.shift
         end
@@ -168,12 +168,10 @@ module ProjectRazor
         # and then invoke the right method (based on usage)
         # selected_option = options.select { |k, v| v }.keys[0].to_s
         if options[:all]
-          # remove all Active Models from the system
+          # remove all Models from the system
           remove_all_models
         elsif includes_uuid
-          # remove a specific Active Model (by UUID); this is the default
-          # action if no options are specified (the only option currently for
-          # this subcommand is the '--all' option)
+          # remove a specific Model (by UUID)
           remove_model_by_uuid(model_uuid)
         else
           # if get to here, no UUID was specified and the '--all' option was
