@@ -173,7 +173,7 @@ module ProjectRazor
         # selected_option = options.select { |k, v| v }.keys[0].to_s
         if options[:all]
           # remove all Active Models from the system
-          remove_broker_all
+          remove_all_brokers
         elsif includes_uuid
           # remove a specific Active Model (by UUID); this is the default
           # action if no options are specified (the only option currently for
@@ -203,7 +203,7 @@ module ProjectRazor
         print_object_array [broker]
       end
 
-      def remove_broker_all
+      def remove_all_brokers
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Brokers" unless get_data.delete_all_objects(:broker)
         slice_success("All brokers removed", :success_type => :removed)
       end

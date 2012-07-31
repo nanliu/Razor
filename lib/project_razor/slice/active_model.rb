@@ -89,7 +89,7 @@ module ProjectRazor
         selected_option = options.select { |k, v| v }.keys[0].to_s
         if options[:all]
           # remove all Active Models from the system
-          remove_active_model_all
+          remove_all_active_models
         elsif includes_uuid
           # remove a specific Active Model (by UUID); this is the default
           # action if no options are specified (the only option currently for
@@ -121,7 +121,7 @@ module ProjectRazor
         print_object_array(active_model.print_log, "", :style => :table)
       end
 
-      def remove_active_model_all
+      def remove_all_active_models
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Active Models" unless get_data.delete_all_objects(:active)
         slice_success("All active models removed", :success_type => :removed)
       end

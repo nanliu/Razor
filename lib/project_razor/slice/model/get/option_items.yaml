@@ -1,0 +1,15 @@
+---
+- :name: :template
+  :default: false
+  :short_form: -t
+  :long_form: --template
+  :description: Used to get a list of available model templates.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :all
+  :default: false
+  :short_form: -a
+  :long_form: --all
+  :description: Used to get a summary list of available models.
+  :uuid_is: not_allowed
+  :required: false

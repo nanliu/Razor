@@ -248,19 +248,20 @@ module ProjectRazor
 
       def cli_create_metadata
         puts "--- Building Model (#{name}): #{label}\n".yellow
-        req_metadata_hash.each_key do
-        |md|
+        req_metadata_hash.each_key { |key|
+          metadata = map_keys_to_symbols(req_metadata_hash[key])
+          key = key.to_sym if !key.is_a?(Symbol)
           flag = false
           until flag
-            print "Please enter " + "#{req_metadata_hash[md][:description]}".yellow.bold
-            print " (example: " + "#{req_metadata_hash[md][:example]}".yellow + ") \n"
-            puts "default: " + "#{req_metadata_hash[md][:default]}".yellow if req_metadata_hash[md][:default] != ""
-            puts req_metadata_hash[md][:required] ? quit_option : skip_quit_option
+            print "Please enter " + "#{metadata[:description]}".yellow.bold
+            print " (example: " + "#{metadata[:example]}".yellow + ") \n"
+            puts "default: " + "#{metadata[:default]}".yellow if metadata[:default] != ""
+            puts metadata[:required] ? quit_option : skip_quit_option
             print " > "
             response = STDIN.gets.strip
             case response
               when "SKIP"
-                if req_metadata_hash[md][:required]
+                if metadata[:required]
                   puts "Cannot skip, value required".red
                 else
                   flag = true
@@ -268,18 +269,27 @@ module ProjectRazor
               when "QUIT"
                 return false
               when ""
-                if req_metadata_hash[md][:default] != ""
-                  flag = set_metadata_value(md, req_metadata_hash[md][:default], req_metadata_hash[md][:validation])
+                if metadata[:default] != ""
+                  flag = set_metadata_value(key, metadata[:default], metadata[:validation])
                 else
                   puts "No default value, must enter something".red
                 end
               else
-                flag = set_metadata_value(md, response, req_metadata_hash[md][:validation])
+                flag = set_metadata_value(key, response, metadata[:validation])
                 puts "Value (".red + "#{response}".yellow + ") is invalid".red unless flag
             end
           end
-        end
+        }
         true
+      end
+
+      def map_keys_to_symbols(hash)
+        tmp = {}
+        hash.each { |key, val|
+          key = key.to_sym if !key.is_a?(Symbol)
+          tmp[key] = val
+        }
+        tmp
       end
 
       def set_metadata_value(key, value, validation)
