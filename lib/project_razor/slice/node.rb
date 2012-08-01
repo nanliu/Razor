@@ -20,7 +20,8 @@ module ProjectRazor
                 /^[\S]+$/        => {
                     [/^(attrib|attribute|attributes)$/]             => "get_node_attributes",
                     [/^(hardware|hardware_id|hardware_ids|hw_id)$/] => "get_node_hardware_ids",
-                    :else                                           => "get_node_by_uuid",
+                    [/^\{.*\}$/]                                    => "get_node_by_uuid",
+                    :else                                           => "unrecognized_resource_error",
                     :default                                        => "get_node_by_uuid"
                 }
             },
@@ -37,11 +38,16 @@ module ProjectRazor
         puts get_node_help
       end
 
+      def unrecognized_resource_error
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unrecognized resource found while getting node by UUID: [#{@command_array.first}]"
+      end
+
       def get_node_help
         return ["Node Slice: used to view the current list of nodes; also used by the Microkernel".red,
                 "    for the node registration and checkin processes.".red,
                 "Node Commands:".yellow,
-                "\trazor node [get] [--all]              " + "Display list of available nodes".yellow,
+                "\trazor node [get] [all]                " + "Display list of available nodes".yellow,
                 "\trazor node [get] (UUID)               " + "Display details for a node".yellow,
                 "\trazor node [get] (UUID) attributes    " + "Display detailed attributes for a node".yellow,
                 "\trazor node [get] (UUID) hardware_ids  " + "Display hardware ID values for a node".yellow,
@@ -61,7 +67,7 @@ module ProjectRazor
       def get_node_by_uuid
         @command = :get_node_with_uuid
         # the UUID was the last "previous argument"
-        node_uuid = @prev_args.peek(0)
+        node_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         print_object_array [node]
