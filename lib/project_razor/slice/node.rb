@@ -11,83 +11,90 @@ module ProjectRazor
         @new_slice_style = true
         @slice_name = "Node"
         @engine = ProjectRazor::Engine.instance
+        return_all = ["all", '{}', /^\{.*\}$/, nil]
         @slice_commands = {
-            :get => "get_node",
+            :get =>  {
+                return_all       => "get_all_nodes",
+                :default         => "get_all_nodes",
+                :else            => "handle_get_with_uuid",
+                ["--help", "-h"] => "node_help"
+            },
             ["register", /^[Rr]$/] => "register_node",
             ["checkin", /^[Cc]$/] => "checkin_node",
             :default => :get,
             :else => :get,
             ["--help", "-h"] => "node_help"
         }
+        @command_help_text = get_node_help
+      end
+
+      def handle_get_with_uuid
+        command_array_length = @command_array.length
+        # if it's a web command, need to account for the extra argument
+        # (which is used to pass a JSON string of options); in this operation
+        # we can safely ignore that last argument...
+        command_array_length -= 1 if @web_command
+        # check the number of arguments left in the command, should be
+        # either one or two left depending on the usage
+        if command_array_length == 1
+          # if there is only one argument left, it should be a UUID value
+          get_node_by_uuid(@command_array.first)
+        elsif command_array_length == 2
+          # if there are two arguments left, the first should be the UUID
+          # value and the next should be a resource within the node that
+          # we want to "get" (currently only attibutes and hardware_ids
+          # are supported as additional resources)
+          next_arg = @command_array[1]
+          if /^(attrib|attribute|attributes)$/.match(next_arg)
+            # if matches attributes (or attribute, or attrib) get/display the
+            # attributes hash for the specified node
+            get_node_attributes(@command_array.first)
+          elsif /^(hardware|hardware_id|hardware_ids|hw_id)$/.match(next_arg)
+            # if matches hardware_ids (or hardware, or hardware_id, or hw_id)
+            # get/display the hardware_ids for the specified node
+            get_node_hardware_ids(@command_array.first)
+          else
+            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Unrecognized resource '#{next_arg}'"
+          end
+        else
+          raise ProjectRazor::Error::Slice::InvalidCommand, "Illegal node slice [get] usage; args = #{@command_array.inspect}"
+        end
       end
 
       def node_help
-        puts "Node Slice: used to view the current list of nodes; also used by the Microkernel".red
-        puts "    for the node registration and checkin processes.".red
-        puts "Node Commands:".yellow
-        puts "\trazor node [get] [--all]              " + "Display list of available nodes".yellow
-        puts "\trazor node [get] (UUID)               " + "Display details for a node".yellow
-        puts "\trazor node [get] (UUID) --attributes  " + "Display detailed attributes for a node".yellow
-        puts "\trazor node [get] (UUID) --hardware    " + "Display hardware ID values for a node".yellow
-        puts "\trazor node checkin (options...)       " + "Used for node checkin".yellow
-        puts "\trazor node register (options...)      " + "Used for node registration".yellow
-        puts "\trazor node --help                     " + "Display this screen".yellow
+        puts get_node_help
       end
 
-      def get_node
-        @command = :get_node
-        @command_help_text << "Description: Gets the Properties Associated with one or more Nodes\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        node_uuid, options = parse_and_validate_options(option_items, "razor node get [UUID] [option]", :require_all)
-        if !@web_command
-          node_uuid = @command_array.shift
-        end
-        includes_uuid = true if node_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
-        # and then invoke the right method (based on usage)
-        if options[:attrib]
-          # get the list of attributes for the chosen node
-          get_node_attributes(node_uuid)
-        elsif options[:hw_id]
-          # get the hardware ids for the chosen node
-          get_node_hardware_ids(node_uuid)
-        elsif includes_uuid
-          # get the details for a specific node
-          get_node_with_uuid(node_uuid)
-        else
-          # get a summary view of all nodes; will end up here
-          # if the option chosen is the :all option (or if nothing but the
-          # 'get' subcommand was specified as this is the default action)
-          get_all_nodes
-        end
+      def get_node_help
+        return ["Node Slice: used to view the current list of nodes; also used by the Microkernel".red,
+                "    for the node registration and checkin processes.".red,
+                "Node Commands:".yellow,
+                "\trazor node [get] [--all]              " + "Display list of available nodes".yellow,
+                "\trazor node [get] (UUID)               " + "Display details for a node".yellow,
+                "\trazor node [get] (UUID) attributes    " + "Display detailed attributes for a node".yellow,
+                "\trazor node [get] (UUID) hardware_ids  " + "Display hardware ID values for a node".yellow,
+                "\trazor node checkin (options...)       " + "Used for node checkin".yellow,
+                "\trazor node register (options...)      " + "Used for node registration".yellow,
+                "\trazor node --help                     " + "Display this screen".yellow
+        ].join("\n")
       end
 
       def get_all_nodes
         # Get all node instances and print/return
-        #@command = :get_nodes_all
+        @command = :get_nodes_all
         #@command_array.unshift(@last_arg) unless @last_arg == 'default'
         print_object_array get_object("nodes", :node), "Discovered Nodes", :style => :table
       end
 
-      def get_node_with_uuid(node_uuid)
-        #@command = :get_node_with_uuid
-        #@command_help_text = "razor node [get] (uuid)"
+      def get_node_by_uuid(node_uuid)
+        @command = :get_node_with_uuid
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         print_object_array [node]
       end
 
       def get_node_attributes(node_uuid)
-        #@command = :get_node_attributes
-        #@command_help_text = "razor node [get] attributes[a] (uuid)"
+        @command = :get_node_attributes
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
@@ -98,8 +105,7 @@ module ProjectRazor
       end
 
       def get_node_hardware_ids(node_uuid)
-        #@command = :get_node_attributes
-        #@command_help_text = "razor node [get] attributes[a] (uuid)"
+        @command = :get_node_hardware_ids
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
