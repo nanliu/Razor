@@ -20,7 +20,8 @@ module ProjectRazor
                 /^[\S]+$/        => {
                     [/^(attrib|attribute|attributes)$/]             => "get_node_attributes",
                     [/^(hardware|hardware_id|hardware_ids|hw_id)$/] => "get_node_hardware_ids",
-                    :else                                           => "get_node_by_uuid"
+                    :else                                           => "get_node_by_uuid",
+                    :default                                        => "get_node_by_uuid"
                 }
             },
             ["register", /^[Rr]$/] => "register_node",
@@ -59,7 +60,8 @@ module ProjectRazor
 
       def get_node_by_uuid
         @command = :get_node_with_uuid
-        node_uuid = @command_array.first
+        # the UUID was the last "previous argument"
+        node_uuid = @prev_args.peek(0)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         print_object_array [node]
@@ -69,7 +71,7 @@ module ProjectRazor
         @command = :get_node_attributes
         # the UUID was the second "previous argument" (the last was the 'attrib'
         # resource name, or the equivalent values 'attribute' or 'attributes')
-        node_uuid = @prev_args[1]
+        node_uuid = @prev_args.peek(1)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
@@ -83,7 +85,7 @@ module ProjectRazor
         @command = :get_node_hardware_ids
         # the UUID was the second "previous argument" (the last was the 'hardware_ids'
         # resource name, or the equivalent values 'hardware_id', 'hardware', or 'hw_id')
-        node_uuid = @prev_args[1]
+        node_uuid = @prev_args.peek(1)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
