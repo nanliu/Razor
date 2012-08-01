@@ -16,8 +16,12 @@ module ProjectRazor
             :get =>  {
                 return_all       => "get_all_nodes",
                 :default         => "get_all_nodes",
-                :else            => "handle_get_with_uuid",
-                ["--help", "-h"] => "node_help"
+                ["--help", "-h"] => "node_help",
+                /^[\S]+$/        => {
+                    [/^(attrib|attribute|attributes)$/]             => "get_node_attributes",
+                    [/^(hardware|hardware_id|hardware_ids|hw_id)$/] => "get_node_hardware_ids",
+                    :else                                           => "get_node_by_uuid"
+                }
             },
             ["register", /^[Rr]$/] => "register_node",
             ["checkin", /^[Cc]$/] => "checkin_node",
@@ -26,39 +30,6 @@ module ProjectRazor
             ["--help", "-h"] => "node_help"
         }
         @command_help_text = get_node_help
-      end
-
-      def handle_get_with_uuid
-        command_array_length = @command_array.length
-        # if it's a web command, need to account for the extra argument
-        # (which is used to pass a JSON string of options); in this operation
-        # we can safely ignore that last argument...
-        command_array_length -= 1 if @web_command
-        # check the number of arguments left in the command, should be
-        # either one or two left depending on the usage
-        if command_array_length == 1
-          # if there is only one argument left, it should be a UUID value
-          get_node_by_uuid(@command_array.first)
-        elsif command_array_length == 2
-          # if there are two arguments left, the first should be the UUID
-          # value and the next should be a resource within the node that
-          # we want to "get" (currently only attibutes and hardware_ids
-          # are supported as additional resources)
-          next_arg = @command_array[1]
-          if /^(attrib|attribute|attributes)$/.match(next_arg)
-            # if matches attributes (or attribute, or attrib) get/display the
-            # attributes hash for the specified node
-            get_node_attributes(@command_array.first)
-          elsif /^(hardware|hardware_id|hardware_ids|hw_id)$/.match(next_arg)
-            # if matches hardware_ids (or hardware, or hardware_id, or hw_id)
-            # get/display the hardware_ids for the specified node
-            get_node_hardware_ids(@command_array.first)
-          else
-            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Unrecognized resource '#{next_arg}'"
-          end
-        else
-          raise ProjectRazor::Error::Slice::InvalidCommand, "Illegal node slice [get] usage; args = #{@command_array.inspect}"
-        end
       end
 
       def node_help
@@ -86,15 +57,19 @@ module ProjectRazor
         print_object_array get_object("nodes", :node), "Discovered Nodes", :style => :table
       end
 
-      def get_node_by_uuid(node_uuid)
+      def get_node_by_uuid
         @command = :get_node_with_uuid
+        node_uuid = @command_array.first
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         print_object_array [node]
       end
 
-      def get_node_attributes(node_uuid)
+      def get_node_attributes
         @command = :get_node_attributes
+        # the UUID was the second "previous argument" (the last was the 'attrib'
+        # resource name, or the equivalent values 'attribute' or 'attributes')
+        node_uuid = @prev_args[1]
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
@@ -104,8 +79,11 @@ module ProjectRazor
         end
       end
 
-      def get_node_hardware_ids(node_uuid)
+      def get_node_hardware_ids
         @command = :get_node_hardware_ids
+        # the UUID was the second "previous argument" (the last was the 'hardware_ids'
+        # resource name, or the equivalent values 'hardware_id', 'hardware', or 'hw_id')
+        node_uuid = @prev_args[1]
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
