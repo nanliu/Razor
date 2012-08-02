@@ -30,7 +30,7 @@
 - :name: :invert
   :default:
   :short_form: -i
-  :long_form: --invert
+  :long_form: --invert VALUE
   :description: Invert the match (true if key does not match value).
   :uuid_is: not_allowed
   :required: false

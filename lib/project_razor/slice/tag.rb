@@ -177,7 +177,7 @@ module ProjectRazor
         key = options[:key]
         compare = options[:compare]
         value = options[:value]
-        inverse = options[:invert]
+        inverse = (options[:invert] == nil ? "false" : options[:invert])
 
         # check the values that were passed in
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)

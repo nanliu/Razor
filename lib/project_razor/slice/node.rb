@@ -68,6 +68,7 @@ module ProjectRazor
 
       def get_node_attributes
         @command = :get_node_attributes
+        @command_array.pop if @web_command
         raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
               "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'attrib'
@@ -84,6 +85,7 @@ module ProjectRazor
 
       def get_node_hardware_ids
         @command = :get_node_hardware_ids
+        @command_array.pop if @web_command
         raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
               "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'hardware_ids'
