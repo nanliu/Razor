@@ -1,8 +1,8 @@
 ---
-- :name: :tagrule_uuid
+- :name: :tag_rule_uuid
   :default: 
   :short_form: -t
-  :long_form: --tagrule-uuid UUID
+  :long_form: --tag-rule-uuid UUID
   :description: The tag rule this matcher maps to.
   :uuid_is: not_allowed
   :required: true
@@ -27,10 +27,10 @@
   :description: The value to match against
   :uuid_is: not_allowed
   :required: true
-- :name: :inverse
+- :name: :invert
   :default:
   :short_form: -i
-  :long_form: --inverse
+  :long_form: --invert
   :description: Invert the match (true if key does not match value).
   :uuid_is: not_allowed
   :required: false

@@ -173,11 +173,11 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
-        tagrule_uuid = options[:tagrule_uuid]
+        tagrule_uuid = options[:tag_rule_uuid]
         key = options[:key]
         compare = options[:compare]
         value = options[:value]
-        inverse = (options[:inverse] ? "true" : "false")
+        inverse = options[:invert]
 
         # check the values that were passed in
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
@@ -203,9 +203,9 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
-        tagrule_uuid = options[:tagrule_uuid]
+        tagrule_uuid = options[:tag_rule_uuid]
         key = options[:key]
-        compare = options[:compare_method]
+        compare = options[:compare]
         value = options[:value]
         invert = options[:invert]
 

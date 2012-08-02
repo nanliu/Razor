@@ -1,8 +1,8 @@
 ---
-- :name: :tagrule_uuid
+- :name: :tag_rule_uuid
   :default: 
   :short_form: -t
-  :long_form: --tagrule-uuid UUID
+  :long_form: --tag-rule-uuid UUID
   :description: The new tag rule to map this matcher to.
   :uuid_is: required
   :required: true
