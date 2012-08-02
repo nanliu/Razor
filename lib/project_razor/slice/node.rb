@@ -73,7 +73,7 @@ module ProjectRazor
               "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'attrib'
         # resource name, or the equivalent values 'attribute' or 'attributes')
-        node_uuid = get_uuid_from_prev_args
+        node_uuid = @prev_args.peek(1)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
@@ -90,7 +90,7 @@ module ProjectRazor
               "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'hardware_ids'
         # resource name, or the equivalent values 'hardware_id', 'hardware', or 'hw_id')
-        node_uuid = get_uuid_from_prev_args
+        node_uuid = @prev_args.peek(1)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
