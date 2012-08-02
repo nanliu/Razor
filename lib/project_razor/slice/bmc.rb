@@ -22,148 +22,140 @@ module ProjectRazor
         super(args)
         @hidden = false
         @new_slice_style = true # switch to new slice style
-
-        # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = { :register => "register_bmc",
-                            :get => "get_bmc",
-                            :power => "power_bmc",
-                            :lan => "lan_bmc",
-                            :fru => "fru_bmc",
-                            :default => :get,
-                            :else => :get,
-                            ["--help", "-h"] => "bmc_help"
-        }
         @slice_name = "Bmc"
         config = get_data.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
+
+        # get the slice commands map for this slice (based on the set
+        # of commands that are typical for most slices)
+        @slice_commands = get_command_map("bmc_help",
+                                          "get_all_bmcs",
+                                          "get_bmc_by_uuid",
+                                          nil,
+                                          "update_bmc",
+                                          nil,
+                                          "remove_bmc_by_uuid")
+        # and add any additional commands specific to this slice
+        @slice_commands[:get][/^[\S]+$/][[/^(info|guid|enables|chassis_status)$/]] = "query_bmc_via_ipmitool"
+        @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
+        @slice_commands[:register] = "register_bmc"
+        @slice_commands[:power] = { /^[\S]+$/ => { :else => "power_bmc", :default => "power_bmc" } }
+        @slice_commands[:lan] = { /^[\S]+$/ => { [/^(print|\{.*\})$/] => "lan_bmc",
+                                                 :else => "throw_unrecog_resource_error",
+                                                 :default => "lan_bmc" } }
+        @slice_commands[:fru] = { /^[\S]+$/ => { [/^(print|\{.*\})$/] => "fru_bmc",
+                                                 :else => "throw_unrecog_resource_error",
+                                                 :default => "fru_bmc" } }
       end
 
       def bmc_help
         puts "BMC Slice: used to view the current list of nodes; also used by the Microkernel".red
         puts "    for the node registration and checkin processes.".red
         puts "BMC Commands:".yellow
-        puts "\trazor bmc register (options...)    " + "Registers a new BMC with Razor".yellow
-        puts "\trazor bmc [get] [--all]            " + "Display list of available BMCs".yellow
-        puts "\trazor bmc [get] (UUID)             " + "Display details for a BMC".yellow
-        puts "\trazor bmc [get] (UUID) [option]    " + "Display BMC info gathered via ipmitool".yellow
-        puts "\trazor bmc power (UUID) [option]    " + "Controls or displays power state of a node".yellow
-        puts "\trazor bmc lan (UUID) [option]      " + "Displays LAN info gathered via ipmitool".yellow
-        puts "\trazor bmc fru (UUID) [option]      " + "Displays FRU info gathered via ipmitool".yellow
+        puts "\trazor bmc register (options...)       " + "Registers a new BMC with Razor".yellow
+        puts "\trazor bmc [get] [all]                 " + "Display list of available BMCs".yellow
+        puts "\trazor bmc [get] (UUID)                " + "Display details for a BMC".yellow
+        puts "\trazor bmc [get] (UUID) (ipmi_sub_cmd) " + "Display BMC info gathered via ipmitool".yellow
+        puts "\trazor bmc power (UUID) [power_cmd]    " + "Controls or displays power state of a node".yellow
+        puts "\trazor bmc lan (UUID) [lan_cmd]        " + "Displays LAN info gathered via ipmitool".yellow
+        puts "\trazor bmc fru (UUID) [fru_cmd]        " + "Displays FRU info gathered via ipmitool".yellow
+        puts "\tNote; the (ipmi_sub_cmd) value can be one of (info|guid|enables|chassis_status),"
+        puts "\t      while the [power_cmd] value can be one of (info|guid|enables|chassis_status),"
       end
 
-      def get_bmc
-        @command = :get_bmc
-        @command_help_text << "Description: Gets the properties associated with one or more BMCs\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc get [UUID] [option]", :require_all)
-        if !@web_command
-          bmc_uuid = @command_array.shift
+      # This function is used to print out an array of all of the Bmc nodes in a tabular form
+      # (using the centralized print_object_array method)
+      def get_all_bmcs
+        bmc_array = get_object("bmc", :bmc)
+        if bmc_array
+          bmc_array.each { |bmc|
+            bmc.refresh_power_state
+          }
         end
-        includes_uuid = true if bmc_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
+        print_object_array get_object("bmc", :bmc), "Bmc Nodes"
+      end
 
-        # and then invoke the right method (based on usage)
-        selected_option = options.select { |k, v| v }.keys[0].to_s
-        if selected_option && selected_option.length > 0 && selected_option != "all"
-          # get the output of an ipmitool "get" command for the selected option and bmc
-          run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
-        elsif includes_uuid
-          # get the details for a specific BMC
-          query_bmc_by_uuid(bmc_uuid)
-        else
-          # get a summary view of all BMCs; will end up here
-          # if the option chosen is the :all option (or if nothing but the
-          # 'get' subcommand was specified as this is the default action)
-          query_bmc
-        end
+      # This function is used to print out a single matching BMC object (where the match
+      # is made based on the UUID value passed into the function)
+      def get_bmc_by_uuid
+        @command = :get_bmc_by_uuid
+        # the UUID is the first element of the @command_array
+        bmc_uuid = get_uuid_from_prev_args
+        matching_bmc = get_bmc_with_uuid(bmc_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{bmc_uuid}') found" unless matching_bmc
+        print_object_array [matching_bmc], "Bmc Nodes"
+      end
+
+      def query_bmc_via_ipmitool
+        # get the arguments from the @prev_args stack (which contains the previously
+        # processed arguments)
+        bmc_uuid = @prev_args.peek(1)
+        selected_option = @prev_args.peek(0)
+        # and invoke the appropriate method on the appropriate BMC (by UUID)
+        run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
+      end
+
+      # This function searches for a Bmc node that matches the '@uuid' value contained
+      # in the single input argument to the function.  It then refreshes the current power
+      # state of that Bmc object and returns it to the caller
+      #
+      # @param [String] uuid
+      # @return [ProjectRazor::PowerControl::Bmc]
+      def get_bmc_with_uuid(uuid)
+        setup_data
+        existing_bmc = @data.fetch_object_by_uuid(:bmc, uuid)
+        existing_bmc.refresh_power_state if existing_bmc
+        existing_bmc
       end
 
       def power_bmc
         @command = :power_bmc
-        @command_help_text << "Description: Used for power control and to obtain power-state info\n"
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :power)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc power (UUID) [option]")
-        if !@web_command
-          bmc_uuid = @command_array.shift
-        end
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (options...)", :require_one)
         includes_uuid = true if bmc_uuid
-        # if no option was specified, default to checking power status
-        options[:status] = true if options.select { |k, v| v }.length == 0
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, true)
-
-        # and then invoke the right method (based on usage)
-        selected_option = options.select { |k, v| v }.keys[0].to_s
-        if selected_option && selected_option != "status"
-          # get the output of an ipmitool "power" command for the seelcted option and bmc
-          change_bmc_power_state(bmc_uuid, selected_option)
+        power_option = options[:power_option]
+        if power_option != "status"
+          # get the output of an ipmitool "power" command for the selected option and bmc
+          change_bmc_power_state(bmc_uuid, power_option)
         else
           # get the power status for the chosen bmc
-          run_ipmi_query_cmd(bmc_uuid, "power", selected_option)
+          run_ipmi_query_cmd(bmc_uuid, "power", power_option)
         end
       end
 
       def lan_bmc
         @command = :lan_bmc
-        @command_help_text << "Description: Gets the LAN information for a specified BMC\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :lan)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc lan (UUID) [option]")
-        if !@web_command
-          bmc_uuid = @command_array.shift
-        end
-        includes_uuid = true if bmc_uuid
-        # if no option was specified, default to printing the LAN info
-        options[:print] = true if options.select { |k, v| v }.length == 0
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
+        bmc_uuid = @prev_args.peek(1)
+        selected_option = @prev_args.peek(0)
+        # if the argument received was the "web JSON string" then default to an "info" command
+        selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
         # and then invoke the right method (based on usage)
-        selected_option = options.select { |k, v| v }.keys[0].to_s
-        run_ipmi_query_cmd(bmc_uuid, "lan", selected_option)
+        if selected_option && selected_option.length > 0
+          # get the output of an ipmitool "lan" command for the selected option and bmc
+          run_ipmi_query_cmd(bmc_uuid, "lan", selected_option)
+        else
+          # get the FRU information for the chosen bmc
+          run_ipmi_query_cmd(bmc_uuid, "lan", "print")
+        end
       end
 
       def fru_bmc
-        @command = :lan_bmc
-        @command_help_text << "Description: Gets the LAN information for a specified BMC\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :fru)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc fru (UUID) [option]")
-        if !@web_command
-          bmc_uuid = @command_array.shift
-        end
-        includes_uuid = true if bmc_uuid
-        # if no option was specified, default to printing the FRU info
-        options[:print] = true if options.select { |k, v| v }.length == 0
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
-        # and then invoke the right method (based on usage)
-        selected_option = options.select { |k, v| v }.keys[0].to_s
+        @command = :fru_bmc
+        p @prev_args
+        bmc_uuid = @prev_args.peek(1)
+        selected_option = @prev_args.peek(0)
+        # if the argument received was the "web JSON string" then default to an "info" command
+        selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
         if selected_option && selected_option.length > 0
           # get the output of an ipmitool "fru" command for the selected option and bmc
           run_ipmi_query_cmd(bmc_uuid, "fru", selected_option)
@@ -177,14 +169,13 @@ module ProjectRazor
       # with an existing BMC in the Razor database)
       def register_bmc
         @command = :register_bmc
-        @command_help_text << "Description: Used to register a new BMC with Razor\n"
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :register)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         tmp, options = parse_and_validate_options(option_items, "razor bmc register (options...)", :require_all)
-        includes_uuid = true if tmp
+        includes_uuid = true if tmp && tmp != "register"
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -399,39 +390,6 @@ module ProjectRazor
           @data.persist_object(bmc)
         end
         bmc
-      end
-
-      # This function is used to print out an array of all of the Bmc nodes in a tabular form
-      # (using the centralized print_object_array method)
-      def query_bmc
-        bmc_array = get_object("bmc", :bmc)
-        if bmc_array
-          bmc_array.each { |bmc|
-            bmc.refresh_power_state
-          }
-        end
-        print_object_array get_object("bmc", :bmc), "Bmc Nodes"
-      end
-
-      # This function is used to print out a single matching BMC object (where the match
-      # is made based on the UUID value passed into the function)
-      def query_bmc_by_uuid(bmc_uuid)
-        matching_bmc = get_bmc_with_uuid(bmc_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{@uuid}') found" unless matching_bmc
-        print_object_array [matching_bmc], "Bmc Nodes"
-      end
-
-      # This function searches for a Bmc node that matches the '@uuid' value contained
-      # in the single input argument to the function.  It then refreshes the current power
-      # state of that Bmc object and returns it to the caller
-      #
-      # @param [String] uuid
-      # @return [ProjectRazor::PowerControl::Bmc]
-      def get_bmc_with_uuid(uuid)
-        setup_data
-        existing_bmc = @data.fetch_object_by_uuid(:bmc, uuid)
-        existing_bmc.refresh_power_state if existing_bmc
-        existing_bmc
       end
 
       # This function is used to map the combination of a sub_command and an action on

@@ -1,8 +1,0 @@
----
-- :name: :print
-  :default: false
-  :short_form: -p
-  :long_form: --print
-  :description: Return the info returned by an ipmitool 'fru print' command
-  :uuid_is: required
-  :required: true
