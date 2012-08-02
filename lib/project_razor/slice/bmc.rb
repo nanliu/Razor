@@ -41,10 +41,10 @@ module ProjectRazor
         @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
         @slice_commands[:register] = "register_bmc"
         @slice_commands[:power] = { /^[\S]+$/ => { :else => "power_bmc", :default => "power_bmc" } }
-        @slice_commands[:lan] = { /^[\S]+$/ => { [/^(print|\{.*\})$/] => "lan_bmc",
+        @slice_commands[:lan] = { /^[\S]+$/ => { [/^(properties|props|\{.*\})$/] => "lan_bmc",
                                                  :else => "throw_unrecog_resource_error",
                                                  :default => "lan_bmc" } }
-        @slice_commands[:fru] = { /^[\S]+$/ => { [/^(print|\{.*\})$/] => "fru_bmc",
+        @slice_commands[:fru] = { /^[\S]+$/ => { [/^(properties|props|\{.*\})$/] => "fru_bmc",
                                                  :else => "throw_unrecog_resource_error",
                                                  :default => "fru_bmc" } }
       end
@@ -53,13 +53,13 @@ module ProjectRazor
         puts "BMC Slice: used to view the current list of nodes; also used by the Microkernel".red
         puts "    for the node registration and checkin processes.".red
         puts "BMC Commands:".yellow
-        puts "\trazor bmc register (options...)       " + "Registers a new BMC with Razor".yellow
-        puts "\trazor bmc [get] [all]                 " + "Display list of available BMCs".yellow
-        puts "\trazor bmc [get] (UUID)                " + "Display details for a BMC".yellow
-        puts "\trazor bmc [get] (UUID) (ipmi_sub_cmd) " + "Display BMC info gathered via ipmitool".yellow
-        puts "\trazor bmc power (UUID) [power_cmd]    " + "Controls or displays power state of a node".yellow
-        puts "\trazor bmc lan (UUID) [lan_cmd]        " + "Displays LAN info gathered via ipmitool".yellow
-        puts "\trazor bmc fru (UUID) [fru_cmd]        " + "Displays FRU info gathered via ipmitool".yellow
+        puts "\trazor bmc register (options...)        " + "Registers a new BMC with Razor".yellow
+        puts "\trazor bmc [get] [all]                  " + "Display list of available BMCs".yellow
+        puts "\trazor bmc [get] (UUID)                 " + "Display details for a BMC".yellow
+        puts "\trazor bmc [get] (UUID) (ipmi_sub_cmd)  " + "Display BMC info gathered via ipmitool".yellow
+        puts "\trazor bmc power (UUID) (options...)    " + "Controls or displays power state of a node".yellow
+        puts "\trazor bmc lan (UUID) [resource]        " + "Displays LAN info gathered via ipmitool".yellow
+        puts "\trazor bmc fru (UUID) [resource]        " + "Displays FRU info gathered via ipmitool".yellow
         puts "\tNote; the (ipmi_sub_cmd) value can be one of (info|guid|enables|chassis_status),"
         puts "\t      while the [power_cmd] value can be one of (info|guid|enables|chassis_status),"
       end
@@ -139,6 +139,7 @@ module ProjectRazor
         selected_option = @prev_args.peek(0)
         # if the argument received was the "web JSON string" then default to an "info" command
         selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
+        selected_option = "print" if /^(properties|props)$/.match(selected_option)
         # and then invoke the right method (based on usage)
         if selected_option && selected_option.length > 0
           # get the output of an ipmitool "lan" command for the selected option and bmc
@@ -156,6 +157,7 @@ module ProjectRazor
         selected_option = @prev_args.peek(0)
         # if the argument received was the "web JSON string" then default to an "info" command
         selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
+        selected_option = "print" if /^(properties|props)$/.match(selected_option)
         if selected_option && selected_option.length > 0
           # get the output of an ipmitool "fru" command for the selected option and bmc
           run_ipmi_query_cmd(bmc_uuid, "fru", selected_option)
