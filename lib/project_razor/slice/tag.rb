@@ -62,7 +62,7 @@ module ProjectRazor
       def get_tagrule_by_uuid
         @command = :get_tagrule_by_uuid
         # the UUID was the last "previous argument"
-        tagrule_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        tagrule_uuid = get_uuid_from_prev_args
         tagrule = get_object("tagrule_by_uuid", :tag, tagrule_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
         print_object_array [tagrule], "", :success_type => :generic
@@ -125,7 +125,7 @@ module ProjectRazor
       def remove_tagrule_by_uuid
         @command = :remove_tagrule_by_uuid
         # the UUID was the last "previous argument"
-        tagrule_uuid = @prev_args.peek(0)
+        tagrule_uuid = get_uuid_from_prev_args
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
         setup_data
@@ -152,7 +152,7 @@ module ProjectRazor
       def get_matcher_by_uuid
         @command = :get_matcher_by_uuid
         # the UUID was the last "previous argument"
-        matcher_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        matcher_uuid = get_uuid_from_prev_args
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
@@ -228,7 +228,7 @@ module ProjectRazor
       def remove_matcher
         @command = :remove_matcher
         # the UUID was the last "previous argument"
-        matcher_uuid = @prev_args.peek(0)
+        matcher_uuid = get_uuid_from_prev_args
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
         raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher" unless tagrule.remove_tag_matcher(matcher.uuid)

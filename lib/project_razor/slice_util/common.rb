@@ -185,6 +185,13 @@ module ProjectRazor
         }
       end
 
+      # used by the slices to retrieve the UUID value from a set of previous arguments
+      # (assumes that the UUID and, potentially one more argument if it's a web command
+      # appear as the first two arguments in the @prev_args stack)
+      def get_uuid_from_prev_args
+        @web_command && @prev_args.peek(0) == '{}' ? @prev_args.peek(1) : @prev_args.peek(0)
+      end
+
       # used by the slices to throw an error when an unrecognized resource is discovered
       # while parsing the command line
       def throw_unrecog_resource_error
