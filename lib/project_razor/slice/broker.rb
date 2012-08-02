@@ -18,78 +18,66 @@ module ProjectRazor
         super(args)
         @hidden          = false
         @new_slice_style = true # switch to new slice style
-                                # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands  = {
-            :add => "add_broker",
-            :update => "update_broker",
-            :get => "get_broker",
-            :plugin => "get_broker_plugins",
-            [/plugin/, "t"] => "get_broker_plugins",
-            :remove => "remove_broker",
-            :default => :get,
-            :else => :get,
-            ["--help", "-h"] => "broker_help"
-        }
         @slice_name      = "Broker"
+
+        # get the slice commands map for this slice (based on the set
+        # of commands that are typical for most slices)
+        @slice_commands = get_command_map("broker_help",
+                                          "get_all_brokers",
+                                          "get_broker_by_uuid",
+                                          "add_broker",
+                                          "update_broker",
+                                          "remove_all_brokers",
+                                          "remove_broker_by_uuid")
+        # and add any additional commands specific to this slice
+        @slice_commands[:get].delete(/^[\S]+$/)
+        @slice_commands[:get][:else] = "get_broker_by_uuid"
+        @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
       end
 
       def broker_help
         puts "Broker Slice: used to add, view, update, and remove Broker Targets.".red
         puts "Broker Commands:".yellow
-        puts "\trazor broker [get] [--all]               " + "View all broker targets".yellow
+        puts "\trazor broker [get] [all]                 " + "View all broker targets".yellow
         puts "\trazor broker [get] (UUID)                " + "View specific broker target".yellow
         puts "\trazor broker add (UUID) (options...)     " + "View specific broker target".yellow
         puts "\trazor broker update (UUID) (options...)  " + "View specific broker target".yellow
-        puts "\trazor broker remove (UUID)|(--all)       " + "Remove existing (or all) broker target(s)".yellow
-        puts "\trazor broker --help                      " + "Display this screen".yellow
+        puts "\trazor broker remove (UUID)|(all)         " + "Remove existing (or all) broker target(s)".yellow
+        puts "\trazor broker --help|-h                   " + "Display this screen".yellow
       end
 
-      def get_broker
-        @command = :get_broker
-        @command_help_text << "Description: Gets the properties associated with one or more Broker Targets\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        broker_uuid, options =
-            parse_and_validate_options(option_items,
-                                       "razor broker get [UUID]|[--all]|[--plugin][--template]",
-                                       :require_all)
-        if !@web_command
-          broker_uuid = @command_array.shift
-        end
-        includes_uuid = true if broker_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
+      # Returns all broker instances
+      def get_all_brokers
+        @command = :get_all_brokers
+        print_object_array get_object("broker_instances", :broker), "Broker Targets:"
+      end
 
-        # and then invoke the right method (based on usage)
-        if options[:plugin] || options[:template]
-          # get the list of broker plugins
-          get_broker_plugins
-        elsif includes_uuid
-          # get the details for a broker
-          get_broker_with_uuid(broker_uuid)
-        else
-          # get a summary view of all brokers; will end up here
-          # if the option chosen is the :all option (or if nothing but the
-          # 'get' subcommand was specified as this is the default action)
-          get_broker_all
-        end
+      # Returns the broker plugins available
+      def get_broker_plugins
+        @command = :get_broker_plugins
+        # We use the common method in Utility to fetch object plugins by providing Namespace prefix
+        print_object_array get_child_templates(ProjectRazor::BrokerPlugin), "\nAvailable Broker Plugins:"
+      end
+
+      def get_broker_by_uuid
+        @command = :get_broker_by_uuid
+        # the UUID is the first element of the @command_array
+        broker_uuid = @command_array.first
+        broker = get_object("broker instances", :broker, broker_uuid)
+        raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#{broker_uuid}]" unless broker
+        print_object_array [broker]
       end
 
       def add_broker
         @command = :add_broker
-        @command_help_text << "Description: Used to add a new Broker Target to Razor\n"
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :add)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         tmp, options = parse_and_validate_options(option_items, "razor broker add (options...)", :require_all)
-        includes_uuid = true if tmp
+        includes_uuid = true if tmp && tmp != "add"
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -117,16 +105,13 @@ module ProjectRazor
 
       def update_broker
         @command = :update_broker
-        @command_help_text << "Description: Used to update an existing Broker Target\n"
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         broker_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (options...)", :require_one)
-        if !@web_command
-          broker_uuid = @command_array.shift
-        end
         includes_uuid = true if broker_uuid
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
@@ -153,7 +138,6 @@ module ProjectRazor
 
       def remove_broker
         @command = :remove_broker
-        @command_help_text << "Description: Remove a Broker (or all Brokers) from Razor\n"
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :remove)
         # parse and validate the options that were passed in as part of this
@@ -184,34 +168,23 @@ module ProjectRazor
         end
       end
 
-      # Returns all broker instances
-      def get_broker_all
-        print_object_array get_object("broker_instances", :broker), "Broker Targets:"
-      end
-
-      # Returns the broker plugins available
-      def get_broker_plugins
-        # We use the common method in Utility to fetch object plugins by providing Namespace prefix
-        print_object_array get_child_templates(ProjectRazor::BrokerPlugin), "\nAvailable Broker Plugins:"
-      end
-
-      def get_broker_with_uuid(broker_uuid)
-        broker             = get_object("broker instances", :broker, broker_uuid)
-        raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#@arg]" unless broker
-        print_object_array [broker]
-      end
-
       def remove_all_brokers
+        @command = :remove_all_brokers
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Brokers" unless get_data.delete_all_objects(:broker)
         slice_success("All brokers removed", :success_type => :removed)
       end
 
-      def remove_broker_with_uuid(broker_uuid)
-        broker = get_object("broker_with_uuid", :broker, broker_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find broker with UUID: [#{broker_uuid}]" unless broker
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove broker [#{broker.uuid}]" unless get_data.delete_object(broker)
-        slice_success("Active broker [#{broker.uuid}] removed", :success_type => :removed)
+      def remove_broker_by_uuid
+        @command = :remove_broker_by_uuid
+        # the UUID is the first element of the @command_array
+        broker_uuid = get_uuid_from_prev_args
+        broker = get_object("policy_with_uuid", :broker, broker_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker with UUID: [#{broker_uuid}]" unless broker
+        setup_data
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{broker.uuid}]" unless @data.delete_object(broker)
+        slice_success("Broker [#{broker.uuid}] removed", :success_type => :removed)
       end
+
     end
   end
 end

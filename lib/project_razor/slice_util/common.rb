@@ -251,13 +251,14 @@ module ProjectRazor
             :default         => "throw_missing_uuid_error",
             ["--help", "-h"] => help_cmd_name,
             /^[\S]+$/        => {
-                :else            => update_cmd_name
+                :else            => update_cmd_name,
+                :default         => update_cmd_name
             }
         } if update_cmd_name
         # add an update action if a non-nil value for the remove_cmd_name
         # parameter names was included in the input arguments
         cmd_map[:remove] = {
-            return_all       => remove_all_cmd_name,
+            ["all"]          => remove_all_cmd_name,
             :default         => "throw_missing_uuid_error",
             ["--help", "-h"] => help_cmd_name,
             /^[\S]+$/        => {

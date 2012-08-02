@@ -50,7 +50,7 @@ module ProjectRazor
       end
 
       def get_model_by_uuid
-        @command = :get_policy_by_uuid
+        @command = :get_model_by_uuid
         # the UUID is the first element of the @command_array
         model_uuid = @command_array.first
         model = get_object("get_model_by_uuid", :model, model_uuid)
@@ -157,7 +157,7 @@ module ProjectRazor
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
         setup_data
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{tagrule.uuid}]" unless @data.delete_object(model)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{model.uuid}]" unless @data.delete_object(model)
         slice_success("Active Model [#{model.uuid}] removed",:success_type => :removed)
       end
 

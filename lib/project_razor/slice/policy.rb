@@ -182,7 +182,7 @@ module ProjectRazor
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
         setup_data
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{tagrule.uuid}]" unless @data.delete_object(policy)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{policy.uuid}]" unless @data.delete_object(policy)
         slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
       end
 
