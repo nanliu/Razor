@@ -12,77 +12,72 @@ module ProjectRazor
         super(args)
         @hidden = false
         @new_slice_style = true
-        @slice_commands = {:add => "add_tagrule",
-                           :get => "get_tagrule",
-                           :update => "update_tagrule",
-                           :remove => "remove_tagrule",
-                           :matcher => {
-                               :add => "add_matcher",
-                               :get => "get_matcher",
-                               :update => "update_matcher",
-                               :remove => "remove_matcher",
-                               :default => :get,
-                               :else => :get
-                           },
-                           :default => :get,
-                           :else => :get,
-                           ["--help", "-h"] => "tag_help" }
         @slice_name = "Tag"
+        # get the slice commands map for this slice (based on the set
+        # of commands that are typical for most slices)
+        @slice_commands = get_command_map("tag_help",
+                                          "get_all_tagrules",
+                                          "get_tagrule_by_uuid",
+                                          "add_tagrule",
+                                          "update_tagrule",
+                                          "remove_all_tagrules",
+                                          "remove_tagrule_by_uuid")
+        # and add the corresponding 'matcher' commands to the set of slice_commands
+        @slice_commands[:matcher] = get_command_map("tag_help",
+                                                    nil,
+                                                    "get_matcher_by_uuid",
+                                                    "add_matcher",
+                                                    "update_matcher",
+                                                    nil,
+                                                    "remove_matcher")
+        # and set up the help for this command (will be used to print
+        # usage when errors are encountered)
+        @command_help_text = get_tag_help + "\n"
       end
 
       def tag_help
-        puts "Tag Slice:".red
-        puts "Used to view, create, update, and remove Tag Rules and Tag Matchers.".red
-        puts "Tag commands:".yellow
-        puts "\trazor tag [get] [--all]                         " + "View all Tag Rules/Matchers".yellow
-        puts "\trazor tag [matcher] [get] (UUID)                " + "View a specific Tag Rule/Matcher".yellow
-        puts "\trazor tag [matcher] add (options...)            " + "Create a new Tag Rule/Matcher".yellow
-        puts "\trazor tag [matcher] update (UUID) (options...)  " + "Update an existing Tag Rule/Matcher".yellow
-        puts "\trazor tag [matcher] remove (UUID)               " + "Remove an existing Tag Rule/Matcher".yellow
-        puts "\trazor tag remove --all                          " + "Remove all existing Tag Rules".yellow
-        puts "\trazor tag --help|-h                             " + "Display this screen".yellow
+        puts get_tag_help
       end
 
-      def get_tagrule
-        @command = :get_tagrule
-        @command_help_text << "Description: Gets the Properties Associated with one or more Tag Rules\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        tagrule_uuid, options = parse_and_validate_options(option_items, "razor tag get [UUID] [option]", :require_all)
-        if !@web_command
-          tagrule_uuid = @command_array.shift
-        end
-        includes_uuid = true if tagrule_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
+      def get_tag_help
+        return [ "Tag Slice:".red,
+                 "Used to view, create, update, and remove Tag Rules and Tag Matchers.".red,
+                 "Tag commands:".yellow,
+                 "\trazor tag [get] [all]                           " + "View all Tag Rules/Matchers".yellow,
+                 "\trazor tag [matcher] [get] (UUID)                " + "View a specific Tag Rule/Matcher".yellow,
+                 "\trazor tag [matcher] add (options...)            " + "Create a new Tag Rule/Matcher".yellow,
+                 "\trazor tag [matcher] update (UUID) (options...)  " + "Update an existing Tag Rule/Matcher".yellow,
+                 "\trazor tag [matcher] remove (UUID)               " + "Remove an existing Tag Rule/Matcher".yellow,
+                 "\trazor tag remove all                            " + "Remove all existing Tag Rules".yellow,
+                 "\trazor tag --help|-h                             " + "Display this screen".yellow].join("\n")
+      end
 
-        # and then invoke the right method (based on usage)
-        if includes_uuid
-          # get the details for a specific tag
-          get_tagrule_with_uuid(tagrule_uuid)
-        else
-          # get a summary view of all tags; will end up here
-          # if the option chosen is the :all option (or if nothing but the
-          # 'get' subcommand was specified as this is the default action)
-          get_all_tagrules
-        end
+      def get_all_tagrules
+        @command = :get_all_tagrules
+        # Get all tag rules and print/return
+        print_object_array(get_object("tagrules", :tag), "Tag Rules",
+                           :style => :table, :success_type => :generic)
+      end
+
+      def get_tagrule_by_uuid
+        @command = :get_tagrule_by_uuid
+        # the UUID was the last "previous argument"
+        tagrule_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        tagrule = get_object("tagrule_by_uuid", :tag, tagrule_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
+        print_object_array [tagrule], "", :success_type => :generic
       end
 
       def add_tagrule
         @command = :add_tagrule
-        @command_help_text << "Description: Used to add a new Tag Rule to Razor\n"
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :add)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         tmp, options = parse_and_validate_options(option_items, "razor tag add (options...)", :require_all)
-        includes_uuid = true if tmp
+        includes_uuid if tmp && tmp != "add"
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -98,17 +93,14 @@ module ProjectRazor
       end
 
       def update_tagrule
-        @command = :update_policy
-        @command_help_text << "Description: Used to update an existing Tag Rule\n"
+        @command = :update_tagrule
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :update)
         # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        tagrule_uuid, options = parse_and_validate_options(option_items, "razor tag update UUID (options...)", :require_one)
-        if !@web_command
-          tagrule_uuid = @command_array.shift
-        end
+        # subcommand (this method will return the options map constructed
+        # from the @commmand_array)
+        tagrule_uuid, options = parse_and_validate_options(option_items, "razor tag update (UUID) (options...)", :require_one)
         includes_uuid = true if tagrule_uuid
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
@@ -118,63 +110,22 @@ module ProjectRazor
         # get the tagfule to update
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
-        tagrule.name = options[:name]
-        tagrule.tag = options[:tag]
+        tagrule.name = options[:name] if options[:name]
+        tagrule.tag = options[:tag] if options[:tag]
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Tag Rule [#{tagrule.uuid}]" unless tagrule.update_self
         print_object_array [tagrule], "", :success_type => :updated
       end
 
-      def remove_tagrule
-        @command = :remove_tagrule
-        @command_help_text << "Description: remove one Tag Rule (or all Tag Rules) from the system\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :remove)
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        tagrule_uuid, options = parse_and_validate_options(option_items, "razor tag remove (UUID)|(--all)", :require_all)
-        if !@web_command
-          tagrule_uuid = @command_array.shift
-        end
-        includes_uuid = true if tagrule_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
-        # and then invoke the right method (based on usage)
-        # selected_option = options.select { |k, v| v }.keys[0].to_s
-        if options[:all]
-          # remove all Policies from the system
-          remove_all_tagrules
-        elsif includes_uuid
-          # remove a specific Policy (by UUID)
-          remove_tagrule_with_uuid(tagrule_uuid)
-        else
-          # if get to here, no UUID was specified and the '--all' option was
-          # no included, so raise an error and exit
-          raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a UUID for the tag rule to remove (or select the '--all' option)"
-        end
-      end
-
-      def get_all_tagrules
-        # Get all tag rules and print/return
-        print_object_array(get_object("tagrules", :tag), "Tag Rules",
-                           :style => :table, :success_type => :generic)
-      end
-
-      def get_tagrule_with_uuid(tagrule_uuid)
-        tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
-        print_object_array [tagrule], "", :success_type => :generic
-      end
-
       def remove_all_tagrules
+        @command = :remove_all_tagrules
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:tag)
         slice_success("All Tag Rules removed", :success_type => :removed)
       end
 
-      def remove_tagrule_with_uuid(tagrule_uuid)
+      def remove_tagrule_by_uuid
+        @command = :remove_tagrule_by_uuid
+        # the UUID was the last "previous argument"
+        tagrule_uuid = @prev_args.peek(0)
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
         setup_data
@@ -198,24 +149,10 @@ module ProjectRazor
         found_matcher.count == 1 ? found_matcher.first : nil
       end
 
-      def get_matcher
-        @command = :get_matcher
-        @command_help_text << "Description: gets the properties associated with a Tag Matcher\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = { }
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        matcher_uuid, options = parse_and_validate_options(option_items, "razor tag matcher get (UUID)", :require_all)
-        if !@web_command
-          matcher_uuid = @command_array.shift
-        end
-        includes_uuid = true if matcher_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
+      def get_matcher_by_uuid
+        @command = :get_matcher_by_uuid
+        # the UUID was the last "previous argument"
+        matcher_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
@@ -223,15 +160,15 @@ module ProjectRazor
       end
 
       def add_matcher
-        @command = :add_policy
-        @command_help_text << "Description: Used to add a new Tag Matcher to Razor\n"
+        @command = :add_matcher
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :add_matcher)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         tmp, options = parse_and_validate_options(option_items, "razor tag matcher add (options...)", :require_all)
-        includes_uuid = true if tmp
+        includes_uuid if tmp && tmp != "add"
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -254,16 +191,13 @@ module ProjectRazor
 
       def update_matcher
         @command = :update_matcher
-        @command_help_text << "Description: Used to update an existing Tag Matcher\n"
+        includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :update_matcher)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
         matcher_uuid, options = parse_and_validate_options(option_items, "razor policy update UUID (options...)", :require_one)
-        if !@web_command
-          matcher_uuid = @command_array.shift
-        end
         includes_uuid = true if matcher_uuid
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
@@ -293,22 +227,8 @@ module ProjectRazor
 
       def remove_matcher
         @command = :remove_matcher
-        @command_help_text << "Description: remove one Tag Matcher from the system\n"
-        # load the appropriate option items for the subcommand we are handling
-        option_items = { }
-        # parse and validate the options that were passed in as part of this
-        # subcommand (this method will return a UUID value, if present, and the
-        # options map constructed from the @commmand_array)
-        matcher_uuid, options = parse_and_validate_options(option_items, "razor tag matcher remove (UUID)", :require_all)
-        if !@web_command
-          matcher_uuid = @command_array.shift
-        end
-        includes_uuid = true if matcher_uuid
-        # check for usage errors (the boolean value at the end of this method
-        # call is used to indicate whether the choice of options from the
-        # option_items hash must be an exclusive choice)
-        check_option_usage(option_items, options, includes_uuid, true)
-
+        # the UUID was the last "previous argument"
+        matcher_uuid = @prev_args.peek(0)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
         raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher" unless tagrule.remove_tag_matcher(matcher.uuid)

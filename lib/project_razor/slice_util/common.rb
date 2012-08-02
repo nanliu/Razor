@@ -143,24 +143,21 @@ module ProjectRazor
       # used by slices to parse and validate the options for a particular subcommand
       def parse_and_validate_options(option_items, banner, logic = nil)
         options = {}
-        includes_uuid = false
-        uuid_val = nil
+        #uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        uuid = @prev_args.peek(0)
         # Get our optparse object passing our options hash, option_items hash, and our banner
         optparse = get_options(options, :options_items => option_items, :banner => banner)
         # set the command help text to the string output from optparse
         @command_help_text << optparse.to_s
-        # Check for UUID
+        # if it's a web command, get the web options that were passed
         if @web_command
-          includes_uuid = true if validate_arg(@command_array.first)
-          uuid_val = @command_array.shift if includes_uuid
-          # if it is a web command, get options from JSON
           options = get_options_web
         end
         # parse our ARGV with the optparse unless options are already set from get_options_web
         optparse.parse! unless option_items.any? { |k| options[k] }
         # validate required options, we use the :require_one logic to check if at least one :required value is present
         validate_options(:option_items => option_items, :options => options, :logic => logic)
-        return [uuid_val, options]
+        return uuid, options
       end
 
       # used by slices to ensure that the usage of options for any given
@@ -186,6 +183,88 @@ module ProjectRazor
                   "Cannot specify a UUID value when using the '#{selected_option[:name]}' option"
           end
         }
+      end
+
+      # used by the slices to throw an error when an unrecognized resource is discovered
+      # while parsing the command line
+      def throw_unrecog_resource_error
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unrecognized resource found while getting resource by UUID: [#{@command_array.first}]"
+      end
+
+      # used by the slices to throw an error when an unexpected UUID was found
+      # while parsing the command line
+      def throw_uuid_not_allowed_error
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected UUID argument found; a UUID value is not allowed in this command"
+      end
+
+      # used by the slices to throw an error when a UUID was expected in a slice command
+      # but no UUID value was found
+      def throw_missing_uuid_error
+        raise ProjectRazor::Error::Slice::MissingArgument,
+              "Expected UUID argument missing; a UUID is required for this command"
+      end
+
+      # used by slices to construct a typical @slice_command hash map based on
+      # an input set of function names
+      def get_command_map(help_cmd_name, get_all_cmd_name, get_by_uuid_cmd_name,
+          add_cmd_name, update_cmd_name, remove_all_cmd_name, remove_by_uuid_cmd_name)
+        return_all = ["all", '{}', /^\{.*\}$/, nil]
+        cmd_map = {}
+        get_all_cmd_name = "throw_missing_uuid_error" unless get_all_cmd_name
+        remove_all_cmd_name = "throw_missing_uuid_error" unless remove_all_cmd_name
+        raise ProjectRazor::Error::Slice::MissingArgument,
+              "A 'get_by_uuid_cmd_name' parameter must be included" unless get_by_uuid_cmd_name
+        raise ProjectRazor::Error::Slice::MissingArgument,
+              "A 'help_cmd_name' parameter must be included" unless help_cmd_name
+
+        # add a get action if non-nil values for the get-related command names
+        # were included in the input arguments
+        cmd_map[:get] = {
+            return_all       => get_all_cmd_name,
+            :default         => get_all_cmd_name,
+            ["--help", "-h"] => help_cmd_name,
+            /^[\S]+$/        => {
+                [/^\{.*\}$/]     => get_by_uuid_cmd_name,
+                :default         => get_by_uuid_cmd_name,
+                :else            => "throw_unrecog_resource_error"
+            }
+        } if (get_all_cmd_name && get_by_uuid_cmd_name)
+        # add an add action if a non-nil value for the add_cmd_name parameter
+        # was included in the input arguments
+        cmd_map[:add] = {
+            :default         => add_cmd_name,
+            :else            => add_cmd_name,
+            ["--help", "-h"] => help_cmd_name
+        } if add_cmd_name
+        # add an update action if a non-nil value for the update_cmd_name
+        # parameter names was included in the input arguments
+        cmd_map[:update] = {
+            :default         => "throw_missing_uuid_error",
+            ["--help", "-h"] => help_cmd_name,
+            /^[\S]+$/        => {
+                :else            => update_cmd_name
+            }
+        } if update_cmd_name
+        # add an update action if a non-nil value for the remove_cmd_name
+        # parameter names was included in the input arguments
+        cmd_map[:remove] = {
+            return_all       => remove_all_cmd_name,
+            :default         => "throw_missing_uuid_error",
+            ["--help", "-h"] => help_cmd_name,
+            /^[\S]+$/        => {
+                [/^\{.*\}$/]     => remove_by_uuid_cmd_name,
+                :else            => "throw_unrecog_resource_error",
+                :default         => remove_by_uuid_cmd_name
+            }
+        } if (remove_all_cmd_name && remove_by_uuid_cmd_name)
+        # add a few more elements that are common between slices
+        cmd_map[:default] = :get
+        cmd_map[:else] = :get
+        cmd_map[["--help", "-h"]] = help_cmd_name
+        # and return the result
+        cmd_map
       end
 
       # Gets a selection of objects for slice

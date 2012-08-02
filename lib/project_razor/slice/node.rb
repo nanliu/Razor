@@ -11,36 +11,25 @@ module ProjectRazor
         @new_slice_style = true
         @slice_name = "Node"
         @engine = ProjectRazor::Engine.instance
-        return_all = ["all", '{}', /^\{.*\}$/, nil]
-        @slice_commands = {
-            :get =>  {
-                return_all       => "get_all_nodes",
-                :default         => "get_all_nodes",
-                ["--help", "-h"] => "node_help",
-                /^[\S]+$/        => {
-                    [/^(attrib|attribute|attributes)$/]             => "get_node_attributes",
-                    [/^(hardware|hardware_id|hardware_ids|hw_id)$/] => "get_node_hardware_ids",
-                    [/^\{.*\}$/]                                    => "get_node_by_uuid",
-                    :else                                           => "unrecognized_resource_error",
-                    :default                                        => "get_node_by_uuid"
-                }
-            },
-            ["register", /^[Rr]$/] => "register_node",
-            ["checkin", /^[Cc]$/] => "checkin_node",
-            :default => :get,
-            :else => :get,
-            ["--help", "-h"] => "node_help"
-        }
-        @command_help_text = get_node_help
+        # get the slice commands map for this slice (based on the set
+        # of commands that are typical for most slices); note that there is
+        # no support for adding, updating, or removing nodes via the slice
+        # API, so the last three arguments are nil
+        @slice_commands = get_command_map("node_help", "get_all_nodes",
+                                          "get_node_by_uuid", nil, nil, nil, nil)
+        # and add a few more commands specific to this slice
+        @slice_commands[:get][/^[\S]+$/][[/^(attrib|attribute|attributes)$/]] = "get_node_attributes"
+        @slice_commands[:get][/^[\S]+$/][[/^(hardware|hardware_id|hardware_ids|hw_id)$/]] = "get_node_hardware_ids"
+        @slice_commands[["register", /^[Rr]$/]] = "register_node"
+        @slice_commands[["checkin", /^[Cc]$/]] = "checkin_node"
+        #@slice_commands = tmp_map
+        # finally, set up the help for this command (will be used to print
+        # usage when errors are encountered)
+        @command_help_text = get_node_help + "\n"
       end
 
       def node_help
         puts get_node_help
-      end
-
-      def unrecognized_resource_error
-        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-              "Unrecognized resource found while getting node by UUID: [#{@command_array.first}]"
       end
 
       def get_node_help
@@ -59,15 +48,19 @@ module ProjectRazor
 
       def get_all_nodes
         # Get all node instances and print/return
-        @command = :get_nodes_all
+        @command = :get_all_nodes
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         #@command_array.unshift(@last_arg) unless @last_arg == 'default'
         print_object_array get_object("nodes", :node), "Discovered Nodes", :style => :table
       end
 
       def get_node_by_uuid
-        @command = :get_node_with_uuid
+        @command = :get_node_by_uuid
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the last "previous argument"
-        node_uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        node_uuid = @prev_args.peek(0)
         node = get_object("node_with_uuid", :node, node_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         print_object_array [node]
@@ -75,6 +68,8 @@ module ProjectRazor
 
       def get_node_attributes
         @command = :get_node_attributes
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'attrib'
         # resource name, or the equivalent values 'attribute' or 'attributes')
         node_uuid = @prev_args.peek(1)
@@ -89,6 +84,8 @@ module ProjectRazor
 
       def get_node_hardware_ids
         @command = :get_node_hardware_ids
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
         # the UUID was the second "previous argument" (the last was the 'hardware_ids'
         # resource name, or the equivalent values 'hardware_id', 'hardware', or 'hw_id')
         node_uuid = @prev_args.peek(1)
