@@ -1,8 +1,0 @@
----
-- :name: :all
-  :default: false
-  :short_form: -a
-  :long_form: --all
-  :description: Remove all models from the system.
-  :uuid_is: not_allowed
-  :required: false

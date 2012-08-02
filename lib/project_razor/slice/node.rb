@@ -22,10 +22,6 @@ module ProjectRazor
         @slice_commands[:get][/^[\S]+$/][[/^(hardware|hardware_id|hardware_ids|hw_id)$/]] = "get_node_hardware_ids"
         @slice_commands[["register", /^[Rr]$/]] = "register_node"
         @slice_commands[["checkin", /^[Cc]$/]] = "checkin_node"
-        #@slice_commands = tmp_map
-        # finally, set up the help for this command (will be used to print
-        # usage when errors are encountered)
-        @command_help_text = get_node_help + "\n"
       end
 
       def node_help
