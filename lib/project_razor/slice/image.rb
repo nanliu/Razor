@@ -227,9 +227,9 @@ module ProjectRazor
         end
         if return_status
           slice_success("")
-          puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
+          puts "\nImage: " + "#{image_selected.uuid}".yellow + " removed successfully"
         else
-          raise ProjectRazor::Error::Slice::InternalError, "cannot remove image '#{image_uuid}' from db"
+          raise ProjectRazor::Error::Slice::InternalError, "cannot remove image '#{image_selected.uuid}' from db"
         end
       end
 
