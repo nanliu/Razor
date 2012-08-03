@@ -102,7 +102,7 @@ module ProjectRazor
         model = get_object("model_by_uuid", :model, options[:model_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model
         raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template == model.template
-        broker = get_object("model_by_uuid", :broker, options[:broker_uuid])
+        broker = get_object("broker_by_uuid", :broker, options[:broker_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless broker || options[:broker_uuid] == "none"
         options[:tags] = options[:tags].split(",") unless options[:tags].class.to_s == "Array"
         raise ProjectRazor::Error::Slice::MissingTags, "Must provide at least one tag [tags]" unless options[:tags].count > 0
@@ -137,6 +137,8 @@ module ProjectRazor
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Policy UUID [#{options[:policy_uuid]}]" unless policy
+
         # check the values that were passed in
         if options[:tags]
           options[:tags] = options[:tags].split(",") if options[:tags].is_a? String

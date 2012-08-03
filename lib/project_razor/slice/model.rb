@@ -126,6 +126,7 @@ module ProjectRazor
         # check the values that were passed in (and gather new meta-data if
         # the --change-metadata flag was included in the update command)
         model = get_object("model_with_uuid", :model, model_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model
         if @web_command
           if req_metadata_hash
             model.web_create_metadata(req_metadata_hash)
