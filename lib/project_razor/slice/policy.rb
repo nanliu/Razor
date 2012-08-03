@@ -137,7 +137,7 @@ module ProjectRazor
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Policy UUID [#{options[:policy_uuid]}]" unless policy
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Policy UUID [#{policy_uuid}]" unless policy
 
         # check the values that were passed in
         if options[:tags]
