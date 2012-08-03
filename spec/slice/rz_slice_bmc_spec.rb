@@ -28,9 +28,9 @@ describe "ProjectRazor::Slice::Bmc" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/register"
 
       json_hash = {}
-      json_hash["@uuid"] = @uuid[0]
-      json_hash["@mac"] = @mac[0]
-      json_hash["@ip"] = @ip[0]
+      json_hash["uuid"] = @uuid[0]
+      json_hash["mac_address"] = @mac[0]
+      json_hash["ip_address"] = @ip[0]
 
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
@@ -59,9 +59,9 @@ describe "ProjectRazor::Slice::Bmc" do
       |x|
 
         json_hash = {}
-        json_hash["@uuid"] = @uuid[x]
-        json_hash["@mac"] = @mac[x]
-        json_hash["@ip"] = @ip[x]
+        json_hash["uuid"] = @uuid[x]
+        json_hash["mac_address"] = @mac[x]
+        json_hash["ip_address"] = @ip[x]
 
         json_string = JSON.generate(json_hash)
         res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
