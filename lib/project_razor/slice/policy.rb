@@ -34,6 +34,8 @@ module ProjectRazor
         @slice_commands[:get].delete(/^[\S]+$/)
         @slice_commands[:get][:else] = "get_policy_by_uuid"
         @slice_commands[:get][[/^(temp|template|templates|types)$/]] = "get_policy_templates"
+        @slice_commands[:get][[/^(callback)$/]] = "get_callback"
+
       end
 
       def policy_help
@@ -50,6 +52,7 @@ module ProjectRazor
                 "\trazor policy add (options...)                 " + "Create a new policy".yellow,
                 "\trazor policy update (UUID) (options...)       " + "Update an existing policy".yellow,
                 "\trazor policy remove (UUID)|all                " + "Remove an existing policy(s)".yellow,
+                "\trazor policy callback (UUID) (NAMESPACE)      " + "Remove an existing policy(s)".yellow,
                 "\trazor policy --help|-h                        " + "Display this screen".yellow].join("\n")
       end
 
@@ -186,30 +189,30 @@ module ProjectRazor
         slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
       end
 
-      #def get_callback
-      #  @command           = :get_callback
-      #  @command_help_text = ""
-      #  active_model_uuid  = @command_array.shift
-      #  raise ProjectRazor::Error::Slice::MissingActiveModelUUID, "Missing active model uuid" unless validate_arg(active_model_uuid)
-      #  callback_namespace = @command_array.shift
-      #  raise ProjectRazor::Error::Slice::MissingCallbackNamespace, "Missing callback namespace" unless validate_arg(callback_namespace)
-      #  engine       = ProjectRazor::Engine.instance
-      #  active_model = nil
-      #  engine.get_active_models.each { |am| active_model = am if am.uuid == active_model_uuid }
-      #  raise ProjectRazor::Error::Slice::ActiveModelInvalid, "Active Model Invalid" unless active_model
-      #  logger.debug "Active bound policy found for callback: #{callback_namespace}"
-      #  make_callback(active_model, callback_namespace)
-      #end
-      #
-      #def make_callback(active_model, callback_namespace)
-      #  callback = active_model.model.callback[callback_namespace]
-      #  raise ProjectRazor::Error::Slice::NoCallbackFound, "Missing callback" unless callback
-      #  setup_data
-      #  node            = @data.fetch_object_by_uuid(:node, active_model.node_uuid)
-      #  callback_return = active_model.model.callback_init(callback, @command_array, node, active_model.uuid, active_model.broker)
-      #  active_model.update_self
-      #  puts callback_return
-      #end
+      def get_callback
+        @command           = :get_callback
+        @command_help_text = ""
+        active_model_uuid  = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingActiveModelUUID, "Missing active model uuid" unless validate_arg(active_model_uuid)
+        callback_namespace = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingCallbackNamespace, "Missing callback namespace" unless validate_arg(callback_namespace)
+        engine       = ProjectRazor::Engine.instance
+        active_model = nil
+        engine.get_active_models.each { |am| active_model = am if am.uuid == active_model_uuid }
+        raise ProjectRazor::Error::Slice::ActiveModelInvalid, "Active Model Invalid" unless active_model
+        logger.debug "Active bound policy found for callback: #{callback_namespace}"
+        make_callback(active_model, callback_namespace)
+      end
+
+      def make_callback(active_model, callback_namespace)
+        callback = active_model.model.callback[callback_namespace]
+        raise ProjectRazor::Error::Slice::NoCallbackFound, "Missing callback" unless callback
+        setup_data
+        node            = @data.fetch_object_by_uuid(:node, active_model.node_uuid)
+        callback_return = active_model.model.callback_init(callback, @command_array, node, active_model.uuid, active_model.broker)
+        active_model.update_self
+        puts callback_return
+      end
 
     end
   end
