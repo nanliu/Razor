@@ -136,6 +136,7 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
+        policy = get_object("policy_with_uuid", :policy, policy_uuid)
         # check the values that were passed in
         if options[:tags]
           options[:tags] = options[:tags].split(",") if options[:tags].is_a? String
