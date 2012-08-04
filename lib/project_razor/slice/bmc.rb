@@ -32,21 +32,13 @@ module ProjectRazor
         @slice_commands = get_command_map("bmc_help",
                                           "get_all_bmcs",
                                           "get_bmc_by_uuid",
-                                          nil,
-                                          "update_bmc",
-                                          nil,
-                                          "remove_bmc_by_uuid")
+                                          nil, nil, nil, nil)
         # and add any additional commands specific to this slice
-        @slice_commands[:get][/^[\S]+$/][[/^(info|guid|enables|chassis_status)$/]] = "query_bmc_via_ipmitool"
+        @slice_commands[:get][/^[\S]+$/][[/^(info|guid|enables|chassis_status|power_status)$/]] = "query_bmc_via_ipmitool"
+        @slice_commands[:get][/^[\S]+$/][:fru] = "fru_bmc"
+        @slice_commands[:get][/^[\S]+$/][:lan] = "lan_bmc"
         @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
         @slice_commands[:register] = "register_bmc"
-        @slice_commands[:power] = { /^[\S]+$/ => { :else => "power_bmc", :default => "power_bmc" } }
-        @slice_commands[:lan] = { /^[\S]+$/ => { [/^(properties|props|\{.*\})$/] => "lan_bmc",
-                                                 :else => "throw_unrecog_resource_error",
-                                                 :default => "lan_bmc" } }
-        @slice_commands[:fru] = { /^[\S]+$/ => { [/^(properties|props|\{.*\})$/] => "fru_bmc",
-                                                 :else => "throw_unrecog_resource_error",
-                                                 :default => "fru_bmc" } }
       end
 
       def bmc_help
@@ -58,8 +50,6 @@ module ProjectRazor
         puts "\trazor bmc [get] (UUID)                 " + "Display details for a BMC".yellow
         puts "\trazor bmc [get] (UUID) (ipmi_sub_cmd)  " + "Display BMC info gathered via ipmitool".yellow
         puts "\trazor bmc power (UUID) (options...)    " + "Controls or displays power state of a node".yellow
-        puts "\trazor bmc lan (UUID) [resource]        " + "Displays LAN info gathered via ipmitool".yellow
-        puts "\trazor bmc fru (UUID) [resource]        " + "Displays FRU info gathered via ipmitool".yellow
         puts "\tNote; the (ipmi_sub_cmd) value can be one of (info|guid|enables|chassis_status),"
         puts "\t      while the [power_cmd] value can be one of (info|guid|enables|chassis_status),"
       end
@@ -93,7 +83,11 @@ module ProjectRazor
         bmc_uuid = @prev_args.peek(1)
         selected_option = @prev_args.peek(0)
         # and invoke the appropriate method on the appropriate BMC (by UUID)
-        run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
+        if selected_option == "power_status"
+          run_ipmi_query_cmd(bmc_uuid, "power", "status")
+        else
+          run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
+        end
       end
 
       # This function searches for a Bmc node that matches the '@uuid' value contained
@@ -124,13 +118,7 @@ module ProjectRazor
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, true)
         power_option = options[:power_option]
-        if power_option != "status"
-          # get the output of an ipmitool "power" command for the selected option and bmc
-          change_bmc_power_state(bmc_uuid, power_option)
-        else
-          # get the power status for the chosen bmc
-          run_ipmi_query_cmd(bmc_uuid, "power", power_option)
-        end
+        change_bmc_power_state(bmc_uuid, power_option)
       end
 
       def lan_bmc

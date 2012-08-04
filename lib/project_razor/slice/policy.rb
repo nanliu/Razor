@@ -52,7 +52,7 @@ module ProjectRazor
                 "\trazor policy add (options...)                 " + "Create a new policy".yellow,
                 "\trazor policy update (UUID) (options...)       " + "Update an existing policy".yellow,
                 "\trazor policy remove (UUID)|all                " + "Remove an existing policy(s)".yellow,
-                "\trazor policy callback (UUID) (NAMESPACE)      " + "Remove an existing policy(s)".yellow,
+                "\trazor policy callback (UUID) (NAMESPACE)      " + "Invoke a callback for an existing policy(s)".yellow,
                 "\trazor policy --help|-h                        " + "Display this screen".yellow].join("\n")
       end
 

@@ -40,7 +40,7 @@ module ProjectRazor
         puts "Broker Commands:".yellow
         puts "\trazor broker [get] [all]                 " + "View all broker targets".yellow
         puts "\trazor broker [get] (UUID)                " + "View specific broker target".yellow
-        puts "\trazor broker add (UUID) (options...)     " + "View specific broker target".yellow
+        puts "\trazor broker add (options...)            " + "View specific broker target".yellow
         puts "\trazor broker update (UUID) (options...)  " + "View specific broker target".yellow
         puts "\trazor broker remove (UUID)|(all)         " + "Remove existing (or all) broker target(s)".yellow
         puts "\trazor broker --help|-h                   " + "Display this screen".yellow

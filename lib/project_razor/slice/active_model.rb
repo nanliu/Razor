@@ -59,8 +59,8 @@ module ProjectRazor
         uuid = @prev_args.peek(1)
         active_model = get_object("active_model_instance", :active, uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model
-        print_object_array [active_model], "", :success_type => :generic, :style => :table
-        print_object_array(active_model.print_log, "", :style => :table)
+        #print_object_array [active_model], "", :success_type => :generic, :style => :table
+        print_object_array active_model.print_log, "", :style => :table
       end
 
       def remove_all_active_models
