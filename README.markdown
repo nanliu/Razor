@@ -23,6 +23,12 @@ Follow wiki documentation for installation process:
 
 https://github.com/puppetlabs/Razor/wiki/installation
 
+## Razor MicroKernel
+* The Razor MicroKernel project:
+[https://github.com/puppetlabs/Razor-Microkernel](https://github.com/puppetlabs/Razor-Microkernel)
+* The Razor MK images are officially available at:
+[https://github.com/puppetlabs/Razor-Microkernel/downloads](https://github.com/puppetlabs/Razor-Microkernel/downloads)
+
 ## Environment Variables
 * $RAZOR_HOME: root directory for Razor install
 * $RAZOR_RSPEC_WEBPATH: root directory for dropping RSpec html _(optional)_
