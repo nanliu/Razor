@@ -30,17 +30,17 @@ https://github.com/puppetlabs/Razor/wiki/installation
 [https://github.com/puppetlabs/Razor-Microkernel/downloads](https://github.com/puppetlabs/Razor-Microkernel/downloads)
 
 ## Environment Variables
-* $RAZOR_HOME: root directory for Razor install
-* $RAZOR_RSPEC_WEBPATH: root directory for dropping RSpec html _(optional)_
-* $RAZOR_LOG_PATH: Path for razor logs _(optional)_ (default = $RAZOR_HOME/log)
-* $RAZOR_LOG_LEVEL: Verbosity for logs _(optional)_
+* $RAZOR\_HOME: Razor installation root directory.
+* $RAZOR\_RSPEC\_WEBPATH: _optional_ rspec HTML output path.
+* $RAZOR\_LOG\_PATH: _optional_ Razor log directory (default: ${RAZOR_HOME}/log).
+* $RAZOR\_LOG\_LEVEL: _optional_ Razor log output verbosity level:
 
-    0 = Debug
-    1 = Info
-    2 = Warn
-    3 = Error (default)
-    4 = Fatal
-    5 = Unknown
+        0 = Debug
+        1 = Info
+        2 = Warn
+        3 = Error (default)
+        4 = Fatal
+        5 = Unknown
 
 ## Directory structure
     ./bin - control scripts
