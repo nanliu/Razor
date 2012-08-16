@@ -1,5 +1,6 @@
 require "json"
 require "yaml"
+require "base62"
 
 # time to wait for an external command (in milliseconds)
 EXT_COMMAND_TIMEOUT = 2000
@@ -32,26 +33,28 @@ module ProjectRazor
         @slice_commands = get_command_map("bmc_help",
                                           "get_all_bmcs",
                                           "get_bmc_by_uuid",
-                                          nil, nil, nil, nil)
+                                          nil,
+                                          "update_bmc_power_state",
+                                          nil,
+                                          nil)
         # and add any additional commands specific to this slice
-        @slice_commands[:get][/^[\S]+$/][[/^(info|guid|enables|chassis_status|power_status)$/]] = "query_bmc_via_ipmitool"
-        @slice_commands[:get][/^[\S]+$/][:fru] = "fru_bmc"
-        @slice_commands[:get][/^[\S]+$/][:lan] = "lan_bmc"
-        @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
         @slice_commands[:register] = "register_bmc"
+        @slice_commands[:get][/^[\S]+$/][:update] = "update_bmc_power_state"
+        @slice_commands[:get][/^[\S]+$/][:else] = "get_bmc_by_uuid"
       end
 
       def bmc_help
-        puts "BMC Slice: used to view the current list of nodes; also used by the Microkernel".red
-        puts "    for the node registration and checkin processes.".red
+        puts "BMC Slice: used to view the current list of BMCs; also used by to register".red
+        puts "    new BMCs with Razor.".red
         puts "BMC Commands:".yellow
-        puts "\trazor bmc register (options...)        " + "Registers a new BMC with Razor".yellow
-        puts "\trazor bmc [get] [all]                  " + "Display list of available BMCs".yellow
-        puts "\trazor bmc [get] (UUID)                 " + "Display details for a BMC".yellow
-        puts "\trazor bmc [get] (UUID) (ipmi_sub_cmd)  " + "Display BMC info gathered via ipmitool".yellow
-        puts "\trazor bmc power (UUID) (options...)    " + "Controls or displays power state of a node".yellow
-        puts "\tNote; the (ipmi_sub_cmd) value can be one of (info|guid|enables|chassis_status),"
-        puts "\t      while the [power_cmd] value can be one of (info|guid|enables|chassis_status),"
+        puts "\trazor bmc register (options...)                 " + "Registers a new BMC".yellow
+        puts "\trazor bmc [get] [all]                           " + "Display list of BMCs".yellow
+        puts "\trazor bmc [get] (UUID) [--query,-q IPMI_QUERY]  " + "Display info for a BMC".yellow
+        puts "\trazor bmc update (UUID) --power-state,-p STATE  " + "Set power state using BMC".yellow
+        puts "  Note; the IPMI_QUERY value passed via the --query flag be one of (info, guid,".red
+        puts "        enables, fru_print, lan_print, chassis_status, or power_status), while".red
+        puts "        the STATE passed via the --power-state flag can be one of (on, off,".red
+        puts "        cycle, or reset)".red
       end
 
       # This function is used to print out an array of all of the Bmc nodes in a tabular form
@@ -70,21 +73,26 @@ module ProjectRazor
       # is made based on the UUID value passed into the function)
       def get_bmc_by_uuid
         @command = :get_bmc_by_uuid
-        # the UUID is the first element of the @command_array
-        bmc_uuid = get_uuid_from_prev_args
+        includes_uuid = false
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc [get] (UUID) [--query,-q IPMI_QUERY]", :require_all)
+        includes_uuid = true if bmc_uuid
         matching_bmc = get_bmc_with_uuid(bmc_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{bmc_uuid}') found" unless matching_bmc
-        print_object_array [matching_bmc], "Bmc Nodes"
-      end
-
-      def query_bmc_via_ipmitool
-        # get the arguments from the @prev_args stack (which contains the previously
-        # processed arguments)
-        bmc_uuid = @prev_args.peek(1)
-        selected_option = @prev_args.peek(0)
-        # and invoke the appropriate method on the appropriate BMC (by UUID)
+        selected_option = options[:query]
+        # if no options were passed in, then just print out the summary for the specified bmc
+        return print_object_array [matching_bmc], "Bmc Nodes" unless selected_option
+        # else, show the result of running the appropriate impitool query command
         if selected_option == "power_status"
           run_ipmi_query_cmd(bmc_uuid, "power", "status")
+        elsif selected_option == "lan_print"
+          run_ipmi_query_cmd(bmc_uuid, "lan", "print")
+        elsif selected_option == "fru_print"
+          run_ipmi_query_cmd(bmc_uuid, "fru", "print")
         else
           run_ipmi_query_cmd(bmc_uuid, "get", selected_option)
         end
@@ -98,61 +106,27 @@ module ProjectRazor
       # @return [ProjectRazor::PowerControl::Bmc]
       def get_bmc_with_uuid(uuid)
         setup_data
-        existing_bmc = @data.fetch_object_by_uuid(:bmc, uuid)
+        existing_bmc = get_object("bmc_instance", :bmc, uuid)
         existing_bmc.refresh_power_state if existing_bmc
         existing_bmc
       end
 
-      def power_bmc
-        @command = :power_bmc
+      def update_bmc_power_state
+        @command = :update_bmc_power_state
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :power)
+        option_items = load_option_items(:command => :update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        bmc_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (options...)", :require_one)
+        bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc update UUID --power-state,-p NEW_STATE", :require_one)
         includes_uuid = true if bmc_uuid
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, true)
-        power_option = options[:power_option]
-        change_bmc_power_state(bmc_uuid, power_option)
-      end
-
-      def lan_bmc
-        @command = :lan_bmc
-        bmc_uuid = @prev_args.peek(1)
-        selected_option = @prev_args.peek(0)
-        # if the argument received was the "web JSON string" then default to an "info" command
-        selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
-        selected_option = "print" if /^(properties|props)$/.match(selected_option)
-        # and then invoke the right method (based on usage)
-        if selected_option && selected_option.length > 0
-          # get the output of an ipmitool "lan" command for the selected option and bmc
-          run_ipmi_query_cmd(bmc_uuid, "lan", selected_option)
-        else
-          # get the FRU information for the chosen bmc
-          run_ipmi_query_cmd(bmc_uuid, "lan", "print")
-        end
-      end
-
-      def fru_bmc
-        @command = :fru_bmc
-        p @prev_args
-        bmc_uuid = @prev_args.peek(1)
-        selected_option = @prev_args.peek(0)
-        # if the argument received was the "web JSON string" then default to an "info" command
-        selected_option = (/\{.*\}/.match(selected_option) ? "print" : selected_option)
-        selected_option = "print" if /^(properties|props)$/.match(selected_option)
-        if selected_option && selected_option.length > 0
-          # get the output of an ipmitool "fru" command for the selected option and bmc
-          run_ipmi_query_cmd(bmc_uuid, "fru", selected_option)
-        else
-          # get the FRU information for the chosen bmc
-          run_ipmi_query_cmd(bmc_uuid, "fru", "print")
-        end
+        new_state = options[:power_state]
+        change_bmc_power_state(bmc_uuid, new_state)
       end
 
       # This function is used to registers a BMC with Razor (or to change the values associated
@@ -170,8 +144,9 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
-        bmc_uuid = options[:uuid]
+        # bmc_uuid = options[:uuid]
         mac_addr = options[:mac_address]
+        bmc_uuid = mac_addr.tr(":","").reverse.to_i(base=16).base62_encode
         ip_addr = options[:ip_address]
 
         begin
@@ -229,6 +204,7 @@ module ProjectRazor
           raise ProjectRazor::Error::Slice::MissingArgument, "missing the uuid value for command to change power state" unless bmc_uuid
           logger.debug "Changing power-state of bmc: #{bmc_uuid} to #{new_state}"
           bmc = get_bmc_with_uuid(bmc_uuid)
+          raise ProjectRazor::Error::Slice::InvalidUUID, "no matching BMC (with a uuid value of '#{bmc_uuid}') found" unless bmc
           power_state_changed, status_string = bmc.change_power_state(new_state, @ipmi_username, @ipmi_password)
           # handle the returned values; how the returned values should be handled will vary
           # depending on the "new_state" that the node is being transitioned into.  For example,
@@ -238,61 +214,62 @@ module ProjectRazor
           # it is an error to try to power-cycle or reset a node that isn't already on, since
           # these operations don't make any sense on a powered-off node.
           result_string = ""
-          case new_state
-            when new_state = "on"
-              if power_state_changed && /Up\/On/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} now powering on"
-              elsif !power_state_changed && /Up\/On/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} already powered on"
-              else
-                # error condition
-                result_string = "attempt to power on Node #{bmc_uuid} failed"
-              end
-              raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
-                  power_state_changed && /Up\/On/.match(status_string) ||
-                      !power_state_changed && /Up\/On/.match(status_string)
-            when new_state = "off"
-              if power_state_changed && /Down\/Off/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} now powering off"
-              elsif !power_state_changed && /Down\/Off/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} already powered off"
-              else
-                # error condition
-                result_string = "attempt to power off Node #{bmc_uuid} failed"
-              end
-              raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
-                  power_state_changed && /Down\/Off/.match(status_string) ||
-                      !power_state_changed && /Down\/Off/.match(status_string)
-            when new_state = "cycle"
-              if power_state_changed && /Cycle/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} now power cycling"
-              elsif !power_state_changed && /Off/.match(status_string)
-                # error condition
-                result_string = "node #{bmc_uuid} powered off, cannot power cycle"
-              else
-                # error condition
-                result_string = "attempt to power cycle Node #{bmc_uuid} failed"
-              end
-              raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
-                  power_state_changed && /Cycle/.match(status_string)
-            when new_state = "reset"
-              if power_state_changed && /Reset/.match(status_string)
-                # success condition
-                result_string = "node #{bmc_uuid} now powering off"
-              elsif !power_state_changed && /Off/.match(status_string)
-                # error condition
-                result_string = "node #{bmc_uuid} powered off, cannot reset"
-              else
-                # error condition
-                result_string = "attempt to reset Node #{bmc_uuid} failed"
-              end
-              raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
-                  power_state_changed && /Reset/.match(status_string)
+          if new_state == "on"
+            if power_state_changed && /Up\/On/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' now powering on"
+            elsif !power_state_changed && /Up\/On/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' already powered on"
+            else
+              # error condition
+              result_string = "attempt to power on node '#{bmc_uuid}' failed"
+            end
+            raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
+                power_state_changed && /Up\/On/.match(status_string) ||
+                    !power_state_changed && /Up\/On/.match(status_string)
+          elsif new_state == "off"
+            if power_state_changed && /Down\/Off/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' now powering off"
+            elsif !power_state_changed && /Down\/Off/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' already powered off"
+            else
+              # error condition
+              result_string = "attempt to power off node '#{bmc_uuid}' failed"
+            end
+            raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
+                power_state_changed && /Down\/Off/.match(status_string) ||
+                    !power_state_changed && /Down\/Off/.match(status_string)
+          elsif new_state == "cycle"
+            if power_state_changed && /Cycle/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' now power cycling"
+            elsif !power_state_changed && /Off/.match(status_string)
+              # error condition
+              result_string = "node '#{bmc_uuid}' powered off, cannot power cycle"
+            else
+              # error condition
+              result_string = "attempt to power cycle node '#{bmc_uuid}' failed"
+            end
+            raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
+                power_state_changed && /Cycle/.match(status_string)
+          elsif new_state == "reset"
+            if power_state_changed && /Reset/.match(status_string)
+              # success condition
+              result_string = "node '#{bmc_uuid}' now powering off"
+            elsif !power_state_changed && /Off/.match(status_string)
+              # error condition
+              result_string = "node '#{bmc_uuid}' powered off, cannot reset"
+            else
+              # error condition
+              result_string = "attempt to reset node '#{bmc_uuid}' failed"
+            end
+            raise ProjectRazor::Error::Slice::CommandFailed, result_string unless
+                power_state_changed && /Reset/.match(status_string)
+          else
+            raise ProjectRazor::Error::Slice::CommandFailed, "Unrecognized new_state '#{new_state}'; must be one of (on|off|cycle|reset)"
           end
           slice_success(result_string)
         rescue ProjectRazor::Error::Slice::Generic => e

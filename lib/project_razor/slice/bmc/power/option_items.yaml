@@ -1,8 +1,0 @@
----
-- :name: :power_option
-  :default: false
-  :short_form: -o
-  :long_form: --power-option OPTION
-  :description: Option to use for a power-state transition.
-  :uuid_is: required
-  :required: true

@@ -1,11 +1,4 @@
 ---
-- :name: :uuid
-  :default: false
-  :short_form: -u
-  :long_form: --uuid UUID
-  :description: UUID for BMC being registered
-  :uuid_is: not_allowed
-  :required: true
 - :name: :ip_address
   :default: false
   :short_form: -i

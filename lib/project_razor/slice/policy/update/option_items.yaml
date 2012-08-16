@@ -48,17 +48,10 @@
   :description: ! 'Sets the policy maximum count for nodes.'
   :uuid_is: required
   :required: true
-- :name: :movehigher
+- :name: :new_line_number
   :default:
-  :short_form: -u
-  :long_form: --move-priority-higher
-  :description: ! 'Move policy up in priority.'
-  :uuid_is: required
-  :required: true
-- :name: :movelower
-  :default:
-  :short_form: -w
-  :long_form: --move-priority-lower
-  :description: ! 'Move policy down in priority.'
+  :short_form: -n
+  :long_form: --new-line-number NEW_NUM
+  :description: ! 'Change policy rule number.'
   :uuid_is: required
   :required: true

@@ -55,6 +55,7 @@ module ProjectRazor
 
       def get_active_model_logs
         @command = :get_active_model_logs
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot view Active Model logs via REST" if @web_command
         # the UUID is the first element of the @command_array
         uuid = @prev_args.peek(1)
         active_model = get_object("active_model_instance", :active, uuid)
@@ -64,6 +65,7 @@ module ProjectRazor
       end
 
       def remove_all_active_models
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot remove all Active Models via REST" if @web_command
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Active Models" unless get_data.delete_all_objects(:active)
         slice_success("All active models removed", :success_type => :removed)
       end
@@ -79,6 +81,8 @@ module ProjectRazor
       end
 
       def get_logview
+        @command = :get_logview
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot view Active Model logs via REST" if @web_command
         active_models = get_object("active_models", :active)
         log_items = []
         active_models.each { |bp| log_items = log_items | bp.print_log_all }

@@ -23,13 +23,19 @@ module ProjectRazor
                                           "remove_all_tagrules",
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
-        @slice_commands[:matcher] = get_command_map("tag_help",
-                                                    nil,
-                                                    "get_matcher_by_uuid",
-                                                    "add_matcher",
-                                                    "update_matcher",
-                                                    nil,
-                                                    "remove_matcher")
+        @slice_commands[:get][/^[\S]+$/][:matcher] = {}
+        @slice_commands[:get][/^[\S]+$/][:matcher][:add] = "add_matcher"
+        @slice_commands[:get][/^[\S]+$/][:matcher][:update] = {}
+        @slice_commands[:get][/^[\S]+$/][:matcher][:update][/^[\S]+$/] = "update_matcher"
+        @slice_commands[:get][/^[\S]+$/][:matcher][:remove] = {}
+        @slice_commands[:get][/^[\S]+$/][:matcher][:remove][/^[\S]+$/] = "remove_matcher"
+        @slice_commands[:get][/^[\S]+$/][:matcher][:else] = "get_matcher_by_uuid"
+        @slice_commands[:get][/^[\S]+$/][:matcher][:default] = "throw_missing_uuid_error"
+        # add a couple more, to catch the "else" condition (triggered when
+        # adding a tag via the CLI), and the "default" condition (triggered
+        # when adding a tag via REST)
+        #@slice_commands[:add][/^[\S]+$/][:else] = "add_tagrule"
+        #@slice_commands[:add][/^[\S]+$/][:default] = "add_tagrule"
       end
 
       def tag_help
@@ -38,14 +44,20 @@ module ProjectRazor
 
       def get_tag_help
         return [ "Tag Slice:".red,
-                 "Used to view, create, update, and remove Tag Rules and Tag Matchers.".red,
+                 "Used to view, create, update, and remove Tags and Tag Matchers.".red,
                  "Tag commands:".yellow,
-                 "\trazor tag [get] [all]                           " + "View all Tag Rules/Matchers".yellow,
-                 "\trazor tag [matcher] [get] (UUID)                " + "View a specific Tag Rule/Matcher".yellow,
-                 "\trazor tag [matcher] add (options...)            " + "Create a new Tag Rule/Matcher".yellow,
-                 "\trazor tag [matcher] update (UUID) (options...)  " + "Update an existing Tag Rule/Matcher".yellow,
-                 "\trazor tag [matcher] remove (UUID)               " + "Remove an existing Tag Rule/Matcher".yellow,
-                 "\trazor tag remove all                            " + "Remove all existing Tag Rules".yellow,
+                 "\trazor tag [get] [all]                           " + "View Tag summary".yellow,
+                 "\trazor tag [get] (UUID)                          " + "View details of a Tag".yellow,
+                 "\trazor tag add (...)                             " + "Create a new Tag".yellow,
+                 "\trazor tag update (UUID) (...)                   " + "Update an existing Tag ".yellow,
+                 "\trazor tag remove (UUID)                         " + "Remove an existing Tag".yellow,
+                 "\trazor tag remove all                            " + "Remove all existing Tags".yellow,
+                 "Tag Matcher commands:".yellow,
+                 "\trazor tag [get] (T_UUID) matcher all            " + "View all Tag Matchers".yellow,
+                 "\trazor tag [get] (T_UUID) matcher (UUID)         " + "View Tag Matcher details".yellow,
+                 "\trazor tag add (T_UUID) matcher (...)            " + "Create a new Tag Matcher".yellow,
+                 "\trazor tag update (T_UUID) matcher (UUID) (...)  " + "Update a Tag Matcher".yellow,
+                 "\trazor tag remove (T_UUID) matcher (UUID)        " + "Remove a Tag Matcher".yellow,
                  "\trazor tag --help|-h                             " + "Display this screen".yellow].join("\n")
       end
 
@@ -115,6 +127,7 @@ module ProjectRazor
 
       def remove_all_tagrules
         @command = :remove_all_tagrules
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot remove all Tag Rules via REST" if @web_command
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:tag)
         slice_success("All Tag Rules removed", :success_type => :removed)
       end
@@ -148,8 +161,7 @@ module ProjectRazor
 
       def get_matcher_by_uuid
         @command = :get_matcher_by_uuid
-        # the UUID was the last "previous argument"
-        matcher_uuid = get_uuid_from_prev_args
+        matcher_uuid = @command_array.shift
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
@@ -159,6 +171,7 @@ module ProjectRazor
       def add_matcher
         @command = :add_matcher
         includes_uuid = false
+        tagrule_uuid = @prev_args.peek(2)
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :add_matcher)
         # parse and validate the options that were passed in as part of this
@@ -170,7 +183,6 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
-        tagrule_uuid = options[:tag_rule_uuid]
         key = options[:key]
         compare = options[:compare]
         value = options[:value]
@@ -189,6 +201,7 @@ module ProjectRazor
       def update_matcher
         @command = :update_matcher
         includes_uuid = false
+        tagrule_uuid = @prev_args.peek(2)
         # load the appropriate option items for the subcommand we are handling
         option_items = load_option_items(:command => :update_matcher)
         # parse and validate the options that were passed in as part of this
@@ -200,7 +213,7 @@ module ProjectRazor
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
-        tagrule_uuid = options[:tag_rule_uuid]
+        #tagrule_uuid = options[:tag_rule_uuid]
         key = options[:key]
         compare = options[:compare]
         value = options[:value]

@@ -1,11 +1,4 @@
 ---
-- :name: :tag_rule_uuid
-  :default: 
-  :short_form: -t
-  :long_form: --tag-rule-uuid UUID
-  :description: The tag rule this matcher maps to.
-  :uuid_is: not_allowed
-  :required: true
 - :name: :key
   :default: 
   :short_form: -k

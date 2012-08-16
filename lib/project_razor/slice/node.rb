@@ -18,10 +18,9 @@ module ProjectRazor
         @slice_commands = get_command_map("node_help", "get_all_nodes",
                                           "get_node_by_uuid", nil, nil, nil, nil)
         # and add a few more commands specific to this slice
-        @slice_commands[:get][/^[\S]+$/][[/^(attrib|attribute|attributes)$/]] = "get_node_attributes"
-        @slice_commands[:get][/^[\S]+$/][[/^(hardware|hardware_id|hardware_ids|hw_id)$/]] = "get_node_hardware_ids"
         @slice_commands[["register", /^[Rr]$/]] = "register_node"
         @slice_commands[["checkin", /^[Cc]$/]] = "checkin_node"
+        @slice_commands[:get][/^[\S]+$/][:else] = "get_node_by_uuid"
       end
 
       def node_help
@@ -29,17 +28,16 @@ module ProjectRazor
       end
 
       def get_node_help
-        return ["Node Slice: used to view the current list of nodes; also used by the Microkernel".red,
-                "    for the node registration and checkin processes.".red,
+        return ["Node Slice: used to view the current list of nodes(or node details); also used".red,
+                "    by the Microkernel for the node registration and checkin processes.".red,
                 "Node Commands:".yellow,
-                "\trazor node [get] [all]                " + "Display list of available nodes".yellow,
-                "\trazor node [get] (UUID)               " + "Display details for a node".yellow,
-                "\trazor node [get] (UUID) attributes    " + "Display detailed attributes for a node".yellow,
-                "\trazor node [get] (UUID) hardware_ids  " + "Display hardware ID values for a node".yellow,
-                "\trazor node checkin (options...)       " + "Used for node checkin".yellow,
-                "\trazor node register (options...)      " + "Used for node registration".yellow,
-                "\trazor node --help                     " + "Display this screen".yellow
-        ].join("\n")
+                "\trazor node [get] [all]                      " + "Display list of nodes".yellow,
+                "\trazor node [get] (UUID)                     " + "Display details for a node".yellow,
+                "\trazor node [get] (UUID) [--field,-f FIELD]  " + "Display node's field values".yellow,
+                "\trazor node checkin (options...)             " + "Used for node checkin".yellow,
+                "\trazor node register (options...)            " + "Used for node registration".yellow,
+                "\trazor node --help                           " + "Display this screen".yellow,
+                "  Note; the FIELD value (above) can be either 'attributes' or 'hardware_ids'".red].join("\n")
       end
 
       def get_all_nodes
@@ -53,25 +51,32 @@ module ProjectRazor
 
       def get_node_by_uuid
         @command = :get_node_by_uuid
-        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
-        # the UUID was the last "previous argument"
-        node_uuid = get_uuid_from_prev_args
+        includes_uuid = false
+        # ran one argument far when parsing if we were working with a web command
+        @command_array.unshift(@prev_args.pop) if @web_command
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        node_uuid, options = parse_and_validate_options(option_items, "razor node [get] (UUID) [--field,-f FIELD]", :require_all)
+        includes_uuid = true if node_uuid
         node = get_object("node_with_uuid", :node, node_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
-        print_object_array [node]
+        raise ProjectRazor::Error::Slice::InvalidUUID, "no matching Node (with a uuid value of '#{node_uuid}') found" unless node
+        selected_option = options[:field]
+        # if no options were passed in, then just print out the summary for the specified node
+        return print_object_array [node] unless selected_option
+        if /^(attrib|attributes)$/.match(selected_option)
+          get_node_attributes(node)
+        elsif /^(hardware|hardware_id|hardware_ids)$/.match(selected_option)
+          get_node_hardware_ids(node)
+        else
+          raise ProjectRazor::Error::Slice::InputError, "unrecognized fieldname '#{selected_option}'"
+        end
       end
 
-      def get_node_attributes
+      def get_node_attributes(node)
         @command = :get_node_attributes
-        @command_array.pop if @web_command
-        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
-        # the UUID was the second "previous argument" (the last was the 'attrib'
-        # resource name, or the equivalent values 'attribute' or 'attributes')
-        node_uuid = @prev_args.peek(1)
-        node = get_object("node_with_uuid", :node, node_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
           print_object_array [Hash[node.attributes_hash.sort]]
         else
@@ -79,16 +84,8 @@ module ProjectRazor
         end
       end
 
-      def get_node_hardware_ids
+      def get_node_hardware_ids(node)
         @command = :get_node_hardware_ids
-        @command_array.pop if @web_command
-        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-              "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
-        # the UUID was the second "previous argument" (the last was the 'hardware_ids'
-        # resource name, or the equivalent values 'hardware_id', 'hardware', or 'hw_id')
-        node_uuid = @prev_args.peek(1)
-        node = get_object("node_with_uuid", :node, node_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{node_uuid}]" unless node
         if @web_command
           print_object_array [{"hw_id" => node.hw_id}]
         else

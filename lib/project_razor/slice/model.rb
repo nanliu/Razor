@@ -60,6 +60,10 @@ module ProjectRazor
 
       def get_all_templates
         @command = :get_all_templates
+        if @web_command && @prev_args.peek(0) != "templates"
+          not_found_error = "(use of aliases not supported via REST; use '/model/templates' not '/model/#{@prev_args.peek(0)}')"
+          raise ProjectRazor::Error::Slice::NotFound, not_found_error
+        end
         # We use the common method in Utility to fetch object templates by providing Namespace prefix
         print_object_array get_child_templates(ProjectRazor::ModelTemplate), "Model Templates:"
       end
@@ -147,6 +151,7 @@ module ProjectRazor
 
       def remove_all_models
         @command = :remove_all_models
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot remove all Models via REST" if @web_command
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:model)
         slice_success("All Models removed",:success_type => :removed)
       end

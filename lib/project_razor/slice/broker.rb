@@ -55,6 +55,10 @@ module ProjectRazor
       # Returns the broker plugins available
       def get_broker_plugins
         @command = :get_broker_plugins
+        if @web_command && @prev_args.peek(0) != "plugins"
+          not_found_error = "(use of aliases not supported via REST; use '/broker/plugins' not '/broker/#{@prev_args.peek(0)}')"
+          raise ProjectRazor::Error::Slice::NotFound, not_found_error
+        end
         # We use the common method in Utility to fetch object plugins by providing Namespace prefix
         print_object_array get_child_templates(ProjectRazor::BrokerPlugin), "\nAvailable Broker Plugins:"
       end
@@ -89,7 +93,7 @@ module ProjectRazor
         # check the values that were passed in
         servers = servers.flatten if servers.is_a? Array
         servers = servers.split(",") if servers.is_a? String
-        raise ProjectRazor::Error::Slice::MissingArgument, "broker server [server_hostname(,server_hostname)]" unless servers.count > 0
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         raise ProjectRazor::Error::Slice::InvalidPlugin, "Invalid broker plugin [#{plugin}]" unless is_valid_template?(BROKER_PREFIX, plugin)
         # use the arguments passed in (above) to create a new broker
         broker                  = new_object_from_template_name(BROKER_PREFIX, plugin)
@@ -170,6 +174,7 @@ module ProjectRazor
 
       def remove_all_brokers
         @command = :remove_all_brokers
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot remove all Brokers via REST" if @web_command
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Brokers" unless get_data.delete_all_objects(:broker)
         slice_success("All brokers removed", :success_type => :removed)
       end

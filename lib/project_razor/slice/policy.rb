@@ -67,6 +67,10 @@ module ProjectRazor
       # Returns the policy templates available
       def get_policy_templates
         @command = :get_policy_templates
+        if @web_command && @prev_args.peek(0) != "templates"
+          not_found_error = "(use of aliases not supported via REST; use '/policy/templates' not '/policy/#{@prev_args.peek(0)}')"
+          raise ProjectRazor::Error::Slice::NotFound, not_found_error
+        end
         # We use the common method in Utility to fetch object templates by providing Namespace prefix
         print_object_array get_child_templates(ProjectRazor::PolicyTemplate), "\nPolicy Templates:"
       end
@@ -154,7 +158,8 @@ module ProjectRazor
           raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless broker || options[:broker_uuid] == "none"
         end
         raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --enable and --disable at the same time." if options[:enable] && options[:disable]
-        raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --move-priority-higher and --move-priority-lower at the same time." if options[:movehigher] && options[:movelower]
+        new_line_number = (options[:new_line_number] ? options[:new_line_number].strip : nil)
+        raise ProjectRazor::Error::Slice::InputError, "New index '#{options[:new_line_number]}' is not an integer" if new_line_number && !/^[+-]?\d+$/.match(new_line_number)
         if options[:maximum]
           raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be a valid integer" unless options[:maximum].to_i.to_s == options[:maximum]
           raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be > 0" unless options[:maximum].to_i >= 0
@@ -167,9 +172,10 @@ module ProjectRazor
         policy.enabled = true if options[:enable]
         policy.enabled = false if options[:disable]
         policy.maximum_count = options[:maximum] if options[:maximum]
-        policy_rules = ProjectRazor::Policies.instance
-        policy_rules.move_policy_up(policy.uuid) if options[:movehigher]
-        policy_rules.move_policy_down(policy.uuid) if options[:movelower]
+        if new_line_number
+          policy_rules = ProjectRazor::Policies.instance
+          policy_rules.move_policy_to_idx(policy.uuid, new_line_number.to_i)
+        end
         # Update object
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Broker Target [#{broker.uuid}]" unless policy.update_self
         print_object_array [policy], "", :success_type => :updated
