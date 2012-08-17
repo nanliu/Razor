@@ -231,16 +231,19 @@ module ProjectRazor
         rmd = req_metadata_hash
         rmd.each_key do
         |md|
+          metadata = map_keys_to_symbols(rmd[md])
+          provided_metadata = map_keys_to_symbols(provided_metadata)
+          md = (!md.is_a?(Symbol) ? md.gsub(/^@/,'').to_sym : md)
+          md_fld_name = '@' + md.to_s
           if provided_metadata[md]
             raise ProjectRazor::Error::Slice::InvalidModelMetadata, "Invalid Metadata [#{md.to_s}:'#{provided_metadata[md]}']" unless
-                set_metadata_value(md, provided_metadata[md], rmd[md][:validation])
+                set_metadata_value(md_fld_name, provided_metadata[md], metadata[:validation])
           else
-            if req_metadata_hash[md][:default] != ""
+            if metadata[:default] != ""
               raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" unless
-                  set_metadata_value(md, rmd[md][:default], rmd[md][:validation])
+                  set_metadata_value(md_fld_name, metadata[:default], metadata[:validation])
             else
-              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if
-                  rmd[md][:required]
+              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if metadata[:required]
             end
           end
         end

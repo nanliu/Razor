@@ -85,8 +85,7 @@ module ProjectRazor
         template = options[:template]
         label = options[:label]
         image_uuid = options[:image_uuid]
-        # TODO; sort out how to pass in the req_metadata_hash value using the existing YAML files for add and update
-        # req_metadata_hash = options[:req_metadata_hash]
+        req_metadata_hash = options[:req_metadata_hash] if @web_command
         # check the values that were passed in
         model = verify_template(template)
         raise ProjectRazor::Error::Slice::InvalidModelTemplate, "Invalid Model Template [#{template}] " unless model
@@ -116,8 +115,24 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        model_uuid, options = parse_and_validate_options(option_items, "razor model update UUID (options...)", :require_one)
+        model_uuid, options = nil, nil
+        if @web_command
+          model_uuid, options = parse_and_validate_options(option_items, "razor model update UUID (options...)", :require_none)
+        else
+          model_uuid, options = parse_and_validate_options(option_items, "razor model update UUID (options...)", :require_one)
+        end
+
         includes_uuid = true if model_uuid
+        # the :req_metadata_hash is not a valid value via the CLI but might be
+        # included as part of a web command; as such the parse_and_validate_options
+        # can't properly handle this error and we have to check here to ensure that
+        # at least one value was provided in the update command
+        if @web_command && options.all?{ |x| x == nil }
+          option_names = option_items.map { |val| val[:name] }
+          option_names.delete(:change_metadata)
+          option_names << :req_metadata_hash
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must provide one option from #{option_names.inspect}."
+        end
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -125,14 +140,18 @@ module ProjectRazor
         label = options[:label]
         image_uuid = options[:image_uuid]
         change_metadata = options[:change_metadata]
-        # req_metadata_hash = options[:req_metadata_hash]
+        req_metadata_hash = options[:req_metadata_hash] if @web_command
 
         # check the values that were passed in (and gather new meta-data if
-        # the --change-metadata flag was included in the update command)
+        # the --change-metadata flag was included in the update command and the
+        # command was invoked via the CLI...it's an error to use this flag via
+        # the RESTful API, the req_metadata_hash should be used instead)
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model
         if @web_command
-          if req_metadata_hash
+          if change_metadata
+            raise ProjectRazor::Error::Slice::InputError, "Cannot use the change_metadata flag with a web command"
+          elsif req_metadata_hash
             model.web_create_metadata(req_metadata_hash)
           end
         else
