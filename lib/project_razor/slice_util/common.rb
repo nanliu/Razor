@@ -34,6 +34,18 @@ module ProjectRazor
           @array[stack_idx]
         end
 
+        def size
+          @array.size
+        end
+
+        def length
+          @array.length
+        end
+
+        def include?(val)
+          @array.include?(val)
+        end
+
       end
 
       # This allows stubbing
@@ -75,6 +87,7 @@ module ProjectRazor
             end
           end
           opts.on('-h', '--help', 'Display this screen.') do
+            print "Usage: "
             puts opts
             exit
           end
@@ -160,6 +173,28 @@ module ProjectRazor
         return uuid, options
       end
 
+      # used by the slices to print out detailed usage for individual commands
+      def print_command_help(slice_name, command, option_items, contained_resource = nil)
+        banner = ""
+        if contained_resource
+          banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
+              "razor #{slice_name} #{command} (UUID) #{contained_resource} (UUID) (options...)" :
+              "razor #{slice_name} #{command} #{contained_resource} (options...)")
+        else
+          banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
+              "razor #{slice_name} #{command} (UUID) (options...)" :
+              "razor #{slice_name} #{command} (options...)")
+        end
+        usage_lines = get_options({}, :options_items => option_items,
+                                  :banner => banner).to_s.split("\n")
+        if usage_lines
+          puts "Usage: #{usage_lines[0]}"
+          usage_lines[1..usage_lines.size].each { |line|
+            puts line
+          } if usage_lines.length > 1
+        end
+      end
+
       # used by slices to ensure that the usage of options for any given
       # subcommand is consistent with the usage declared in the option_items
       # Hash map for that subcommand
@@ -213,6 +248,13 @@ module ProjectRazor
               "Expected UUID argument missing; a UUID is required for this command"
       end
 
+      # used by slices to support an error indicating that an operation is not
+      # supported by that slice
+      def throw_get_by_uuid_not_supported
+        raise ProjectRazor::Error::Slice::NotImplemented,
+        "there is no 'get_by_uuid' operation defined for the #{@slice_name} slice"
+      end
+
       # used by slices to construct a typical @slice_command hash map based on
       # an input set of function names
       def get_command_map(help_cmd_name, get_all_cmd_name, get_by_uuid_cmd_name,
@@ -221,8 +263,7 @@ module ProjectRazor
         cmd_map = {}
         get_all_cmd_name = "throw_missing_uuid_error" unless get_all_cmd_name
         remove_all_cmd_name = "throw_missing_uuid_error" unless remove_all_cmd_name
-        raise ProjectRazor::Error::Slice::MissingArgument,
-              "A 'get_by_uuid_cmd_name' parameter must be included" unless get_by_uuid_cmd_name
+        get_by_uuid_cmd_name = "throw_get_by_uuid_not_supported" unless get_by_uuid_cmd_name
         raise ProjectRazor::Error::Slice::MissingArgument,
               "A 'help_cmd_name' parameter must be included" unless help_cmd_name
 

@@ -36,13 +36,26 @@ module ProjectRazor
       end
 
       def broker_help
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
         puts "Broker Slice: used to add, view, update, and remove Broker Targets.".red
         puts "Broker Commands:".yellow
         puts "\trazor broker [get] [all]                 " + "View all broker targets".yellow
         puts "\trazor broker [get] (UUID)                " + "View specific broker target".yellow
-        puts "\trazor broker add (options...)            " + "View specific broker target".yellow
-        puts "\trazor broker update (UUID) (options...)  " + "View specific broker target".yellow
-        puts "\trazor broker remove (UUID)|(all)         " + "Remove existing (or all) broker target(s)".yellow
+        puts "\trazor broker [get] plugin|plugins|t      " + "View list of available broker plugins".yellow
+        puts "\trazor broker add (options...)            " + "Create a new broker target".yellow
+        puts "\trazor broker update (UUID) (options...)  " + "Update a specific broker target".yellow
+        puts "\trazor broker remove (UUID)|all           " + "Remove existing (or all) broker target(s)".yellow
         puts "\trazor broker --help|-h                   " + "Display this screen".yellow
       end
 
@@ -115,7 +128,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        broker_uuid, options = parse_and_validate_options(option_items, "razor broker update UUID (options...)", :require_one)
+        broker_uuid, options = parse_and_validate_options(option_items, "razor broker update (UUID) (options...)", :require_one)
         includes_uuid = true if broker_uuid
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the

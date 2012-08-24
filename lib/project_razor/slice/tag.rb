@@ -24,11 +24,15 @@ module ProjectRazor
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
         @slice_commands[:get][/^[\S]+$/][:matcher] = {}
-        @slice_commands[:get][/^[\S]+$/][:matcher][:add] = "add_matcher"
-        @slice_commands[:get][/^[\S]+$/][:matcher][:update] = {}
-        @slice_commands[:get][/^[\S]+$/][:matcher][:update][/^[\S]+$/] = "update_matcher"
-        @slice_commands[:get][/^[\S]+$/][:matcher][:remove] = {}
-        @slice_commands[:get][/^[\S]+$/][:matcher][:remove][/^[\S]+$/] = "remove_matcher"
+        @slice_commands[:add][/^[\S]+$/][:matcher] = {}
+        @slice_commands[:add][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:add][/^[\S]+$/][:matcher][:default] = "add_matcher"
+        @slice_commands[:update][/^[\S]+$/][:matcher] = {}
+        @slice_commands[:update][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:update][/^[\S]+$/][:matcher][/^[\S]+$/] = "update_matcher"
+        @slice_commands[:remove][/^[\S]+$/][:matcher] = {}
+        @slice_commands[:remove][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:remove][/^[\S]+$/][:matcher][/^[\S]+$/] = "remove_matcher"
         @slice_commands[:get][/^[\S]+$/][:matcher][:else] = "get_matcher_by_uuid"
         @slice_commands[:get][/^[\S]+$/][:matcher][:default] = "throw_missing_uuid_error"
         # add a couple more, to catch the "else" condition (triggered when
@@ -39,6 +43,23 @@ module ProjectRazor
       end
 
       def tag_help
+        if @prev_args.length > 1
+          # get the command name that should be used to load the right options
+          command = (@prev_args.include?("matcher") ? "#{@prev_args.peek(3)}_matcher": @prev_args.peek(1))
+          begin
+            # load the option items for this command (if they exist) and print them; note that
+            # the command update_matcher (or add_matcher) actually appears on the CLI as
+            # the command razor tag (UUID) matcher update (or add), so need to split on the
+            # underscore character and swap the order when printing the command usage
+            option_items = load_option_items(:command => command.to_sym)
+            command, subcommand = command.split("_")
+            print_command_help(@slice_name.downcase, command, option_items, subcommand)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
         puts get_tag_help
       end
 

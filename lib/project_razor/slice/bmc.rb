@@ -44,13 +44,25 @@ module ProjectRazor
       end
 
       def bmc_help
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help          print_command_help("bmc")
         puts "BMC Slice: used to view the current list of BMCs; also used by to register".red
         puts "    new BMCs with Razor.".red
         puts "BMC Commands:".yellow
-        puts "\trazor bmc register (options...)                 " + "Registers a new BMC".yellow
-        puts "\trazor bmc [get] [all]                           " + "Display list of BMCs".yellow
-        puts "\trazor bmc [get] (UUID) [--query,-q IPMI_QUERY]  " + "Display info for a BMC".yellow
-        puts "\trazor bmc update (UUID) --power-state,-p STATE  " + "Set power state using BMC".yellow
+        puts "\trazor bmc [get] [all]                             " + "Display list of BMCs".yellow
+        puts "\trazor bmc [get] (UUID) [--query,-q (IPMI_QUERY)]  " + "Display info for a BMC".yellow
+        puts "\trazor bmc register (options...)                   " + "Registers a new BMC".yellow
+        puts "\trazor bmc update (UUID) --power-state,-p (STATE)  " + "Set power state using BMC".yellow
         puts "  Note; the IPMI_QUERY value passed via the --query flag be one of (info, guid,".red
         puts "        enables, fru_print, lan_print, chassis_status, or power_status), while".red
         puts "        the STATE passed via the --power-state flag can be one of (on, off,".red

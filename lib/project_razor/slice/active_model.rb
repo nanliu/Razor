@@ -29,12 +29,24 @@ module ProjectRazor
       end
 
       def active_model_help
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
         puts "Active Model Slice: used to view active models or active model logs, and to remove active models.".red
         puts "Active Model Commands:".yellow
         puts "\trazor active_model [get] [all]          " + "View all active models".yellow
-        puts "\trazor active_model [get] (UUID) logs    " + "View specific active model (log)".yellow
+        puts "\trazor active_model [get] (UUID) [logs]  " + "View specific active model (log)".yellow
         puts "\trazor active_model logview              " + "Prints an aggregate active model log view".yellow
-        puts "\trazor active_model remove (UUID)|(all)  " + "Remove existing (or all) active model(s)".yellow
+        puts "\trazor active_model remove (UUID)|all    " + "Remove existing (or all) active model(s)".yellow
         puts "\trazor active_model --help|-h            " + "Display this screen".yellow
       end
 
@@ -71,7 +83,7 @@ module ProjectRazor
       end
 
       def remove_active_model_by_uuid
-        @command = :get_active_model_logs
+        @command = :remove_active_model_by_uuid
         # the UUID is the first element of the @command_array
         uuid = get_uuid_from_prev_args
         active_model = get_object("active_model_instance", :active, uuid)

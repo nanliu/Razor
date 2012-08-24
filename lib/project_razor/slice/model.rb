@@ -29,17 +29,29 @@ module ProjectRazor
       end
 
       def model_help
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
         puts get_model_help
       end
 
       def get_model_help
         return ["Model Slice: used to add, view, update, and remove models.".red,
                 "Model Commands:".yellow,
-                "\trazor model [get] [--all]               " + "View all broker targets".yellow,
-                "\trazor model [get] (UUID)                " + "View specific broker target".yellow,
-                "\trazor model add (UUID) (options...)     " + "View specific broker target".yellow,
-                "\trazor model update (UUID) (options...)  " + "View specific broker target".yellow,
-                "\trazor model remove (UUID)|(--all)       " + "Remove existing (or all) broker target(s)".yellow,
+                "\trazor model [get] [all]                 " + "View all models".yellow,
+                "\trazor model [get] (UUID)                " + "View specific model instance".yellow,
+                "\trazor model add (UUID) (options...)     " + "Create a new model instance".yellow,
+                "\trazor model update (UUID) (options...)  " + "Update a specific model instance".yellow,
+                "\trazor model remove (UUID)|all           " + "Remove existing (or all) model(s)".yellow,
                 "\trazor model --help                      " + "Display this screen".yellow].join("\n")
       end
 

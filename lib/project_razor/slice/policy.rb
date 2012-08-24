@@ -39,6 +39,18 @@ module ProjectRazor
       end
 
       def policy_help
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
         puts get_policy_help
       end
 
@@ -60,8 +72,7 @@ module ProjectRazor
       def get_all_policies
         @command = :get_all_policies
         # Get all policy instances and print/return
-        policy_all = get_object("policies", :policy)
-        print_object_array @policies.get, "Policies", :style => :table
+        print_object_array get_object("policies", :policy), "Policies", :style => :table
       end
 
       # Returns the policy templates available
