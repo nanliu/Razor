@@ -23,14 +23,21 @@ module ProjectRazor
         # of commands that are typical for most slices)
         @slice_commands = get_command_map("image_help",
                                           "get_images",
-                                          "get_image_by_uuid",
+                                          nil,
                                           "add_image",
                                           nil,
                                           nil,
                                           "remove_image")
         # and add any additional commands specific to this slice
         @slice_commands[:get][:path] = "get_path"
-
+        # set up the "get by uuid" manually (to avoid capturing the "get path"
+        # command as if the string "path" where a UUID value)
+        @slice_commands[:get].delete(/^[\S]+$/)
+        image_uuid_match = /^((?!path).)\S+$/
+        @slice_commands[:get][image_uuid_match] = {}
+        @slice_commands[:get][image_uuid_match][/^\{.*\}$/] = "get_image_by_uuid"
+        @slice_commands[:get][image_uuid_match][:default] = "get_image_by_uuid"
+        @slice_commands[:get][image_uuid_match][:else] = "throw_syntax_error"
       end
 
       def image_help
