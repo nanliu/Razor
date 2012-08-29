@@ -119,7 +119,7 @@ module ProjectRazor
       def get_bmc_with_uuid(uuid)
         setup_data
         existing_bmc = get_object("bmc_instance", :bmc, uuid)
-        existing_bmc.refresh_power_state if existing_bmc
+        existing_bmc.refresh_power_state if existing_bmc && (existing_bmc.class != Array || existing_bmc.length > 0)
         existing_bmc
       end
 

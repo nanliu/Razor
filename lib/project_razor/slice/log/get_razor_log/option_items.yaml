@@ -10,7 +10,7 @@
   :default:
   :short_form: -l
   :long_form: --log-level LOG_LEVEL
-  :description: The (minimum) log level.
+  :description: The log level pattern/value.
   :uuid_is: not_allowed
   :required: false
 - :name: :class_name
@@ -37,7 +37,7 @@
 - :name: :elapsed_time
   :default:
   :short_form: -e
-  :long_form: --elapsed-time LOG_LEVEL
+  :long_form: --elapsed-time ELAPSED_TIME
   :description: The elapsed time limit (for messages).
   :uuid_is: not_allowed
   :required: false
@@ -45,13 +45,13 @@
   :default: false
   :short_form: -n
   :long_form: --filter-before-tail
-  :description: Apply filter before tailing log file (default).
+  :description: Apply filter before tailing (default).
   :uuid_is: not_allowed
   :required: false
 - :name: :tail_before_filter
   :default: false
   :short_form: -r
   :long_form: --tail-before-filter
-  :description: Apply tail before filtering log file.
+  :description: Apply tail before filtering.
   :uuid_is: not_allowed
   :required: false

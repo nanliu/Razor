@@ -49,9 +49,9 @@ module ProjectRazor
                 "Model Commands:".yellow,
                 "\trazor model [get] [all]                 " + "View all models".yellow,
                 "\trazor model [get] (UUID)                " + "View specific model instance".yellow,
-                "\trazor model add (UUID) (options...)     " + "Create a new model instance".yellow,
+                "\trazor model add (options...)            " + "Create a new model instance".yellow,
                 "\trazor model update (UUID) (options...)  " + "Update a specific model instance".yellow,
-                "\trazor model remove (UUID)|all           " + "Remove existing (or all) model(s)".yellow,
+                "\trazor model remove (UUID)|all           " + "Remove existing model(s)".yellow,
                 "\trazor model --help                      " + "Display this screen".yellow].join("\n")
       end
 
@@ -66,7 +66,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         model_uuid = @command_array.first
         model = get_object("get_model_by_uuid", :model, model_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model && (model.class != Array || model.length > 0)
         print_object_array [model] ,"",:success_type => :generic
       end
 
@@ -159,7 +159,7 @@ module ProjectRazor
         # command was invoked via the CLI...it's an error to use this flag via
         # the RESTful API, the req_metadata_hash should be used instead)
         model = get_object("model_with_uuid", :model, model_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model && (model.class != Array || model.length > 0)
         if @web_command
           if change_metadata
             raise ProjectRazor::Error::Slice::InputError, "Cannot use the change_metadata flag with a web command"
@@ -192,7 +192,7 @@ module ProjectRazor
         # the UUID was the last "previous argument"
         model_uuid = get_uuid_from_prev_args
         model = get_object("model_with_uuid", :model, model_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model && (model.class != Array || model.length > 0)
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{model.uuid}]" unless @data.delete_object(model)
         slice_success("Active Model [#{model.uuid}] removed",:success_type => :removed)
@@ -206,7 +206,7 @@ module ProjectRazor
       def verify_image(model, image_uuid)
         setup_data
         image = get_object("find_image", :images, image_uuid)
-        if image
+        if image && (image.class != Array || image.length > 0)
           return image if model.image_prefix == image.path_prefix
         end
         nil

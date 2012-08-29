@@ -63,7 +63,7 @@ module ProjectRazor
                 "\trazor policy [get] templates|types            " + "View available policy templates".yellow,
                 "\trazor policy add (options...)                 " + "Create a new policy".yellow,
                 "\trazor policy update (UUID) (options...)       " + "Update an existing policy".yellow,
-                "\trazor policy remove (UUID)|all                " + "Remove an existing policy(s)".yellow,
+                "\trazor policy remove (UUID)|all                " + "Remove existing policy(s)".yellow,
                 "\trazor policy callback (UUID) (NAMESPACE)      " + "Invoke a callback for an existing policy(s)".yellow,
                 "\trazor policy --help|-h                        " + "Display this screen".yellow].join("\n")
       end
@@ -91,7 +91,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         policy_uuid = @command_array.first
         policy = get_object("get_policy_by_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy && policy.length > 0
         print_object_array [policy], "", :success_type => :generic
       end
 
@@ -112,17 +112,25 @@ module ProjectRazor
 
         # check the values that were passed in
         policy = new_object_from_template_name(POLICY_PREFIX, options[:template])
+
+        # assign default values for (missing) optional parameters
+        options[:maximum] = "0" if !options[:maximum]
+        options[:broker_uuid] = "none" if !options[:broker_uuid]
+        options[:enabled] = "false" if !options[:enabled]
+
+        # check for errors in inputs
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
         setup_data
         model = get_object("model_by_uuid", :model, options[:model_uuid])
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0) > 0
         raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template == model.template
         broker = get_object("broker_by_uuid", :broker, options[:broker_uuid])
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless broker || options[:broker_uuid] == "none"
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless (broker && (broker.class != Array || broker.length > 0)) || options[:broker_uuid] == "none"
         options[:tags] = options[:tags].split(",") unless options[:tags].class.to_s == "Array"
         raise ProjectRazor::Error::Slice::MissingTags, "Must provide at least one tag [tags]" unless options[:tags].count > 0
         raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be a valid integer" unless options[:maximum].to_i.to_s == options[:maximum]
         raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be > 0" unless options[:maximum].to_i >= 0
+
         # Flesh out the policy
         policy.label         = options[:label]
         policy.model         = model
@@ -152,7 +160,7 @@ module ProjectRazor
         # option_items hash must be an exclusive choice)
         check_option_usage(option_items, options, includes_uuid, false)
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Policy UUID [#{policy_uuid}]" unless policy
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Policy UUID [#{policy_uuid}]" unless policy && (policy.class != Array || policy.length > 0)
 
         # check the values that were passed in
         if options[:tags]
@@ -161,12 +169,12 @@ module ProjectRazor
         end
         if options[:model_uuid]
           model = get_object("model_by_uuid", :model, options[:model_uuid])
-          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0)
           raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.label}]" unless policy.template == model.template
         end
         if options[:broker_uuid]
           broker = get_object("model_by_uuid", :broker, options[:broker_uuid])
-          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless broker || options[:broker_uuid] == "none"
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless (broker && (broker.class != Array || broker.length > 0)) || options[:broker_uuid] == "none"
         end
         raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --enable and --disable at the same time." if options[:enable] && options[:disable]
         new_line_number = (options[:new_line_number] ? options[:new_line_number].strip : nil)
@@ -203,7 +211,7 @@ module ProjectRazor
         # the UUID was the last "previous argument"
         policy_uuid = get_uuid_from_prev_args
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy && (policy.class != Array || policy.length > 0)
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{policy.uuid}]" unless @data.delete_object(policy)
         slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)

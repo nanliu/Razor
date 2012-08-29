@@ -61,7 +61,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         uuid = get_uuid_from_prev_args
         active_model = get_object("active_model_instance", :active, uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
         print_object_array [active_model], "", :success_type => :generic
       end
 
@@ -71,7 +71,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         uuid = @prev_args.peek(1)
         active_model = get_object("active_model_instance", :active, uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
         #print_object_array [active_model], "", :success_type => :generic, :style => :table
         print_object_array active_model.print_log, "", :style => :table
       end
@@ -87,7 +87,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         uuid = get_uuid_from_prev_args
         active_model = get_object("active_model_instance", :active, uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model.uuid}]" unless get_data.delete_object(active_model)
         slice_success("Active model #{active_model.uuid} removed", :success_type => :removed)
       end

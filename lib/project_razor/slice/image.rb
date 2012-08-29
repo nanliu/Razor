@@ -22,8 +22,8 @@ module ProjectRazor
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
         @slice_commands = get_command_map("image_help",
-                                          "list_images",
-                                          nil,
+                                          "get_images",
+                                          "get_image_by_uuid",
                                           "add_image",
                                           nil,
                                           nil,
@@ -47,6 +47,7 @@ module ProjectRazor
         puts "Image Slice: used to add, view, and remove Images.".red
         puts "Image Commands:".yellow
         puts "\trazor image [get] [all]         " + "View all images (detailed list)".yellow
+        puts "\trazor image [get] (UUID)        " + "View details of specified image".yellow
         puts "\trazor image add (options...)    " + "Add a new image to the system".yellow
         puts "\trazor image remove (UUID)       " + "Remove existing image from the system".yellow
         puts "\trazor image --help|-h           " + "Display this screen".yellow
@@ -132,18 +133,28 @@ module ProjectRazor
         end
       end
 
-      #Lists images
-      def list_images
-        @command = :list_images
-        raise ProjectRazor::Error::Slice::NotImplemented, "image list cli only" if @web_command
+      #Lists details for all images
+      def get_images
+        @command = :get_images
+        raise ProjectRazor::Error::Slice::NotImplemented, "accessible via cli only" if @web_command
         print_object_array(get_object("images", :images), "Images", :success_type => :generic, :style => :item)
+      end
+
+      #Lists details for a specific image
+      def get_image_by_uuid
+        @command = :get_image_by_uuid
+        raise ProjectRazor::Error::Slice::NotImplemented, "accessible via cli only" if @web_command
+        image_uuid = get_uuid_from_prev_args
+        image = get_object("images", :images, image_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Image with UUID: [#{image_uuid}]" unless image && (image.class != Array || image.length > 0)
+        print_object_array [image], "", :success_type => :generic
       end
 
       #Add an image
       def add_image
         @command = :add_image
         # raise an error if attempt is made to invoke this command via the web interface
-        raise ProjectRazor::Error::Slice::NotImplemented, "image add cli only" if @web_command
+        raise ProjectRazor::Error::Slice::NotImplemented, "accessible via cli only" if @web_command
         # define the available image types (input type must match one of these)
         image_types = {:mk => {:desc => "MicroKernel ISO",
                                :classname => "ProjectRazor::ImageService::MicroKernel",
@@ -250,7 +261,7 @@ module ProjectRazor
         #setup_data
         #image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
         image_selected = get_object("image_with_uuid", :images, image_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID unless image_selected
+        raise ProjectRazor::Error::Slice::InvalidUUID unless image_selected && (image_selected.class != Array || image_selected.length > 0)
 
         # Use the Engine instance to remove the selected image from the database
         engine = ProjectRazor::Engine.instance

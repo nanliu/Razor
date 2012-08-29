@@ -23,29 +23,53 @@ module ProjectRazor
                                           "remove_all_tagrules",
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
-        @slice_commands[:get][/^[\S]+$/][:matcher] = {}
-        @slice_commands[:add][/^[\S]+$/][:matcher] = {}
-        @slice_commands[:add][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
-        @slice_commands[:add][/^[\S]+$/][:matcher][:default] = "add_matcher"
-        @slice_commands[:update][/^[\S]+$/][:matcher] = {}
-        @slice_commands[:update][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
-        @slice_commands[:update][/^[\S]+$/][:matcher][/^[\S]+$/] = "update_matcher"
-        @slice_commands[:remove][/^[\S]+$/][:matcher] = {}
-        @slice_commands[:remove][/^[\S]+$/][:matcher][/^(--help|-h)$/] = "tag_help"
-        @slice_commands[:remove][/^[\S]+$/][:matcher][/^[\S]+$/] = "remove_matcher"
-        @slice_commands[:get][/^[\S]+$/][:matcher][:else] = "get_matcher_by_uuid"
-        @slice_commands[:get][/^[\S]+$/][:matcher][:default] = "throw_missing_uuid_error"
-        # add a couple more, to catch the "else" condition (triggered when
-        # adding a tag via the CLI), and the "default" condition (triggered
-        # when adding a tag via REST)
-        #@slice_commands[:add][/^[\S]+$/][:else] = "add_tagrule"
-        #@slice_commands[:add][/^[\S]+$/][:default] = "add_tagrule"
+        tag_uuid_match = /^((?!matcher).)\S+$/
+        @slice_commands[tag_uuid_match] = {}
+        @slice_commands[tag_uuid_match][:default] = "get_tagrule_by_uuid"
+        @slice_commands[tag_uuid_match][:else] = "get_tagrule_by_uuid"
+        @slice_commands[tag_uuid_match][:matcher] = {}
+        # add a few more commands to support the use of "tag matcher" help without
+        # having to include a tag UUID in the help command (i.e. commands like
+        # "razor tag matcher update --help" or "razor tag matcher add --help")
+        @slice_commands[:matcher] = {}
+        @slice_commands[:matcher][:else] = "tag_help"
+        @slice_commands[:matcher][:default] = "tag_help"
+        # adding a tag matcher
+        @slice_commands[tag_uuid_match][:matcher][:add] = {}
+        @slice_commands[tag_uuid_match][:matcher][:add][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:add][:else] = "add_matcher"
+        # add support for the "tag matcher update help" commands
+        @slice_commands[:matcher][:add] = {}
+        @slice_commands[:matcher][:add][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:matcher][:add][:default] = "throw_syntax_error"
+        @slice_commands[:matcher][:add][:else] = "throw_syntax_error"
+        # updating a tag matcher
+        @slice_commands[tag_uuid_match][:matcher][:update] = {}
+        @slice_commands[tag_uuid_match][:matcher][:update][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:update][/^[\S]+$/] = "update_matcher"
+        # add support for the "tag matcher update help" commands
+        @slice_commands[:matcher][:update] = {}
+        @slice_commands[:matcher][:update][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:matcher][:update][:default] = "throw_syntax_error"
+        @slice_commands[:matcher][:update][:else] = "throw_syntax_error"
+        # removing a tag matcher
+        @slice_commands[tag_uuid_match][:matcher][:remove] = {}
+        @slice_commands[tag_uuid_match][:matcher][:remove][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:remove][/^[\S]+$/] = "remove_matcher"
+        # add support for the "tag matcher remove help" commands
+        @slice_commands[:matcher][:remove] = {}
+        @slice_commands[:matcher][:remove][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[:matcher][:remove][:default] = "throw_syntax_error"
+        @slice_commands[:matcher][:remove][:else] = "throw_syntax_error"
+        # getting a tag matcher
+        @slice_commands[tag_uuid_match][:matcher][:else] = "get_matcher_by_uuid"
+        @slice_commands[tag_uuid_match][:matcher][:default] = "throw_missing_uuid_error"
       end
 
       def tag_help
         if @prev_args.length > 1
           # get the command name that should be used to load the right options
-          command = (@prev_args.include?("matcher") ? "#{@prev_args.peek(3)}_matcher": @prev_args.peek(1))
+          command = (@prev_args.include?("matcher") ? "#{@prev_args.peek(1)}_matcher": @prev_args.peek(1))
           begin
             # load the option items for this command (if they exist) and print them; note that
             # the command update_matcher (or add_matcher) actually appears on the CLI as
@@ -71,14 +95,12 @@ module ProjectRazor
                  "\trazor tag [get] (UUID)                          " + "View details of a Tag".yellow,
                  "\trazor tag add (...)                             " + "Create a new Tag".yellow,
                  "\trazor tag update (UUID) (...)                   " + "Update an existing Tag ".yellow,
-                 "\trazor tag remove (UUID)                         " + "Remove an existing Tag".yellow,
-                 "\trazor tag remove all                            " + "Remove all existing Tags".yellow,
+                 "\trazor tag remove (UUID)|all                     " + "Remove existing Tag(s)".yellow,
                  "Tag Matcher commands:".yellow,
-                 "\trazor tag [get] (T_UUID) matcher all            " + "View all Tag Matchers".yellow,
-                 "\trazor tag [get] (T_UUID) matcher (UUID)         " + "View Tag Matcher details".yellow,
-                 "\trazor tag add (T_UUID) matcher (...)            " + "Create a new Tag Matcher".yellow,
-                 "\trazor tag update (T_UUID) matcher (UUID) (...)  " + "Update a Tag Matcher".yellow,
-                 "\trazor tag remove (T_UUID) matcher (UUID)        " + "Remove a Tag Matcher".yellow,
+                 "\trazor tag (T_UUID) matcher [get] (UUID)         " + "View Tag Matcher details".yellow,
+                 "\trazor tag (T_UUID) matcher add (...)            " + "Create a new Tag Matcher".yellow,
+                 "\trazor tag (T_UUID) matcher update (UUID) (...)  " + "Update a Tag Matcher".yellow,
+                 "\trazor tag (T_UUID) matcher remove (UUID)        " + "Remove a Tag Matcher".yellow,
                  "\trazor tag --help|-h                             " + "Display this screen".yellow].join("\n")
       end
 
@@ -94,7 +116,7 @@ module ProjectRazor
         # the UUID was the last "previous argument"
         tagrule_uuid = get_uuid_from_prev_args
         tagrule = get_object("tagrule_by_uuid", :tag, tagrule_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule && (tagrule.class != Array || tagrule.length > 0)
         print_object_array [tagrule], "", :success_type => :generic
       end
 
@@ -139,7 +161,7 @@ module ProjectRazor
 
         # get the tagfule to update
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule && (tagrule.class != Array || tagrule.length > 0)
         tagrule.name = options[:name] if options[:name]
         tagrule.tag = options[:tag] if options[:tag]
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Tag Rule [#{tagrule.uuid}]" unless tagrule.update_self
@@ -158,7 +180,7 @@ module ProjectRazor
         # the UUID was the last "previous argument"
         tagrule_uuid = get_uuid_from_prev_args
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule && (tagrule.class != Array || tagrule.length > 0)
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Tag Rule [#{tagrule.uuid}]" unless @data.delete_object(tagrule)
         slice_success("Tag Rule [#{tagrule.uuid}] removed", :success_type => :removed)
@@ -211,7 +233,7 @@ module ProjectRazor
 
         # check the values that were passed in
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule && (tagrule.class != Array || tagrule.length > 0)
         raise ProjectRazor::Error::Slice::MissingArgument, "Option for --compare must be [equal|like]" unless compare == "equal" || compare == "like"
         matcher = tagrule.add_tag_matcher(:key => key, :compare => compare, :value => value, :inverse => inverse)
         raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not create tag matcher" unless matcher

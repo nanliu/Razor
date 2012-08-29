@@ -40,16 +40,13 @@ module ProjectRazor
       end
 
       def get_node_help
-        return ["Node Slice: used to view the current list of nodes(or node details); also used".red,
-                "    by the Microkernel for the node registration and checkin processes.".red,
-                "Node Commands:".yellow,
-                "\trazor node [get] [all]                      " + "Display list of nodes".yellow,
-                "\trazor node [get] (UUID)                     " + "Display details for a node".yellow,
-                "\trazor node [get] (UUID) [--field,-f FIELD]  " + "Display node's field values".yellow,
-                "\trazor node checkin (options...)             " + "Used for node checkin".yellow,
-                "\trazor node register (options...)            " + "Used for node registration".yellow,
-                "\trazor node --help                           " + "Display this screen".yellow,
-                "  Note; the FIELD value (above) can be either 'attributes' or 'hardware_ids'".red].join("\n")
+        return ["Node Slice: used to view the current list of nodes (or node details)".red,
+                        "Node Commands:".yellow,
+                        "\trazor node [get] [all]                      " + "Display list of nodes".yellow,
+                        "\trazor node [get] (UUID)                     " + "Display details for a node".yellow,
+                        "\trazor node [get] (UUID) [--field,-f FIELD]  " + "Display node's field values".yellow,
+                        "\trazor node --help                           " + "Display this screen".yellow,
+                        "  Note; the FIELD value (above) can be either 'attributes' or 'hardware_ids'".red].join("\n")
       end
 
       def get_all_nodes
@@ -74,7 +71,7 @@ module ProjectRazor
         node_uuid, options = parse_and_validate_options(option_items, "razor node [get] (UUID) [--field,-f FIELD]", :require_all)
         includes_uuid = true if node_uuid
         node = get_object("node_with_uuid", :node, node_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "no matching Node (with a uuid value of '#{node_uuid}') found" unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID, "no matching Node (with a uuid value of '#{node_uuid}') found" unless node && (node.class != Array || node.length > 0)
         selected_option = options[:field]
         # if no options were passed in, then just print out the summary for the specified node
         return print_object_array [node] unless selected_option
@@ -108,8 +105,9 @@ module ProjectRazor
       def register_node
         @command = :register_node
         @command_name = "register_node"
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot register nodes via the CLI" if !@web_command
         # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
+        #if @web_command
           # Grab next arg as json string var
           json_string = @command_array.first
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
@@ -121,8 +119,8 @@ module ProjectRazor
             @last_state = @vars_hash['last_state']
             @attributes_hash = @vars_hash['attributes_hash']
           end
-        end
-        @hw_id, @last_state, @attributes_hash = *@command_array unless @hw_id || @last_state || @attributes_hash
+        #end
+        #@hw_id, @last_state, @attributes_hash = *@command_array unless @hw_id || @last_state || @attributes_hash
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Last State[last_state]" unless validate_arg(@last_state)
@@ -149,8 +147,9 @@ module ProjectRazor
       def checkin_node
         @command = :checkin_node
         @command_name = "checkin_node"
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot checkin nodes via the CLI" if !@web_command
         # If a REST call we need to populate the values from the provided JSON string
-        if @web_command
+        #if @web_command
           # Grab next arg as json string var
           json_string = @command_array.first
           # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
@@ -162,8 +161,8 @@ module ProjectRazor
             @last_state = @vars_hash['last_state']
             @first_checkin = @vars_hash['first_checkin']
           end
-        end
-        @hw_id, @last_state, @first_checkin = *@command_array unless @hw_id || @last_state || @first_checkin
+        #end
+        #@hw_id, @last_state, @first_checkin = *@command_array unless @hw_id || @last_state || @first_checkin
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Last State[last_state]" unless validate_arg(@last_state)

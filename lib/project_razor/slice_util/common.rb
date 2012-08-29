@@ -46,6 +46,10 @@ module ProjectRazor
           @array.include?(val)
         end
 
+        def join(sep)
+          @array.join(sep)
+        end
+
       end
 
       # This allows stubbing
@@ -178,8 +182,8 @@ module ProjectRazor
         banner = ""
         if contained_resource
           banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
-              "razor #{slice_name} #{command} (UUID) #{contained_resource} (UUID) (options...)" :
-              "razor #{slice_name} #{command} #{contained_resource} (options...)")
+              "razor #{slice_name} (#{slice_name[0].upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
+              "razor #{slice_name} (#{slice_name[0].upcase}_UUID) #{contained_resource} #{command} (options...)")
         else
           banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
               "razor #{slice_name} #{command} (UUID) (options...)" :
@@ -227,11 +231,13 @@ module ProjectRazor
         @web_command && @prev_args.peek(0) == '{}' ? @prev_args.peek(1) : @prev_args.peek(0)
       end
 
-      # used by the slices to throw an error when an unrecognized resource is discovered
-      # while parsing the command line
-      def throw_unrecog_resource_error
+      # used by the slices to throw an error when an error occurred while attempting to parse
+      # a slice command line
+      def throw_syntax_error
+        command_str = "razor #{@slice_name.downcase} #{@prev_args.join(" ")}"
+        command_str << " " + @command_array.join(" ") if @command_array && @command_array.length > 0
         raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
-              "Unrecognized resource found while getting resource by UUID: [#{@command_array.first}]"
+              "failed to parse slice command: '#{command_str}'; check usage"
       end
 
       # used by the slices to throw an error when an unexpected UUID was found
@@ -276,7 +282,7 @@ module ProjectRazor
             /^[\S]+$/        => {
                 [/^\{.*\}$/]     => get_by_uuid_cmd_name,
                 :default         => get_by_uuid_cmd_name,
-                :else            => "throw_unrecog_resource_error"
+                :else            => "throw_syntax_error"
             }
         } if (get_all_cmd_name && get_by_uuid_cmd_name)
         # add an add action if a non-nil value for the add_cmd_name parameter
@@ -304,7 +310,7 @@ module ProjectRazor
             ["--help", "-h"] => help_cmd_name,
             /^[\S]+$/        => {
                 [/^\{.*\}$/]     => remove_by_uuid_cmd_name,
-                :else            => "throw_unrecog_resource_error",
+                :else            => "throw_syntax_error",
                 :default         => remove_by_uuid_cmd_name
             }
         } if (remove_all_cmd_name && remove_by_uuid_cmd_name)

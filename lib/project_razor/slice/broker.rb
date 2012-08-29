@@ -81,7 +81,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         broker_uuid = @command_array.first
         broker = get_object("broker instances", :broker, broker_uuid)
-        raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#{broker_uuid}]" unless broker
+        raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
         print_object_array [broker]
       end
 
@@ -144,7 +144,7 @@ module ProjectRazor
           raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         end
         broker = get_object("broker_with_uuid", :broker, broker_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker Target with UUID: [#{broker_uuid}]" unless broker
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker Target with UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
         broker.name             = name if name
         broker.user_description = description if description
         broker.servers          = servers if servers
@@ -197,7 +197,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         broker_uuid = get_uuid_from_prev_args
         broker = get_object("policy_with_uuid", :broker, broker_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker with UUID: [#{broker_uuid}]" unless broker
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker with UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{broker.uuid}]" unless @data.delete_object(broker)
         slice_success("Broker [#{broker.uuid}] removed", :success_type => :removed)
