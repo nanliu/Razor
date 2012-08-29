@@ -91,7 +91,7 @@ module ProjectRazor
         # the UUID is the first element of the @command_array
         policy_uuid = @command_array.first
         policy = get_object("get_policy_by_uuid", :policy, policy_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy && policy.length > 0
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy && (policy.class != Array || policy.length > 0)
         print_object_array [policy], "", :success_type => :generic
       end
 
@@ -122,7 +122,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
         setup_data
         model = get_object("model_by_uuid", :model, options[:model_uuid])
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0) > 0
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0)
         raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template == model.template
         broker = get_object("broker_by_uuid", :broker, options[:broker_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless (broker && (broker.class != Array || broker.length > 0)) || options[:broker_uuid] == "none"
@@ -173,12 +173,14 @@ module ProjectRazor
           raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.label}]" unless policy.template == model.template
         end
         if options[:broker_uuid]
-          broker = get_object("model_by_uuid", :broker, options[:broker_uuid])
+          broker = get_object("broker_by_uuid", :broker, options[:broker_uuid])
           raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless (broker && (broker.class != Array || broker.length > 0)) || options[:broker_uuid] == "none"
         end
-        raise ProjectRazor::Error::Slice::MissingArgument, "Cannot use --enable and --disable at the same time." if options[:enable] && options[:disable]
         new_line_number = (options[:new_line_number] ? options[:new_line_number].strip : nil)
         raise ProjectRazor::Error::Slice::InputError, "New index '#{options[:new_line_number]}' is not an integer" if new_line_number && !/^[+-]?\d+$/.match(new_line_number)
+        if options[:enabled]
+          raise ProjectRazor::Error::Slice::InputError, "Enabled flag must have a value of 'true' or 'false'" if options[:enabled] != "true" && options[:enabled] != "false"
+        end
         if options[:maximum]
           raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be a valid integer" unless options[:maximum].to_i.to_s == options[:maximum]
           raise ProjectRazor::Error::Slice::InvalidMaximumCount, "Policy maximum count must be > 0" unless options[:maximum].to_i >= 0
@@ -188,8 +190,7 @@ module ProjectRazor
         policy.model = model if model
         policy.broker = broker if broker
         policy.tags = options[:tags] if options[:tags]
-        policy.enabled = true if options[:enable]
-        policy.enabled = false if options[:disable]
+        policy.enabled = options[:enabled] if options[:enabled]
         policy.maximum_count = options[:maximum] if options[:maximum]
         if new_line_number
           policy_rules = ProjectRazor::Policies.instance

@@ -37,8 +37,8 @@
 - :name: :enabled
   :default: false
   :short_form: -e
-  :long_form: --enabled
-  :description: Sets the policy to enabled on creation.
+  :long_form: --enabled ENABLED_FLAG
+  :description: ! 'Should policy be enabled (true|false) [default: false]?'
   :uuid_is: not_allowed
   :required: false
 - :name: :maximum

@@ -196,7 +196,7 @@ module ProjectRazor
         @command = :remove_broker_by_uuid
         # the UUID is the first element of the @command_array
         broker_uuid = get_uuid_from_prev_args
-        broker = get_object("policy_with_uuid", :broker, broker_uuid)
+        broker = get_object("broker_with_uuid", :broker, broker_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker with UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{broker.uuid}]" unless @data.delete_object(broker)
