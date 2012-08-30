@@ -62,6 +62,9 @@ module ProjectRazor
       # Returns all broker instances
       def get_all_brokers
         @command = :get_all_brokers
+        # if it's a web command and the last argument wasn't the string "default" or "get", then a
+        # filter expression was included as part of the web command
+        @command_array.unshift(@prev_args.pop) if @web_command && @prev_args.peek(0) != "default" && @prev_args.peek(0) != "get"
         print_object_array get_object("broker_instances", :broker), "Broker Targets:"
       end
 
