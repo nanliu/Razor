@@ -41,12 +41,12 @@ module ProjectRazor
 
       def get_node_help
         return ["Node Slice: used to view the current list of nodes (or node details)".red,
-                        "Node Commands:".yellow,
-                        "\trazor node [get] [all]                      " + "Display list of nodes".yellow,
-                        "\trazor node [get] (UUID)                     " + "Display details for a node".yellow,
-                        "\trazor node [get] (UUID) [--field,-f FIELD]  " + "Display node's field values".yellow,
-                        "\trazor node --help                           " + "Display this screen".yellow,
-                        "  Note; the FIELD value (above) can be either 'attributes' or 'hardware_ids'".red].join("\n")
+                "Node Commands:".yellow,
+                "\trazor node [get] [all]                      " + "Display list of nodes".yellow,
+                "\trazor node [get] (UUID)                     " + "Display details for a node".yellow,
+                "\trazor node [get] (UUID) [--field,-f FIELD]  " + "Display node's field values".yellow,
+                "\trazor node --help                           " + "Display this screen".yellow,
+                "  Note; the FIELD value (above) can be either 'attributes' or 'hardware_ids'".red].join("\n")
       end
 
       def get_all_nodes
@@ -54,7 +54,9 @@ module ProjectRazor
         @command = :get_all_nodes
         raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
               "Unexpected arguments found in command #{@command} -> #{@command_array.inspect}" if @command_array.length > 0
-        #@command_array.unshift(@last_arg) unless @last_arg == 'default'
+        # if it's a web command and the last argument wasn't the string "default" or "get", then a
+        # filter expression was included as part of the web command
+        @command_array.unshift(@prev_args.pop) if @web_command && @prev_args.peek(0) != "default" && @prev_args.peek(0) != "get"
         print_object_array get_object("nodes", :node), "Discovered Nodes", :style => :table
       end
 
@@ -108,17 +110,17 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot register nodes via the CLI" if !@web_command
         # If a REST call we need to populate the values from the provided JSON string
         #if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
-            @hw_id = @vars_hash['hw_id']
-            @last_state = @vars_hash['last_state']
-            @attributes_hash = @vars_hash['attributes_hash']
-          end
+        # Grab next arg as json string var
+        json_string = @command_array.first
+        # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
+        if is_valid_json?(json_string)
+          # Grab vars as hash using sanitize to strip the @ prefix if used
+          @vars_hash = sanitize_hash(JSON.parse(json_string))
+          @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
+          @hw_id = @vars_hash['hw_id']
+          @last_state = @vars_hash['last_state']
+          @attributes_hash = @vars_hash['attributes_hash']
+        end
         #end
         #@hw_id, @last_state, @attributes_hash = *@command_array unless @hw_id || @last_state || @attributes_hash
         # Validate our args are here
@@ -150,17 +152,17 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot checkin nodes via the CLI" if !@web_command
         # If a REST call we need to populate the values from the provided JSON string
         #if @web_command
-          # Grab next arg as json string var
-          json_string = @command_array.first
-          # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
-            @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
-            @hw_id = @vars_hash['hw_id']
-            @last_state = @vars_hash['last_state']
-            @first_checkin = @vars_hash['first_checkin']
-          end
+        # Grab next arg as json string var
+        json_string = @command_array.first
+        # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
+        if is_valid_json?(json_string)
+          # Grab vars as hash using sanitize to strip the @ prefix if used
+          @vars_hash = sanitize_hash(JSON.parse(json_string))
+          @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
+          @hw_id = @vars_hash['hw_id']
+          @last_state = @vars_hash['last_state']
+          @first_checkin = @vars_hash['first_checkin']
+        end
         #end
         #@hw_id, @last_state, @first_checkin = *@command_array unless @hw_id || @last_state || @first_checkin
         # Validate our args are here

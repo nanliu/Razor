@@ -57,6 +57,9 @@ module ProjectRazor
 
       def get_all_models
         @command = :get_all_models
+        # if it's a web command and the last argument wasn't the string "default" or "get", then a
+        # filter expression was included as part of the web command
+        @command_array.unshift(@prev_args.pop) if @web_command && @prev_args.peek(0) != "default" && @prev_args.peek(0) != "get"
         # Get all tag rules and print/return
         print_object_array get_object("models", :model), "Models", :style => :table, :success_type => :generic
       end

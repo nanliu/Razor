@@ -344,7 +344,14 @@ module ProjectRazor
             @command = "query_with_filter"
             begin
               # Render our JSON to a Hash
-              return return_objects_using_filter(JSON.parse(@filter_json_string), collection)
+              filter_hash = JSON.parse(@filter_json_string)
+              # if any of the Hash values are "true" or "false", convert to equivalent
+              # Boolean values (true and false, respectively)
+              filter_hash.each { |key, val|
+                (filter_hash[key] = true; next) if val == "true"
+                filter_hash[key] = false if val == "false"
+              }
+              return return_objects_using_filter(filter_hash, collection)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
               slice_error(e.message, false)

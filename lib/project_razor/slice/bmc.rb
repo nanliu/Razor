@@ -72,13 +72,17 @@ module ProjectRazor
       # This function is used to print out an array of all of the Bmc nodes in a tabular form
       # (using the centralized print_object_array method)
       def get_all_bmcs
+        @command = :get_all_bmcs
+        # if it's a web command and the last argument wasn't the string "default" or "get", then a
+        # filter expression was included as part of the web command
+        @command_array.unshift(@prev_args.pop) if @web_command && @prev_args.peek(0) != "default" && @prev_args.peek(0) != "get"
         bmc_array = get_object("bmc", :bmc)
         if bmc_array
           bmc_array.each { |bmc|
             bmc.refresh_power_state
           }
         end
-        print_object_array get_object("bmc", :bmc), "Bmc Nodes"
+        print_object_array bmc_array, "Bmc Nodes"
       end
 
       # This function is used to print out a single matching BMC object (where the match
@@ -91,6 +95,7 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
+        @command_array.unshift(@prev_args.pop) if @web_command
         bmc_uuid, options = parse_and_validate_options(option_items, "razor bmc [get] (UUID) [--query,-q IPMI_QUERY]", :require_all)
         includes_uuid = true if bmc_uuid
         matching_bmc = get_bmc_with_uuid(bmc_uuid)
