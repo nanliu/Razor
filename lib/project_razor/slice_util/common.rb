@@ -276,13 +276,13 @@ module ProjectRazor
         # add a get action if non-nil values for the get-related command names
         # were included in the input arguments
         cmd_map[:get] = {
-            return_all       => get_all_cmd_name,
-            :default         => get_all_cmd_name,
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                [/^\{.*\}$/]     => get_by_uuid_cmd_name,
-                :default         => get_by_uuid_cmd_name,
-                :else            => "throw_syntax_error"
+            return_all                      => get_all_cmd_name,
+            :default                        => get_all_cmd_name,
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/ => {
+                [/^\{.*\}$/]                    => get_by_uuid_cmd_name,
+                :default                        => get_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error"
             }
         } if (get_all_cmd_name && get_by_uuid_cmd_name)
         # add an add action if a non-nil value for the add_cmd_name parameter
@@ -295,23 +295,23 @@ module ProjectRazor
         # add an update action if a non-nil value for the update_cmd_name
         # parameter names was included in the input arguments
         cmd_map[:update] = {
-            :default         => "throw_missing_uuid_error",
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                :else            => update_cmd_name,
-                :default         => update_cmd_name
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                :else                           => update_cmd_name,
+                :default                        => update_cmd_name
             }
         } if update_cmd_name
         # add an update action if a non-nil value for the remove_cmd_name
         # parameter names was included in the input arguments
         cmd_map[:remove] = {
-            ["all"]          => remove_all_cmd_name,
-            :default         => "throw_missing_uuid_error",
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                [/^\{.*\}$/]     => remove_by_uuid_cmd_name,
-                :else            => "throw_syntax_error",
-                :default         => remove_by_uuid_cmd_name
+            ["all"]                         => remove_all_cmd_name,
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                [/^\{.*\}$/]                    => remove_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error",
+                :default                        => remove_by_uuid_cmd_name
             }
         } if (remove_all_cmd_name && remove_by_uuid_cmd_name)
         # add a few more elements that are common between slices
