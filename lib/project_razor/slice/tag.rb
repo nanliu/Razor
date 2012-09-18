@@ -23,7 +23,7 @@ module ProjectRazor
                                           "remove_all_tagrules",
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
-        tag_uuid_match = /^((?!(matcher|add|get|remove|update)))\S+$/
+        tag_uuid_match = /^((?!(matcher|add|get|remove|update)))\S+/
         @slice_commands[tag_uuid_match] = {}
         @slice_commands[tag_uuid_match][:default] = "get_tagrule_by_uuid"
         @slice_commands[tag_uuid_match][:else] = "get_tagrule_by_uuid"
